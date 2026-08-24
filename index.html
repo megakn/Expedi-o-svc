@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layout SVC-SD · Painel de Posições</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF2F7; --surface:#FFFFFF; --surface-alt:#F6F8FB; --border:#D9E0EA;
+    --navy-900:#0E2A47; --navy-700:#1E3A5F; --muted:#65748A; --teal-600:#0E7C86;
+    --amber-500:#F5A524; --red-600:#DC2626; --slate-400:#94A3B8; --blue-600:#2563EB;
+    --purple-600:#7C3AED; --green-600:#16A34A;
+    --radius:10px; --hatch: repeating-linear-gradient(135deg, rgba(14,42,71,.06) 0 6px, transparent 6px 12px);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--navy-900);font-family:'Inter',Segoe UI,Arial,sans-serif;padding:20px 16px 60px;}
+  .wrap{max-width:1300px;margin:0 auto;}
+
+  #seletor{position:fixed;inset:0;background:rgba(14,42,71,.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;}
+  #seletor .box{background:#fff;border-radius:14px;padding:28px;max-width:480px;width:100%;text-align:center;}
+  #seletor h2{margin:0 0 6px;font-size:18px;}
+  #seletor p{color:var(--muted);font-size:13px;margin:0 0 18px;}
+  .rua-btn{display:block;width:100%;background:var(--surface-alt);border:1.5px solid var(--border);color:var(--navy-900);border-radius:9px;padding:12px;margin-bottom:8px;font-weight:700;font-size:14px;text-align:left;cursor:pointer;}
+  .rua-btn:hover{border-color:var(--teal-600);background:#F0FBFC;}
+  .rua-btn.coord{background:var(--navy-900);color:#fff;text-align:center;}
+
+  header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  header h1{font-size:20px;letter-spacing:.06em;margin:0;text-transform:uppercase;font-weight:800;}
+  header p{color:var(--muted);margin:2px 0 0;font-size:12.5px;}
+  .perfil-badge{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:10px;}
+  .perfil-badge button{padding:4px 10px;font-size:11px;}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;border-left:4px solid var(--navy-700);}
+  .kpi .n{font-family:'Roboto Mono',monospace;font-size:24px;font-weight:700;line-height:1;}
+  .kpi .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
+  .kpi.ocupado{border-left-color:var(--blue-600);} .kpi.livre{border-left-color:var(--slate-400);}
+  .kpi.pendente{border-left-color:var(--red-600);} .kpi.chamados{border-left-color:#DC2626;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
+  .card h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--navy-700);margin:0 0 4px;font-weight:800;}
+  .card .hint{color:var(--muted);font-size:12px;margin:0 0 12px;}
+
+  .search-row{display:flex;gap:8px;flex-wrap:wrap;}
+  input, select, textarea{background:var(--surface-alt);border:1px solid var(--border);color:var(--navy-900);border-radius:8px;padding:9px 12px;font-size:13.5px;font-family:inherit;}
+  #q{flex:1;min-width:200px;font-family:'Roboto Mono',monospace;}
+  button{background:var(--navy-900);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:700;font-size:13px;cursor:pointer;}
+  button:hover{background:var(--navy-700);}
+  button.secondary{background:var(--surface);color:var(--navy-900);border:1px solid var(--border);font-weight:600;}
+  button.secondary:hover{background:var(--surface-alt);}
+  button.danger{background:var(--red-600);color:#fff;padding:5px 10px;font-size:11.5px;}
+  button.status-btn{padding:6px 11px;font-size:11.5px;font-weight:700;border-radius:20px;border:1.5px solid transparent;}
+  button.ok{background:var(--green-600);}
+  button.roxo{background:var(--purple-600);}
+  button.sm{padding:6px 11px;font-size:11.5px;}
+
+  #detalhe .empty{color:var(--muted);font-size:13px;}
+  .det-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .det-badge{font-family:'Roboto Mono',monospace;font-weight:800;font-size:15px;padding:8px 12px;border-radius:8px;min-width:48px;text-align:center;}
+  .det-info b{font-size:16px;}
+  .det-info span{display:block;color:var(--muted);font-size:12px;margin-top:2px;}
+  .status-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px;}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);}
+  th{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:10.5px;letter-spacing:.05em;}
+  .mini-vaga-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .mini-vaga{font-family:'Roboto Mono',monospace;font-size:11.5px;font-weight:700;padding:5px 8px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;border:1px solid rgba(0,0,0,.08);}
+  .mini-dot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 0 1.5px #fff;}
+
+  .pendente{background:#FDF1E3;border:1px solid #F0C589;border-left:4px solid var(--amber-500);border-radius:8px;padding:12px 14px;margin-bottom:8px;font-size:13px;}
+  .pendente .row{margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+  .chamado-card{border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border:1px solid;}
+  .chamado-card .info{font-size:13px;}
+  .chamado-card .info b{font-size:14px;}
+  .chamado-card .info span{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;}
+  .chamado-card .acoes{display:flex;gap:6px;flex-wrap:wrap;}
+  .badge-status{font-size:10px;font-weight:800;padding:3px 8px;border-radius:12px;color:#fff;text-transform:uppercase;letter-spacing:.04em;}
+  .chamado-alerta{border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;border:1px solid;}
+
+  .floorplan-outer{overflow-x:auto;padding-bottom:10px;}
+  .floorplan{display:flex;gap:12px;align-items:stretch;min-width:1080px;}
+  .fp-col{display:flex;flex-direction:column;gap:8px;}
+  .fp-col.stretch{justify-content:space-between;}
+  .infra-box{background:var(--surface);background-image:var(--hatch);border:1.5px dashed var(--navy-700);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--navy-700);font-weight:800;font-size:11px;letter-spacing:.05em;text-transform:uppercase;text-align:center;padding:8px;}
+  .rampa{writing-mode:vertical-rl;text-orientation:mixed;min-width:46px;flex:1;min-height:70px;}
+  .esteira{height:38px;} .mezanino{height:56px;}
+  .facility-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+  .rua-group{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:8px;position:relative;}
+  .rua-group.bloqueada{opacity:.45;filter:grayscale(.6);}
+  .rua-group .facility-label{margin-bottom:6px;color:var(--navy-700);}
+  .lock-tag{position:absolute;top:6px;right:8px;font-size:10px;font-weight:800;color:var(--muted);}
+  .vaga-grid{display:flex;flex-wrap:wrap;gap:4px;}
+  .col-narrow .vaga-grid{flex-direction:column;}
+
+  .pos-box{position:relative;width:50px;height:56px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(0,0,0,.10);font-family:'Roboto Mono',monospace;transition:transform .12s,box-shadow .12s;box-shadow:0 1px 2px rgba(14,42,71,.10);}
+  .pos-box:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(14,42,71,.22);}
+  .pos-box.selected{outline:3px solid var(--navy-900);outline-offset:1px;}
+  .pos-box.match{outline:3px solid var(--teal-600);outline-offset:1px;}
+  .pos-box .num{font-size:14px;font-weight:800;line-height:1;}
+  .pos-box .sigla{font-size:8.5px;font-weight:700;letter-spacing:.04em;opacity:.9;margin-top:3px;}
+  .status-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 1.5px #fff;}
+  .pos-box.pulso-vermelho{animation:pulseChamado 1.3s infinite;border:2px solid #DC2626;}
+  .pos-box.pulso-roxo{animation:pulseAduana 1.3s infinite;border:2px solid #7C3AED;}
+  .pos-box.borda-azul{border:2px solid #2563EB;}
+  .chamado-flag{position:absolute;top:-6px;left:-6px;color:#fff;font-size:8px;font-weight:800;padding:2px 4px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  @keyframes pulseChamado{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55);}70%{box-shadow:0 0 0 9px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
+  @keyframes pulseAduana{0%{box-shadow:0 0 0 0 rgba(124,58,237,.55);}70%{box-shadow:0 0 0 9px rgba(124,58,237,0);}100%{box-shadow:0 0 0 0 rgba(124,58,237,0);}}
+
+  .arrows-row{display:flex;gap:26px;justify-content:space-around;padding:2px 6px;}
+  .arrows-row svg{width:22px;height:22px;fill:var(--navy-700);}
+  .vuc-label{writing-mode:vertical-rl;text-orientation:mixed;font-weight:800;font-size:11px;color:var(--navy-700);text-align:center;letter-spacing:.06em;}
+
+  .legend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12.5px;}
+  .legend-swatch{width:16px;height:16px;border-radius:4px;flex-shrink:0;border:1px solid rgba(0,0,0,.1);}
+  .legend-status{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .legend-status .legend-item .legend-swatch{border-radius:50%;}
+
+  .status{font-size:12px;color:var(--muted);margin-top:6px;min-height:16px;}
+  textarea#rotasInput{width:100%;min-height:110px;resize:vertical;font-family:'Roboto Mono',monospace;font-size:12px;}
+  .rotas-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+
+  .resumo-rua{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+  .resumo-rua-title{font-weight:800;font-size:13.5px;margin-bottom:8px;color:var(--navy-700);}
+  .resumo-rua-title .qtd{color:var(--teal-600);font-weight:700;font-size:11.5px;}
+  .resumo-transp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--border);}
+  .resumo-transp:first-of-type{border-top:none;}
+  .sigla-badge-sm{font-family:'Roboto Mono',monospace;font-weight:800;font-size:10.5px;padding:3px 7px;border-radius:5px;}
+  .resumo-transp .qtd{color:var(--muted);font-size:11.5px;}
+  .resumo-transp .rotas-list{width:100%;font-family:'Roboto Mono',monospace;font-size:11.5px;color:var(--teal-600);}
+
+  .progress-outer{background:var(--surface-alt);border:1px solid var(--border);border-radius:20px;height:22px;overflow:hidden;margin:10px 0;}
+  .progress-inner{background:var(--teal-600);height:100%;display:flex;align-items:center;justify-content:flex-end;color:#fff;font-size:11px;font-weight:800;padding-right:8px;transition:width .3s;}
+  .finalizados-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .finalizado-chip{background:#EAFBF1;border:1px solid #86EFAC;color:#166534;font-family:'Roboto Mono',monospace;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:6px;}
+
+  @media (max-width:720px){ .pos-box{width:44px;height:50px;} .kpis{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+
+<div id="seletor">
+  <div class="box">
+    <h2>Quem está acessando?</h2>
+    <p>Escolha a rua em que você está escalado hoje. Você só verá as informações dela.</p>
+    <div id="botoesRua"></div>
+    <button class="rua-btn coord" onclick="definirPerfil('COORD')">Coordenação — ver todas as ruas</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div><h1>Layout SVC · SD</h1><p>Painel operacional de posições, ruas e transportadoras</p></div>
+    <div class="perfil-badge" id="perfilBadge"></div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card" id="cardChamar" style="display:none;">
+    <h2>Chamar gaiola</h2>
+    <p class="hint">Escolha a rota (já filtrada pra sua rua) e a vaga. Sem digitação.</p>
+    <div class="search-row">
+      <select id="chamarRota" onchange="popularChamarVagaPorRota()"></select>
+      <select id="chamarVaga"></select>
+      <button onclick="chamarGaiola()">Chamar</button>
+    </div>
+    <div id="avisoChamar"></div>
+    <div id="statusChamar" class="status"></div>
+  </div>
+
+  <div class="card">
+    <h2>Chamados em andamento</h2>
+    <div id="chamadosList"><div class="empty">Nenhum chamado ativo no momento.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Dashboard da onda</h2>
+    <div class="search-row" style="margin-bottom:6px;">
+      <select id="ondaSelect" onchange="renderDashboard()"></select>
+      <button class="secondary" onclick="limparFinalizados()">Limpar concluídos</button>
+    </div>
+    <div id="dashboardOnda"><div class="empty">Importe a tabela do dia para ver o progresso.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Buscar</h2>
+    <p class="hint">Nº da rota, ID do pacote, nº da vaga, sigla ou nome da transportadora.</p>
+    <div class="search-row">
+      <input id="q" placeholder="G5_AM1, 47807885440, HAWK, DC, 9..." autocomplete="off">
+      <button onclick="buscar()">Buscar</button>
+      <button class="secondary" onclick="limpar()">Limpar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Detalhe da posição</h2>
+    <div id="detalhe"><div class="empty">Clique em uma posição no layout abaixo ou use a busca.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Layout interativo</h2>
+    <p class="hint">Clique em qualquer posição para ver rota, transportadora e status.</p>
+    <div class="floorplan-outer"><div class="floorplan" id="floorplan"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Legenda</h2>
+    <div class="legend-grid" id="legendaTransp"></div>
+    <div class="legend-status" id="legendaStatus"></div>
+    <div class="legend-status" id="legendaChamado"></div>
+  </div>
+
+  <div class="card">
+    <h2>Importar tabela do dia</h2>
+    <p class="hint">Cole a tabela (ID do pacote | Nº Rota | Parada | Ponto | Transportadora | Ondas).</p>
+    <textarea id="rotasInput" placeholder="47807885440 | G5_AM1 | 12 | A | HAWK | Onda 1"></textarea>
+    <div class="rotas-actions">
+      <button onclick="importarRotas()">Importar</button>
+      <button class="secondary" onclick="limparRotas()">Limpar rotas importadas</button>
+      <span id="statusRotas" class="status"></span>
+    </div>
+    <div id="pendentes"></div>
+  </div>
+
+  <div class="card">
+    <h2>Resumo por rua</h2>
+    <div id="resumoRuas"><div class="empty">Importe a tabela do dia para ver o resumo.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Vincular transportadora a uma sigla</h2>
+    <div class="search-row" style="margin-bottom:10px;">
+      <input id="linkNome" placeholder="Nome da transportadora (ex: PRALOG)">
+      <select id="linkSigla"></select>
+      <button onclick="adicionarVinculo()">Vincular</button>
+    </div>
+    <div id="statusVinculo" class="status"></div>
+    <table><thead><tr><th>Transportadora</th><th>Sigla</th><th>Rua</th><th></th></tr></thead><tbody id="tabelaVinculos"></tbody></table>
+  </div>
+</div>
+
+<script>
+// ================= DADOS BASE =================
+const CORES = {
+  DC:{bg:'#22d3ee',fg:'#04222a'}, CM:{bg:'#22c55e',fg:'#052e12'}, OT:{bg:'#fde047',fg:'#2b2400'},
+  EC:{bg:'#f3d9b1',fg:'#3a2a10'}, AL:{bg:'#0E2A47',fg:'#ffffff'}, HW:{bg:'#1e3a8a',fg:'#ffffff'},
+  DL:{bg:'#3f6212',fg:'#ffffff'}, MS:{bg:'#6b7280',fg:'#ffffff'}, PC:{bg:'#f4f4f5',fg:'#111111'},
+  KG:{bg:'#f97316',fg:'#2a1200'}, ME:{bg:'#f7cba4',fg:'#3a2510'}, VUC:{bg:'#ef4444',fg:'#ffffff'}
+};
+const STATUS_INFO = {
+  livre:{label:'Livre', hex:'#94A3B8'}, ocupado:{label:'Ocupado', hex:'#2563EB'},
+  separacao:{label:'Em separação', hex:'#F5A524'}, problema:{label:'Problema', hex:'#DC2626'}
+};
+const CHAMADO_STATUS_INFO = {
+  chamado:{label:'Chamado', hex:'#DC2626'},
+  recebido:{label:'Recebido · conferindo', hex:'#2563EB'},
+  aduana:{label:'Aduana · conferência', hex:'#7C3AED'},
+  finalizado:{label:'Finalizado', hex:'#16A34A'}
+};
+function range(a,b){const r=[];for(let i=a;i<=b;i++)r.push(i);return r;}
+const vagasData = [];
+function addVagas(rua, nums, sigla){ nums.forEach(n=>vagasData.push({rua, num:n, sigla})); }
+addVagas('Rua 1', [1,3,5,7], 'DC');
+addVagas('Rua 1', [9,11,13], 'CM');
+addVagas('Rua 1', [15,17,19], 'OT');
+addVagas('Rua 1', [21,23], 'EC');
+addVagas('Rua 1', [25,27,29,31], 'AL');
+addVagas('Rua 2', [2], 'HW');
+addVagas('Rua 2', [4,6,8,10,12], 'DL');
+addVagas('Rua 2', [14,16,18,20,22,24], 'MS');
+addVagas('Rua 2', [26,28,30,32,34], 'PC');
+addVagas('Rua 3', [35,36,37,38,39,40,41], 'HW');
+addVagas('Rua 3', [42,43,44], 'KG');
+addVagas('Rua 3', range(45,65), 'ME');
+addVagas('Rua 4 - Expedição VUC', range(66,88), 'VUC');
+addVagas('Área VUC', range(89,97), 'VUC');
+const SIGLAS = Object.keys(CORES);
+const RUAS_ORDEM = ['Rua 1','Rua 2','Rua 3','Rua 4 - Expedição VUC','Área VUC'];
+
+// ================= PERFIL =================
+let perfil = null;
+const PERFIL_KEY = 'meu-perfil';
+function permitida(rua){ return perfil==='COORD' || perfil===rua; }
+async function carregarPerfil(){
+  try{ const r = await window.storage.get(PERFIL_KEY, false); perfil = r && r.value ? r.value : null; }
+  catch(e){ perfil = null; }
+}
+async function definirPerfil(valor){
+  perfil = valor;
+  try{ await window.storage.set(PERFIL_KEY, valor, false); }catch(e){}
+  document.getElementById('seletor').style.display='none';
+  renderTudo();
+}
+function trocarPerfil(){ document.getElementById('seletor').style.display='flex'; }
+function popularBotoesRua(){ document.getElementById('botoesRua').innerHTML = RUAS_ORDEM.map(r=>`<button class="rua-btn" onclick="definirPerfil('${r}')">${r}</button>`).join(''); }
+function renderPerfilBadge(){
+  const label = perfil==='COORD' ? 'Coordenação (todas as ruas)' : perfil;
+  document.getElementById('perfilBadge').innerHTML = `Você está em: <b>${escapeHtml(label)}</b> <button class="secondary" onclick="trocarPerfil()">Trocar</button>`;
+}
+
+// ================= VÍNCULOS (compartilhado) =================
+let vinculos = [];
+const VINC_KEY = 'vinculos-transportadoras';
+const DEFAULTS_VINCULOS = [
+  {nome:'DECARGO', sigla:'DC'}, {nome:'COOPMETRO', sigla:'CM'}, {nome:'ECO EXPRESS', sigla:'EC'},
+  {nome:'ALC', sigla:'AL'}, {nome:'HAWK', sigla:'HW'}, {nome:'KANGU', sigla:'KG'},
+  {nome:'MELI EXTRA', sigla:'ME'}, {nome:'PARCEIRO', sigla:'PC'}, {nome:'ONTIME', sigla:'OT'},
+  {nome:'DELUNA', sigla:'DL'}, {nome:'M.J SIMÕES', sigla:'MS'}
+];
+async function carregarVinculos(){
+  try{ const r = await window.storage.get(VINC_KEY, true); vinculos = r && r.value ? JSON.parse(r.value) : []; }
+  catch(e){ vinculos = []; }
+  let mudou=false;
+  DEFAULTS_VINCULOS.forEach(d=>{ if(!vinculos.some(v=>v.sigla===d.sigla)){ vinculos.push(d); mudou=true; } });
+  if(mudou) await salvarVinculos();
+}
+async function salvarVinculos(){
+  try{ await window.storage.set(VINC_KEY, JSON.stringify(vinculos), true); }
+  catch(e){ document.getElementById('statusVinculo').textContent = 'Não foi possível salvar o vínculo agora.'; }
+}
+function popularSelectSiglas(){ document.getElementById('linkSigla').innerHTML = SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join(''); }
+async function adicionarVinculo(){
+  const nomeEl = document.getElementById('linkNome');
+  const nome = nomeEl.value.trim();
+  const sigla = document.getElementById('linkSigla').value;
+  const statusEl = document.getElementById('statusVinculo');
+  if(!nome){ statusEl.textContent = 'Digite o nome da transportadora.'; return; }
+  await carregarVinculos();
+  vinculos = vinculos.filter(v=>v.nome.toUpperCase()!==nome.toUpperCase());
+  vinculos.push({nome, sigla});
+  await salvarVinculos();
+  nomeEl.value='';
+  statusEl.textContent = `"${nome}" vinculado à sigla ${sigla}.`;
+  renderTudo();
+}
+async function removerVinculo(nome){
+  await carregarVinculos();
+  vinculos = vinculos.filter(v=>v.nome!==nome);
+  await salvarVinculos();
+  renderTudo();
+}
+function renderVinculos(){
+  const tbody = document.getElementById('tabelaVinculos');
+  if(!vinculos.length){ tbody.innerHTML = `<tr><td colspan="4" class="empty">Nenhum vínculo cadastrado.</td></tr>`; return; }
+  tbody.innerHTML = vinculos.map(v=>`<tr>
+      <td>${escapeHtml(v.nome)}</td><td>${v.sigla}</td><td>${ruaDaSigla(v.sigla)}</td>
+      <td><button class="danger" onclick="removerVinculo('${escapeHtml(v.nome).replace(/'/g,"\\'")}')">Remover</button></td>
+    </tr>`).join('');
+}
+function ruaDaSigla(sigla){ const item = vagasData.find(v=>v.sigla===sigla); return item ? item.rua : '—'; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function vinculoPorTransportadora(nome){ const up=(nome||'').toUpperCase().trim(); return vinculos.find(v=>v.nome.toUpperCase()===up); }
+
+// ================= ROTAS DO DIA (compartilhado) =================
+let rotasData = [];
+const ROTAS_KEY = 'rotas-importadas';
+async function carregarRotas(){
+  try{ const r = await window.storage.get(ROTAS_KEY, true); rotasData = r && r.value ? JSON.parse(r.value) : []; }
+  catch(e){ rotasData = []; }
+}
+async function salvarRotas(){
+  try{ await window.storage.set(ROTAS_KEY, JSON.stringify(rotasData), true); }
+  catch(e){ document.getElementById('statusRotas').textContent = 'Não foi possível salvar as rotas agora.'; }
+}
+function atualizarStatusRotas(){
+  document.getElementById('statusRotas').textContent = rotasData.length ? `${rotasData.length} linha(s) carregada(s).` : 'Nenhuma tabela importada ainda.';
+}
+function parseLinha(linha){
+  let cols;
+  if(linha.includes('|')) cols = linha.split('|');
+  else if(linha.includes('\t')) cols = linha.split('\t');
+  else return null;
+  cols = cols.map(c=>c.trim()).filter((c,i,arr)=> !(c==='' && (i===0 || i===arr.length-1)));
+  if(cols.length < 5) return null;
+  const [idPacote, nRota, parada, ponto, transportadora, onda] = cols;
+  if(!idPacote || !nRota) return null;
+  if(idPacote.toUpperCase().includes('ID DO PACOTE') || nRota.toUpperCase().includes('ROTA')) return null;
+  return { idPacote, nRota, parada: parada||'', ponto: ponto||'', transportadora:(transportadora||'').toUpperCase(), onda: onda||'' };
+}
+async function importarRotas(){
+  const raw = document.getElementById('rotasInput').value;
+  const linhas = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const novas = [];
+  linhas.forEach(l=>{ const item = parseLinha(l); if(item) novas.push(item); });
+  if(!novas.length){ document.getElementById('statusRotas').textContent = 'Nenhuma linha válida encontrada.'; return; }
+  rotasData = novas;
+  await salvarRotas();
+  document.getElementById('rotasInput').value='';
+  renderTudo();
+  document.getElementById('statusRotas').textContent = `${novas.length} linha(s) importada(s) com sucesso.`;
+}
+async function limparRotas(){ rotasData = []; await salvarRotas(); renderTudo(); }
+function renderPendentes(){
+  const el = document.getElementById('pendentes');
+  if(!rotasData.length){ el.innerHTML=''; return; }
+  const transps = [...new Set(rotasData.map(r=>r.transportadora).filter(Boolean))];
+  const sem = transps.filter(t=>!vinculoPorTransportadora(t));
+  if(!sem.length){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="pendente"><b>${sem.length} transportadora(s) sem sigla vinculada:</b>
+    ${sem.map(t=>`<div class="row">${escapeHtml(t)}
+        <select id="sel-${escapeHtml(t)}">${SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
+        <button onclick="vincularPendente('${escapeHtml(t).replace(/'/g,"\\'")}')">Vincular</button>
+      </div>`).join('')}</div>`;
+}
+async function vincularPendente(nome){
+  const sigla = document.getElementById(`sel-${nome}`).value;
+  await carregarVinculos();
+  vinculos = vinculos.filter(v=>v.nome.toUpperCase()!==nome.toUpperCase());
+  vinculos.push({nome, sigla});
+  await salvarVinculos();
+  renderTudo();
+}
+
+// ================= STATUS MANUAL DE VAGA (compartilhado) =================
+let statusOverrides = {};
+const STATUS_KEY = 'status-vagas';
+async function carregarStatusData(){
+  try{ const r = await window.storage.get(STATUS_KEY, true); statusOverrides = r && r.value ? JSON.parse(r.value) : {}; }
+  catch(e){ statusOverrides = {}; }
+}
+async function salvarStatusData(){ try{ await window.storage.set(STATUS_KEY, JSON.stringify(statusOverrides), true); }catch(e){} }
+function getStatus(num){
+  if(statusOverrides[num]) return statusOverrides[num];
+  const vaga = vagasData.find(v=>v.num===num);
+  if(!vaga || vaga.sigla==='VUC') return 'livre';
+  const temRota = rotasData.some(r=> (vinculoPorTransportadora(r.transportadora)||{}).sigla === vaga.sigla );
+  return temRota ? 'ocupado' : 'livre';
+}
+async function setStatus(num, status){
+  await carregarStatusData();
+  statusOverrides[num] = status;
+  await salvarStatusData();
+  renderTudo();
+}
+async function limparOverride(num){
+  await carregarStatusData();
+  delete statusOverrides[num];
+  await salvarStatusData();
+  renderTudo();
+}
+
+// ================= CHAMADOS (compartilhado) =================
+let chamadosData = [];
+const CHAMADOS_KEY = 'chamados-ativos';
+async function carregarChamados(){
+  try{ const r = await window.storage.get(CHAMADOS_KEY, true); chamadosData = r && r.value ? JSON.parse(r.value) : []; }
+  catch(e){ chamadosData = []; }
+}
+async function salvarChamados(){ try{ await window.storage.set(CHAMADOS_KEY, JSON.stringify(chamadosData), true); }catch(e){} }
+
+function transportadorasDaRua(rua){
+  const siglas = vagasData.filter(v=>v.rua===rua).map(v=>v.sigla);
+  return vinculos.filter(v=>siglas.includes(v.sigla)).map(v=>v.nome);
+}
+function popularChamarRota(){
+  const selRota = document.getElementById('chamarRota');
+  const avisoEl = document.getElementById('avisoChamar');
+  if(!perfil || perfil==='COORD'){ selRota.innerHTML=''; document.getElementById('chamarVaga').innerHTML=''; return; }
+  const transps = transportadorasDaRua(perfil);
+  const rotasDaRua = rotasData.filter(r=>transps.includes(r.transportadora));
+  const rotasUnicas = [...new Map(rotasDaRua.map(r=>[r.nRota,r])).values()];
+  if(!rotasUnicas.length){
+    selRota.innerHTML = '<option value="">— nenhuma rota —</option>';
+    document.getElementById('chamarVaga').innerHTML = '';
+    if(avisoEl) avisoEl.innerHTML = `<div class="pendente">Nenhuma rota importada para <b>${escapeHtml(perfil)}</b> ainda. Cole a tabela do dia no card "Importar tabela do dia" mais abaixo — depois de importar, as rotas dessa rua aparecem aqui automaticamente.</div>`;
+    return;
+  }
+  if(avisoEl) avisoEl.innerHTML = '';
+  selRota.innerHTML = rotasUnicas.map(r=>`<option value="${escapeHtml(r.nRota)}">${escapeHtml(r.nRota)} · ${escapeHtml(r.transportadora)}${r.onda?' · '+escapeHtml(r.onda):''}</option>`).join('');
+  popularChamarVagaPorRota();
+}
+function popularChamarVagaPorRota(){
+  const selRota = document.getElementById('chamarRota');
+  const selVaga = document.getElementById('chamarVaga');
+  const nRota = selRota.value;
+  const linha = rotasData.find(r=>r.nRota===nRota);
+  if(!linha){ selVaga.innerHTML=''; return; }
+  const vinc = vinculoPorTransportadora(linha.transportadora);
+  if(!vinc){ selVaga.innerHTML = '<option value="">Transportadora sem sigla vinculada</option>'; return; }
+  const vagas = vagasData.filter(v=>v.rua===perfil && v.sigla===vinc.sigla);
+  selVaga.innerHTML = vagas.map(v=>`<option value="${v.num}">Vaga ${v.num} — ${STATUS_INFO[getStatus(v.num)].label}</option>`).join('');
+}
+async function chamarGaiola(){
+  const statusEl = document.getElementById('statusChamar');
+  if(!perfil || perfil==='COORD'){ statusEl.textContent='Chamados são feitos pela rua específica.'; return; }
+  const nRota = document.getElementById('chamarRota').value;
+  const numVaga = parseInt(document.getElementById('chamarVaga').value,10);
+  if(!nRota){ statusEl.textContent='Escolha a rota.'; return; }
+  if(!numVaga){ statusEl.textContent='Escolha a vaga.'; return; }
+  const linha = rotasData.find(r=>r.nRota===nRota);
+  const vaga = vagasData.find(v=>v.num===numVaga);
+  const vinc = vinculos.find(v=>v.sigla===vaga.sigla);
+  await carregarChamados();
+  chamadosData = chamadosData.filter(c=> !(c.nRota===nRota && c.status!=='finalizado'));
+  chamadosData.push({
+    id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
+    rua: perfil, vaga: numVaga, sigla: vaga.sigla,
+    transportadora: vinc ? vinc.nome : '', nRota,
+    onda: linha ? linha.onda : '',
+    criadoEm: Date.now(), status:'chamado'
+  });
+  await salvarChamados();
+  statusEl.textContent = `Chamado enviado: rota ${nRota} · vaga ${numVaga}.`;
+  renderTudo();
+}
+async function avancarStatus(id, novoStatus){
+  await carregarChamados();
+  const idx = chamadosData.findIndex(c=>c.id===id);
+  if(idx<0) return;
+  chamadosData[idx].status = novoStatus;
+  if(novoStatus==='recebido') chamadosData[idx].recebidoEm = Date.now();
+  if(novoStatus==='finalizado') chamadosData[idx].finalizadoEm = Date.now();
+  await salvarChamados();
+  renderTudo();
+}
+async function limparFinalizados(){
+  await carregarChamados();
+  chamadosData = chamadosData.filter(c=>c.status!=='finalizado');
+  await salvarChamados();
+  renderTudo();
+}
+function tempoDesde(ts){
+  const min = Math.max(0, Math.round((Date.now()-ts)/60000));
+  if(min<1) return 'agora mesmo';
+  if(min===1) return '1 min atrás';
+  return `${min} min atrás`;
+}
+function chamadosVisiveis(){ return perfil==='COORD' ? chamadosData : chamadosData.filter(c=>c.rua===perfil); }
+function chamadosEmAndamento(){ return chamadosVisiveis().filter(c=>c.status!=='finalizado'); }
+function acoesChamado(c){
+  if(c.status==='chamado') return `<button class="ok sm" onclick="avancarStatus('${c.id}','recebido')">Marcar recebido</button>`;
+  if(c.status==='recebido') return `<button class="ok sm" onclick="avancarStatus('${c.id}','finalizado')">Finalizar</button><button class="roxo sm" onclick="avancarStatus('${c.id}','aduana')">Aduana</button>`;
+  if(c.status==='aduana') return `<button class="secondary sm" onclick="avancarStatus('${c.id}','recebido')">Resolvido</button><button class="ok sm" onclick="avancarStatus('${c.id}','finalizado')">Finalizar</button>`;
+  return '';
+}
+function renderChamados(){
+  const el = document.getElementById('chamadosList');
+  const lista = chamadosEmAndamento().sort((a,b)=>a.criadoEm-b.criadoEm);
+  if(!lista.length){ el.innerHTML = '<div class="empty">Nenhum chamado ativo no momento.</div>'; return; }
+  el.innerHTML = lista.map(c=>{
+    const cor = CORES[c.sigla] || {bg:'#ccc',fg:'#000'};
+    const st = CHAMADO_STATUS_INFO[c.status];
+    return `<div class="chamado-card" style="border-color:${st.hex}33;background:${st.hex}11;">
+      <div class="info">
+        <span class="badge-status" style="background:${st.hex}">${st.label}</span>
+        &nbsp;<b style="background:${cor.bg};color:${cor.fg};padding:2px 7px;border-radius:5px;">${c.sigla}</b>
+        &nbsp;<b>Vaga ${c.vaga}</b> · ${escapeHtml(c.rua)}
+        <span>${escapeHtml(c.transportadora||'')} · rota ${escapeHtml(c.nRota)}${c.onda?' · '+escapeHtml(c.onda):''} · ${tempoDesde(c.criadoEm)}</span>
+      </div>
+      <div class="acoes">${acoesChamado(c)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ================= DASHBOARD DA ONDA =================
+function ondasDisponiveis(){ return [...new Set(rotasData.map(r=>r.onda).filter(Boolean))]; }
+function popularOndaSelect(){
+  const sel = document.getElementById('ondaSelect');
+  const atual = sel.value;
+  const ondas = ondasDisponiveis();
+  sel.innerHTML = `<option value="TODAS">Todas as ondas</option>` + ondas.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
+  if(ondas.includes(atual)) sel.value = atual;
+}
+function renderDashboard(){
+  const el = document.getElementById('dashboardOnda');
+  if(!rotasData.length){ el.innerHTML = '<div class="empty">Importe a tabela do dia para ver o progresso.</div>'; return; }
+  const ondaFiltro = document.getElementById('ondaSelect').value || 'TODAS';
+  const rotasEscopo = rotasData.filter(r=>{
+    const vinc = vinculoPorTransportadora(r.transportadora);
+    if(!vinc) return false;
+    if(!permitida(ruaDaSigla(vinc.sigla))) return false;
+    return ondaFiltro==='TODAS' || r.onda===ondaFiltro;
+  });
+  const rotasUnicas = [...new Set(rotasEscopo.map(r=>r.nRota))];
+  const finalizados = chamadosVisiveis().filter(c=>c.status==='finalizado' && rotasUnicas.includes(c.nRota));
+  const nomesFinalizados = [...new Set(finalizados.map(c=>c.nRota))];
+  const total = rotasUnicas.length;
+  const feitas = nomesFinalizados.length;
+  const pct = total ? Math.round(feitas/total*100) : 0;
+
+  const vagasVisiveis = vagasData.filter(v=>permitida(v.rua));
+  const ocupadas = vagasVisiveis.filter(v=>getStatus(v.num)==='ocupado').length;
+  const livres = vagasVisiveis.filter(v=>getStatus(v.num)==='livre').length;
+
+  el.innerHTML = `
+    <div><b>${feitas} de ${total}</b> rotas finalizadas ${ondaFiltro!=='TODAS'?'· '+escapeHtml(ondaFiltro):''}</div>
+    <div class="progress-outer"><div class="progress-inner" style="width:${pct}%">${pct}%</div></div>
+    <div style="font-size:12.5px;color:var(--muted);">Faltam <b>${total-feitas}</b> rotas · Vagas ocupadas: <b>${ocupadas}</b> · Vagas livres: <b>${livres}</b></div>
+    ${nomesFinalizados.length ? `<div class="finalizados-list">${nomesFinalizados.map(n=>`<span class="finalizado-chip">${escapeHtml(n)}</span>`).join('')}</div>` : ''}
+  `;
+}
+
+// ================= RESUMO POR RUA =================
+function computeResumo(){
+  const map = {};
+  rotasData.forEach(r=>{
+    const vinc = vinculoPorTransportadora(r.transportadora);
+    if(!vinc) return;
+    const rua = ruaDaSigla(vinc.sigla);
+    if(!permitida(rua)) return;
+    if(!map[rua]) map[rua] = {};
+    if(!map[rua][vinc.sigla]) map[rua][vinc.sigla] = {transportadora:r.transportadora, rotas:new Set(), pacotes:0};
+    map[rua][vinc.sigla].rotas.add(r.nRota);
+    map[rua][vinc.sigla].pacotes++;
+  });
+  return map;
+}
+function renderResumo(){
+  const el = document.getElementById('resumoRuas');
+  if(!rotasData.length){ el.innerHTML = '<div class="empty">Importe a tabela do dia para ver o resumo.</div>'; return; }
+  const map = computeResumo();
+  const ruasComDados = RUAS_ORDEM.filter(r=>map[r]);
+  if(!ruasComDados.length){ el.innerHTML = '<div class="empty">Nenhuma rota vinculada na sua área ainda.</div>'; return; }
+  el.innerHTML = ruasComDados.map(rua=>{
+    const siglas = map[rua]; let totalRotas=0, totalPacotes=0;
+    const blocos = Object.keys(siglas).map(sigla=>{
+      const d = siglas[sigla]; totalRotas += d.rotas.size; totalPacotes += d.pacotes;
+      const cor = CORES[sigla];
+      return `<div class="resumo-transp">
+        <span class="sigla-badge-sm" style="background:${cor.bg};color:${cor.fg}">${sigla}</span>
+        <b>${escapeHtml(d.transportadora)}</b>
+        <span class="qtd">${d.rotas.size} rota(s) · ${d.pacotes} pacote(s)</span>
+        <div class="rotas-list">${[...d.rotas].join(', ')}</div>
+      </div>`;
+    }).join('');
+    return `<div class="resumo-rua"><div class="resumo-rua-title">${rua} <span class="qtd">— ${totalRotas} rota(s) · ${totalPacotes} pacote(s)</span></div>${blocos}</div>`;
+  }).join('');
+}
+
+// ================= KPIs =================
+function renderKPIs(){
+  const el = document.getElementById('kpis');
+  const vagasVisiveis = vagasData.filter(v=>permitida(v.rua));
+  const counts = {livre:0, ocupado:0, separacao:0, problema:0};
+  vagasVisiveis.forEach(v=>{ counts[getStatus(v.num)]++; });
+  const transps = [...new Set(rotasData.map(r=>r.transportadora).filter(Boolean))];
+  const pendentes = transps.filter(t=>!vinculoPorTransportadora(t)).length;
+  const chamAtivos = chamadosEmAndamento().length;
+  el.innerHTML = `
+    <div class="kpi"><div class="n">${vagasVisiveis.length}</div><div class="l">Posições visíveis</div></div>
+    <div class="kpi chamados"><div class="n">${chamAtivos}</div><div class="l">Chamados ativos</div></div>
+    <div class="kpi ocupado"><div class="n">${counts.ocupado}</div><div class="l">Ocupadas</div></div>
+    <div class="kpi livre"><div class="n">${counts.livre}</div><div class="l">Livres</div></div>
+    <div class="kpi pendente"><div class="n">${pendentes}</div><div class="l">Transportadoras pendentes</div></div>
+  `;
+}
+
+// ================= DETALHE / SELEÇÃO =================
+function statusButtons(num, ativo){
+  return Object.keys(STATUS_INFO).map(k=>{
+    const info = STATUS_INFO[k]; const isAtivo = k===ativo;
+    return `<button class="status-btn" style="background:${isAtivo?info.hex:'#fff'};color:${isAtivo?'#fff':'#333'};border-color:${info.hex}" onclick="setStatus(${num},'${k}')">${info.label}</button>`;
+  }).join('') + `<button class="status-btn secondary" style="border-color:#ccc;color:#666" onclick="limparOverride(${num})">Automático</button>`;
+}
+function renderDetalheVaga(vaga){
+  const el = document.getElementById('detalhe');
+  if(!permitida(vaga.rua)){ el.innerHTML = `<div class="empty">Vaga ${vaga.num} pertence à ${vaga.rua} — fora da sua área de acesso.</div>`; return; }
+  const cor = CORES[vaga.sigla];
+  const vinc = vinculos.find(v=>v.sigla===vaga.sigla);
+  const transp = vinc ? vinc.nome : (vaga.sigla==='VUC' ? 'Expedição / VUC — sem transportadora fixa' : 'Sem transportadora vinculada');
+  const status = getStatus(vaga.num);
+  const rotas = vaga.sigla==='VUC' ? [] : rotasData.filter(r=> (vinculoPorTransportadora(r.transportadora)||{}).sigla === vaga.sigla);
+  const chamado = chamadosData.find(c=>c.vaga===vaga.num && c.status!=='finalizado');
+  el.innerHTML = `
+    <div class="det-head">
+      <div class="det-badge" style="background:${cor.bg};color:${cor.fg}">${vaga.sigla}</div>
+      <div class="det-info"><b>Vaga ${vaga.num} · ${vaga.rua}</b><span>${escapeHtml(transp)}</span></div>
+    </div>
+    <div class="status-row">${statusButtons(vaga.num, status)}</div>
+    ${chamado ? (()=>{ const st=CHAMADO_STATUS_INFO[chamado.status]; return `<div class="chamado-alerta" style="border-color:${st.hex}55;background:${st.hex}11;">
+        <span class="badge-status" style="background:${st.hex}">${st.label}</span> rota ${escapeHtml(chamado.nRota)} · ${tempoDesde(chamado.criadoEm)}
+        <div style="margin-top:8px;">${acoesChamado(chamado)}</div></div>`; })() : ''}
+    ${rotas.length ? `<table><thead><tr><th>ID Pacote</th><th>Rota</th><th>Parada</th><th>Ponto</th><th>Onda</th></tr></thead>
+      <tbody>${rotas.map(r=>`<tr><td>${escapeHtml(r.idPacote)}</td><td>${escapeHtml(r.nRota)}</td><td>${escapeHtml(r.parada)}</td><td>${escapeHtml(r.ponto)}</td><td>${escapeHtml(r.onda)}</td></tr>`).join('')}</tbody></table>`
+      : `<div class="empty" style="margin-top:10px;">Nenhuma rota importada para essa transportadora ainda.</div>`}
+  `;
+}
+function renderDetalheGrupo(sigla, origem, rotasFiltradas){
+  const el = document.getElementById('detalhe');
+  const vagas = vagasData.filter(v=>v.sigla===sigla);
+  if(!vagas.length){ el.innerHTML = `<div class="empty">Sigla "${sigla}" não encontrada.</div>`; return; }
+  if(!permitida(vagas[0].rua)){ el.innerHTML = `<div class="empty">Essa posição pertence à ${vagas[0].rua} — fora da sua área de acesso.</div>`; return; }
+  const cor = CORES[sigla];
+  const vinc = vinculos.find(v=>v.sigla===sigla);
+  el.innerHTML = `
+    <div class="det-head">
+      <div class="det-badge" style="background:${cor.bg};color:${cor.fg}">${sigla}</div>
+      <div class="det-info"><b>${vagas[0].rua}</b><span>Encontrado por: ${origem}${vinc?` · ${vinc.nome}`:''}</span></div>
+    </div>
+    <div class="mini-vaga-list">${vagas.map(v=>{
+      const st = getStatus(v.num); const info = STATUS_INFO[st];
+      return `<div class="mini-vaga" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${v.num})"><span class="mini-dot" style="background:${info.hex}"></span>${v.num}</div>`;
+    }).join('')}</div>
+    ${rotasFiltradas && rotasFiltradas.length ? `<table><thead><tr><th>ID Pacote</th><th>Rota</th><th>Parada</th><th>Ponto</th><th>Onda</th></tr></thead>
+      <tbody>${rotasFiltradas.map(r=>`<tr><td>${escapeHtml(r.idPacote)}</td><td>${escapeHtml(r.nRota)}</td><td>${escapeHtml(r.parada)}</td><td>${escapeHtml(r.ponto)}</td><td>${escapeHtml(r.onda)}</td></tr>`).join('')}</tbody></table>` : ''}
+  `;
+}
+function renderDetalhePendente(transportadora, origem){
+  document.getElementById('detalhe').innerHTML = `<div class="pendente"><b>"${escapeHtml(transportadora)}"</b> (via ${origem}) ainda não está vinculada a nenhuma sigla.
+    <div class="row"><select id="selPendenteDetalhe">${SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
+      <button onclick="vincularEBuscarNovamente('${escapeHtml(transportadora).replace(/'/g,"\\'")}')">Vincular e buscar</button></div></div>`;
+}
+async function vincularEBuscarNovamente(nome){
+  const sigla = document.getElementById('selPendenteDetalhe').value;
+  await carregarVinculos();
+  vinculos = vinculos.filter(v=>v.nome.toUpperCase()!==nome.toUpperCase());
+  vinculos.push({nome, sigla});
+  await salvarVinculos();
+  renderTudo();
+  const rotasFiltradas = rotasData.filter(r=>r.transportadora===nome.toUpperCase());
+  renderDetalheGrupo(sigla, `transportadora "${nome}"`, rotasFiltradas);
+  destacar(vagasData.filter(v=>v.sigla===sigla).map(v=>v.num));
+}
+function selecionarVaga(num){
+  const vaga = vagasData.find(v=>v.num===num);
+  if(!vaga) return;
+  renderDetalheVaga(vaga);
+  destacarSelecionada(num);
+}
+function limpar(){ document.getElementById('q').value=''; document.getElementById('detalhe').innerHTML = '<div class="empty">Clique em uma posição no layout abaixo ou use a busca.</div>'; destacar([]); destacarSelecionada(null); }
+function buscar(){
+  const raw = document.getElementById('q').value.trim();
+  if(!raw) return;
+  const upper = raw.toUpperCase();
+  const porRota = rotasData.filter(r=>r.nRota.toUpperCase()===upper);
+  if(porRota.length){
+    const transportadora = porRota[0].transportadora;
+    const vinc = vinculoPorTransportadora(transportadora);
+    if(vinc){ renderDetalheGrupo(vinc.sigla, `rota ${porRota[0].nRota} (${transportadora})`, porRota); destacar(vagasData.filter(v=>v.sigla===vinc.sigla).map(v=>v.num)); }
+    else{ renderDetalhePendente(transportadora, `rota ${porRota[0].nRota}`); }
+    return;
+  }
+  const porPacote = rotasData.find(r=>r.idPacote===raw);
+  if(porPacote){
+    const transportadora = porPacote.transportadora;
+    const vinc = vinculoPorTransportadora(transportadora);
+    if(vinc){ renderDetalheGrupo(vinc.sigla, `pacote ${porPacote.idPacote} (rota ${porPacote.nRota})`, [porPacote]); destacar(vagasData.filter(v=>v.sigla===vinc.sigla).map(v=>v.num)); }
+    else{ renderDetalhePendente(transportadora, `pacote ${porPacote.idPacote}`); }
+    return;
+  }
+  if(/^\d{1,2}$/.test(raw)){
+    const n = parseInt(raw,10);
+    const item = vagasData.find(v=>v.num===n);
+    if(item){ selecionarVaga(n); return; }
+  }
+  if(SIGLAS.includes(upper)){ renderDetalheGrupo(upper, `sigla ${upper}`, null); destacar(vagasData.filter(v=>v.sigla===upper).map(v=>v.num)); return; }
+  const vinc = vinculos.find(v=>v.nome.toUpperCase()===upper) || vinculos.find(v=>v.nome.toUpperCase().includes(upper) || upper.includes(v.nome.toUpperCase()));
+  if(vinc){ renderDetalheGrupo(vinc.sigla, `transportadora "${vinc.nome}"`, rotasData.filter(r=>r.transportadora===vinc.nome.toUpperCase())); destacar(vagasData.filter(v=>v.sigla===vinc.sigla).map(v=>v.num)); return; }
+  const transpNaTabela = [...new Set(rotasData.map(r=>r.transportadora))].find(t=>t===upper || t.includes(upper) || upper.includes(t));
+  if(transpNaTabela){ renderDetalhePendente(transpNaTabela, 'nome digitado'); return; }
+  document.getElementById('detalhe').innerHTML = `<div class="empty">Nada encontrado para "${escapeHtml(raw)}".</div>`;
+  destacar([]);
+}
+document.getElementById('q').addEventListener('keydown', e=>{ if(e.key==='Enter') buscar(); });
+function destacar(nums){ document.querySelectorAll('.pos-box').forEach(b=>{ b.classList.toggle('match', nums.includes(parseInt(b.dataset.num,10))); }); }
+function destacarSelecionada(num){ document.querySelectorAll('.pos-box').forEach(b=>{ b.classList.toggle('selected', num!==null && parseInt(b.dataset.num,10)===num); b.classList.remove('match'); }); }
+
+// ================= FLOORPLAN =================
+function arrowSVG(){ return `<svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function posBox(vaga){
+  const cor = CORES[vaga.sigla];
+  const st = getStatus(vaga.num);
+  const info = STATUS_INFO[st];
+  const chamado = chamadosData.find(c=>c.vaga===vaga.num && c.status!=='finalizado');
+  let classeExtra = '';
+  let flagHtml = '';
+  if(chamado){
+    const cst = CHAMADO_STATUS_INFO[chamado.status];
+    flagHtml = `<span class="chamado-flag" style="background:${cst.hex}">${cst.label.split(' ')[0].toUpperCase()}</span>`;
+    if(chamado.status==='chamado') classeExtra = 'pulso-vermelho';
+    else if(chamado.status==='aduana') classeExtra = 'pulso-roxo';
+    else if(chamado.status==='recebido') classeExtra = 'borda-azul';
+  }
+  return `<div class="pos-box ${classeExtra}" data-num="${vaga.num}" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${vaga.num})">
+    ${flagHtml}
+    <span class="status-dot" style="background:${info.hex}"></span>
+    <span class="num">${vaga.num}</span><span class="sigla">${vaga.sigla}</span>
+  </div>`;
+}
+function ruaBlock(rua, label){
+  const vagas = vagasData.filter(v=>v.rua===rua);
+  const bloqueada = !permitida(rua);
+  return `<div class="rua-group ${bloqueada?'bloqueada':''}">
+    <div class="facility-label">${label}</div>
+    ${bloqueada?'<div class="lock-tag">🔒</div>':''}
+    <div class="vaga-grid">${bloqueada ? vagas.map(v=>`<div class="pos-box" style="background:#ccc;color:#666;pointer-events:none;"><span class="num">${v.num}</span></div>`).join('') : vagas.map(posBox).join('')}</div>
+  </div>`;
+}
+function renderFloorplan(){
+  const cont = document.getElementById('floorplan');
+  const vuc = vagasData.filter(v=>v.rua==='Área VUC');
+  cont.innerHTML = `
+    <div class="fp-col stretch"><div class="infra-box rampa">RAMPA SAÍDA</div></div>
+    <div class="fp-col col-narrow">${ruaBlock('Rua 1','Rua 1')}</div>
+    <div class="fp-col col-narrow">${ruaBlock('Rua 2','Rua 2')}</div>
+    <div class="fp-col" style="flex:1;min-width:420px;">
+      <div class="arrows-row">${arrowSVG()}${arrowSVG()}${arrowSVG()}${arrowSVG()}</div>
+      ${ruaBlock('Rua 3','Rua 3')}
+      <div class="infra-box esteira"><span class="facility-label" style="margin:0;color:var(--navy-700);">Esteira</span></div>
+      <div class="infra-box esteira"><span class="facility-label" style="margin:0;color:var(--navy-700);">Esteira</span></div>
+      <div class="infra-box mezanino"><span class="facility-label" style="margin:0;color:var(--navy-700);">Mezanino</span></div>
+      ${ruaBlock('Rua 4 - Expedição VUC','Expedição VUC — Rua 4')}
+      <div class="arrows-row">${arrowSVG()}${arrowSVG()}</div>
+    </div>
+    <div class="fp-col col-narrow" style="align-items:center;">
+      <div class="vuc-label">ÁREA VUC</div>
+      <div class="vaga-grid">${permitida('Área VUC') ? vuc.map(posBox).join('') : vuc.map(v=>`<div class="pos-box" style="background:#ccc;color:#666;pointer-events:none;"><span class="num">${v.num}</span></div>`).join('')}</div>
+    </div>
+    <div class="fp-col stretch"><div class="infra-box rampa">RAMPA SUBIDA</div><div class="infra-box rampa">RAMPA SUBIDA · 1</div></div>
+  `;
+}
+
+// ================= LEGENDA =================
+function renderLegenda(){
+  document.getElementById('legendaTransp').innerHTML = SIGLAS.map(s=>{
+    const cor = CORES[s]; const vinc = vinculos.find(v=>v.sigla===s);
+    const nome = vinc ? vinc.nome : (s==='VUC' ? 'Expedição / VUC' : 'Sem vínculo');
+    return `<div class="legend-item"><span class="legend-swatch" style="background:${cor.bg}"></span>${s} — ${escapeHtml(nome)}</div>`;
+  }).join('');
+  document.getElementById('legendaStatus').innerHTML = Object.keys(STATUS_INFO).map(k=>{
+    const info = STATUS_INFO[k];
+    return `<div class="legend-item"><span class="legend-swatch" style="background:${info.hex}"></span>${info.label}</div>`;
+  }).join('');
+  document.getElementById('legendaChamado').innerHTML = Object.keys(CHAMADO_STATUS_INFO).map(k=>{
+    const info = CHAMADO_STATUS_INFO[k];
+    return `<div class="legend-item"><span class="legend-swatch" style="background:${info.hex}"></span>${info.label}</div>`;
+  }).join('');
+}
+
+// ================= RENDER GERAL / INIT =================
+function renderTudo(){
+  if(!perfil) return;
+  renderPerfilBadge();
+  renderKPIs();
+  renderChamados();
+  popularOndaSelect();
+  renderDashboard();
+  renderFloorplan();
+  renderLegenda();
+  renderVinculos();
+  renderPendentes();
+  renderResumo();
+  atualizarStatusRotas();
+  popularChamarRota();
+  document.getElementById('cardChamar').style.display = (perfil && perfil!=='COORD') ? 'block' : 'none';
+}
+async function carregarTudoCompartilhado(){
+  await carregarVinculos();
+  await carregarRotas();
+  await carregarStatusData();
+  await carregarChamados();
+}
+async function init(){
+  popularSelectSiglas();
+  popularBotoesRua();
+  await carregarPerfil();
+  await carregarTudoCompartilhado();
+  if(perfil){ document.getElementById('seletor').style.display='none'; renderTudo(); }
+  setInterval(async ()=>{ await carregarTudoCompartilhado(); renderTudo(); }, 6000);
+}
+init();
+</script>
+</body>
+</html>
