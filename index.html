@@ -6,18 +6,19 @@
 <title>Layout SVC-SD · Painel de Posições</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#EEF2F7; --surface:#FFFFFF; --surface-alt:#F6F8FB; --border:#D9E0EA;
     --navy-900:#0E2A47; --navy-700:#1E3A5F; --muted:#65748A; --teal-600:#0E7C86;
     --amber-500:#F5A524; --red-600:#DC2626; --slate-400:#94A3B8; --blue-600:#2563EB;
-    --purple-600:#7C3AED; --green-600:#16A34A;
     --radius:10px; --hatch: repeating-linear-gradient(135deg, rgba(14,42,71,.06) 0 6px, transparent 6px 12px);
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--navy-900);font-family:'Inter',Segoe UI,Arial,sans-serif;padding:20px 16px 60px;}
   .wrap{max-width:1300px;margin:0 auto;}
 
+  /* Seletor de perfil */
   #seletor{position:fixed;inset:0;background:rgba(14,42,71,.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;}
   #seletor .box{background:#fff;border-radius:14px;padding:28px;max-width:480px;width:100%;text-align:center;}
   #seletor h2{margin:0 0 6px;font-size:18px;}
@@ -37,7 +38,8 @@
   .kpi .n{font-family:'Roboto Mono',monospace;font-size:24px;font-weight:700;line-height:1;}
   .kpi .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
   .kpi.ocupado{border-left-color:var(--blue-600);} .kpi.livre{border-left-color:var(--slate-400);}
-  .kpi.pendente{border-left-color:var(--red-600);} .kpi.chamados{border-left-color:#DC2626;}
+  .kpi.separacao{border-left-color:var(--amber-500);} .kpi.pendente{border-left-color:var(--red-600);}
+  .kpi.chamados{border-left-color:#DC2626;}
 
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
   .card h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--navy-700);margin:0 0 4px;font-weight:800;}
@@ -52,9 +54,7 @@
   button.secondary:hover{background:var(--surface-alt);}
   button.danger{background:var(--red-600);color:#fff;padding:5px 10px;font-size:11.5px;}
   button.status-btn{padding:6px 11px;font-size:11.5px;font-weight:700;border-radius:20px;border:1.5px solid transparent;}
-  button.ok{background:var(--green-600);}
-  button.roxo{background:var(--purple-600);}
-  button.sm{padding:6px 11px;font-size:11.5px;}
+  button.ok{background:var(--teal-600);}
 
   #detalhe .empty{color:var(--muted);font-size:13px;}
   .det-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
@@ -72,13 +72,11 @@
   .pendente{background:#FDF1E3;border:1px solid #F0C589;border-left:4px solid var(--amber-500);border-radius:8px;padding:12px 14px;margin-bottom:8px;font-size:13px;}
   .pendente .row{margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 
-  .chamado-card{border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border:1px solid;}
+  .chamado-card{background:#FEF2F2;border:1px solid #FCA5A5;border-left:4px solid var(--red-600);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
   .chamado-card .info{font-size:13px;}
   .chamado-card .info b{font-size:14px;}
   .chamado-card .info span{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;}
-  .chamado-card .acoes{display:flex;gap:6px;flex-wrap:wrap;}
-  .badge-status{font-size:10px;font-weight:800;padding:3px 8px;border-radius:12px;color:#fff;text-transform:uppercase;letter-spacing:.04em;}
-  .chamado-alerta{border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;border:1px solid;}
+  .chamado-alerta{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;}
 
   .floorplan-outer{overflow-x:auto;padding-bottom:10px;}
   .floorplan{display:flex;gap:12px;align-items:stretch;min-width:1080px;}
@@ -102,12 +100,9 @@
   .pos-box .num{font-size:14px;font-weight:800;line-height:1;}
   .pos-box .sigla{font-size:8.5px;font-weight:700;letter-spacing:.04em;opacity:.9;margin-top:3px;}
   .status-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 1.5px #fff;}
-  .pos-box.pulso-vermelho{animation:pulseChamado 1.3s infinite;border:2px solid #DC2626;}
-  .pos-box.pulso-roxo{animation:pulseAduana 1.3s infinite;border:2px solid #7C3AED;}
-  .pos-box.borda-azul{border:2px solid #2563EB;}
-  .chamado-flag{position:absolute;top:-6px;left:-6px;color:#fff;font-size:8px;font-weight:800;padding:2px 4px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .pos-box.chamado-ativo{animation:pulseChamado 1.3s infinite;border:2px solid #DC2626;}
+  .chamado-flag{position:absolute;top:-6px;left:-6px;background:#DC2626;color:#fff;font-size:8px;font-weight:800;padding:2px 4px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.3);}
   @keyframes pulseChamado{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55);}70%{box-shadow:0 0 0 9px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
-  @keyframes pulseAduana{0%{box-shadow:0 0 0 0 rgba(124,58,237,.55);}70%{box-shadow:0 0 0 9px rgba(124,58,237,0);}100%{box-shadow:0 0 0 0 rgba(124,58,237,0);}}
 
   .arrows-row{display:flex;gap:26px;justify-content:space-around;padding:2px 6px;}
   .arrows-row svg{width:22px;height:22px;fill:var(--navy-700);}
@@ -122,22 +117,56 @@
   .status{font-size:12px;color:var(--muted);margin-top:6px;min-height:16px;}
   textarea#rotasInput{width:100%;min-height:110px;resize:vertical;font-family:'Roboto Mono',monospace;font-size:12px;}
   .rotas-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+  .upload-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  input[type="file"]{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px;max-width:100%;}
+  .map-box{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;}
+  .map-box h3{margin:0 0 4px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--navy-700);}
+  .map-row{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+  .map-row label{min-width:150px;font-size:12.5px;font-weight:700;color:var(--navy-900);}
+  .map-row select{flex:1;min-width:180px;}
+  .map-preview{font-size:11.5px;color:var(--muted);margin-top:10px;overflow-x:auto;}
+  .map-preview table{min-width:520px;}
+  details.manual-import summary{cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:700;margin-top:12px;}
+  details.manual-import[open] summary{margin-bottom:8px;}
 
   .resumo-rua{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
-  .resumo-rua-title{font-weight:800;font-size:13.5px;margin-bottom:8px;color:var(--navy-700);}
+  .resumo-rua-title{font-weight:800;font-size:13.5px;color:var(--navy-700);cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px;}
+  .resumo-rua-title:hover{color:var(--teal-600);}
   .resumo-rua-title .qtd{color:var(--teal-600);font-weight:700;font-size:11.5px;}
-  .resumo-transp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--border);}
-  .resumo-transp:first-of-type{border-top:none;}
+  .toggle-arrow{display:inline-block;font-size:11px;width:12px;color:var(--muted);}
+  .resumo-rua-body{margin-top:10px;}
+  .resumo-transp-block{padding:10px 0;border-top:1px dashed var(--border);}
+  .resumo-transp-block:first-of-type{border-top:none;padding-top:0;}
+  .resumo-transp-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .onda-colunas{display:flex;flex-wrap:nowrap;align-items:flex-start;overflow-x:auto;margin-top:8px;padding-bottom:4px;}
+  .onda-col{flex:0 0 auto;padding:0 18px;}
+  .onda-col:first-of-type{padding-left:0;}
+  .onda-col:not(:first-of-type){border-left:1.5px dashed var(--border);}
+  .onda-title{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--navy-900);background:#fff;display:inline-block;padding:3px 9px;border-radius:20px;border:1px solid var(--border);margin-bottom:8px;}
+  .onda-title .qtd{color:var(--teal-600);font-weight:700;font-size:11px;text-transform:none;letter-spacing:0;}
   .sigla-badge-sm{font-family:'Roboto Mono',monospace;font-weight:800;font-size:10.5px;padding:3px 7px;border-radius:5px;}
-  .resumo-transp .qtd{color:var(--muted);font-size:11.5px;}
-  .resumo-transp .rotas-list{width:100%;font-family:'Roboto Mono',monospace;font-size:11.5px;color:var(--teal-600);}
-
-  .progress-outer{background:var(--surface-alt);border:1px solid var(--border);border-radius:20px;height:22px;overflow:hidden;margin:10px 0;}
-  .progress-inner{background:var(--teal-600);height:100%;display:flex;align-items:center;justify-content:flex-end;color:#fff;font-size:11px;font-weight:800;padding-right:8px;transition:width .3s;}
-  .finalizados-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-  .finalizado-chip{background:#EAFBF1;border:1px solid #86EFAC;color:#166534;font-family:'Roboto Mono',monospace;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:6px;}
+  .resumo-table{width:auto;font-size:12px;margin-top:6px;border-collapse:collapse;}
+  .resumo-table th,.resumo-table td{padding:4px 16px 4px 0;white-space:nowrap;}
+  .resumo-table td.rota{font-family:'Roboto Mono',monospace;font-weight:700;}
+  .resumo-table td.parada{color:var(--teal-600);font-weight:700;}
 
   @media (max-width:720px){ .pos-box{width:44px;height:50px;} .kpis{grid-template-columns:repeat(2,1fr);} }
+
+  .folha-a4-wrap{display:flex;justify-content:center;}
+  .folha-a4{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:6px;
+    box-shadow:0 2px 16px rgba(14,42,71,.10);
+    width:100%;
+    max-width:1123px;
+    aspect-ratio:297/210;
+    position:relative;
+    overflow:hidden;
+  }
+  .folha-a4::after{content:'A4 · 297×210mm';position:absolute;bottom:6px;right:10px;font-size:9.5px;color:var(--slate-400);font-weight:700;letter-spacing:.04em;}
+  .folha-a4 .floorplan-outer{position:absolute;inset:0;padding:14px;box-sizing:border-box;overflow:hidden;}
+  .folha-a4 .floorplan{transform-origin:top left;}
 </style>
 </head>
 <body>
@@ -153,7 +182,10 @@
 
 <div class="wrap">
   <header>
-    <div><h1>Layout SVC · SD</h1><p>Painel operacional de posições, ruas e transportadoras</p></div>
+    <div>
+      <h1>Layout SVC · SD</h1>
+      <p>Painel operacional de posições, ruas e transportadoras</p>
+    </div>
     <div class="perfil-badge" id="perfilBadge"></div>
   </header>
 
@@ -161,28 +193,18 @@
 
   <div class="card" id="cardChamar" style="display:none;">
     <h2>Chamar gaiola</h2>
-    <p class="hint">Escolha a rota (já filtrada pra sua rua) e a vaga. Sem digitação.</p>
+    <p class="hint">Selecione a vaga da sua rua e a rota. A posição acende no layout até alguém marcar como recebida.</p>
     <div class="search-row">
-      <select id="chamarRota" onchange="popularChamarVagaPorRota()"></select>
       <select id="chamarVaga"></select>
+      <input id="chamarRota" placeholder="Nº da rota (ex: B18_AM1)">
       <button onclick="chamarGaiola()">Chamar</button>
     </div>
-    <div id="avisoChamar"></div>
     <div id="statusChamar" class="status"></div>
   </div>
 
   <div class="card">
-    <h2>Chamados em andamento</h2>
+    <h2>Chamados ativos</h2>
     <div id="chamadosList"><div class="empty">Nenhum chamado ativo no momento.</div></div>
-  </div>
-
-  <div class="card">
-    <h2>Dashboard da onda</h2>
-    <div class="search-row" style="margin-bottom:6px;">
-      <select id="ondaSelect" onchange="renderDashboard()"></select>
-      <button class="secondary" onclick="limparFinalizados()">Limpar concluídos</button>
-    </div>
-    <div id="dashboardOnda"><div class="empty">Importe a tabela do dia para ver o progresso.</div></div>
   </div>
 
   <div class="card">
@@ -200,28 +222,37 @@
     <div id="detalhe"><div class="empty">Clique em uma posição no layout abaixo ou use a busca.</div></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="cardLayout">
     <h2>Layout interativo</h2>
-    <p class="hint">Clique em qualquer posição para ver rota, transportadora e status.</p>
-    <div class="floorplan-outer"><div class="floorplan" id="floorplan"></div></div>
-  </div>
-
-  <div class="card">
-    <h2>Legenda</h2>
-    <div class="legend-grid" id="legendaTransp"></div>
-    <div class="legend-status" id="legendaStatus"></div>
-    <div class="legend-status" id="legendaChamado"></div>
+    <p class="hint">Clique em qualquer posição para ver rota, transportadora e status. Desenho nas proporções de uma folha A4.</p>
+    <div class="folha-a4-wrap">
+      <div class="folha-a4" id="folhaA4">
+        <div class="floorplan-outer"><div class="floorplan" id="floorplan"></div></div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
     <h2>Importar tabela do dia</h2>
-    <p class="hint">Cole a tabela (ID do pacote | Nº Rota | Parada | Ponto | Transportadora | Ondas).</p>
-    <textarea id="rotasInput" placeholder="47807885440 | G5_AM1 | 12 | A | HAWK | Onda 1"></textarea>
-    <div class="rotas-actions">
-      <button onclick="importarRotas()">Importar</button>
+    <p class="hint">Envie a planilha de planejamento como ela vier (.xlsx, .xls ou .csv) — nada é apagado ou alterado nela. O sistema identifica sozinho as colunas de ID do pacote, gaiola/rota, parada e onda; você só confirma antes de importar.</p>
+    <div class="upload-row">
+      <input type="file" id="planilhaFile" accept=".xlsx,.xls,.csv">
+      <button onclick="processarPlanilha()">Ler planilha</button>
       <button class="secondary" onclick="limparRotas()">Limpar rotas importadas</button>
-      <span id="statusRotas" class="status"></span>
+      <span id="statusPlanilha" class="status"></span>
     </div>
+    <div id="mapeamentoColunas"></div>
+
+    <details class="manual-import">
+      <summary>ou colar manualmente</summary>
+      <p class="hint">Cole a tabela (ID do pacote | Nº Rota | Parada | Ponto | Transportadora | Ondas). O ID do pacote pode ficar em branco quando não houver.</p>
+      <textarea id="rotasInput" placeholder="47807885440 | G5_AM1 | 12 | A | HAWK | Onda 1"></textarea>
+      <div class="rotas-actions">
+        <button onclick="importarRotas()">Importar colado</button>
+        <span id="statusRotas" class="status"></span>
+      </div>
+    </details>
+
     <div id="pendentes"></div>
   </div>
 
@@ -230,16 +261,7 @@
     <div id="resumoRuas"><div class="empty">Importe a tabela do dia para ver o resumo.</div></div>
   </div>
 
-  <div class="card">
-    <h2>Vincular transportadora a uma sigla</h2>
-    <div class="search-row" style="margin-bottom:10px;">
-      <input id="linkNome" placeholder="Nome da transportadora (ex: PRALOG)">
-      <select id="linkSigla"></select>
-      <button onclick="adicionarVinculo()">Vincular</button>
-    </div>
-    <div id="statusVinculo" class="status"></div>
-    <table><thead><tr><th>Transportadora</th><th>Sigla</th><th>Rua</th><th></th></tr></thead><tbody id="tabelaVinculos"></tbody></table>
-  </div>
+
 </div>
 
 <script>
@@ -248,17 +270,12 @@ const CORES = {
   DC:{bg:'#22d3ee',fg:'#04222a'}, CM:{bg:'#22c55e',fg:'#052e12'}, OT:{bg:'#fde047',fg:'#2b2400'},
   EC:{bg:'#f3d9b1',fg:'#3a2a10'}, AL:{bg:'#0E2A47',fg:'#ffffff'}, HW:{bg:'#1e3a8a',fg:'#ffffff'},
   DL:{bg:'#3f6212',fg:'#ffffff'}, MS:{bg:'#6b7280',fg:'#ffffff'}, PC:{bg:'#f4f4f5',fg:'#111111'},
-  KG:{bg:'#f97316',fg:'#2a1200'}, ME:{bg:'#f7cba4',fg:'#3a2510'}, VUC:{bg:'#ef4444',fg:'#ffffff'}
+  KG:{bg:'#f97316',fg:'#2a1200'}, ME:{bg:'#f7cba4',fg:'#3a2510'}, VUC:{bg:'#ef4444',fg:'#ffffff'},
+  PL:{bg:'#c4b5fd',fg:'#2e1065'}
 };
 const STATUS_INFO = {
   livre:{label:'Livre', hex:'#94A3B8'}, ocupado:{label:'Ocupado', hex:'#2563EB'},
   separacao:{label:'Em separação', hex:'#F5A524'}, problema:{label:'Problema', hex:'#DC2626'}
-};
-const CHAMADO_STATUS_INFO = {
-  chamado:{label:'Chamado', hex:'#DC2626'},
-  recebido:{label:'Recebido · conferindo', hex:'#2563EB'},
-  aduana:{label:'Aduana · conferência', hex:'#7C3AED'},
-  finalizado:{label:'Finalizado', hex:'#16A34A'}
 };
 function range(a,b){const r=[];for(let i=a;i<=b;i++)r.push(i);return r;}
 const vagasData = [];
@@ -280,7 +297,7 @@ addVagas('Área VUC', range(89,97), 'VUC');
 const SIGLAS = Object.keys(CORES);
 const RUAS_ORDEM = ['Rua 1','Rua 2','Rua 3','Rua 4 - Expedição VUC','Área VUC'];
 
-// ================= PERFIL =================
+// ================= PERFIL (quem está acessando) =================
 let perfil = null;
 const PERFIL_KEY = 'meu-perfil';
 function permitida(rua){ return perfil==='COORD' || perfil===rua; }
@@ -295,7 +312,9 @@ async function definirPerfil(valor){
   renderTudo();
 }
 function trocarPerfil(){ document.getElementById('seletor').style.display='flex'; }
-function popularBotoesRua(){ document.getElementById('botoesRua').innerHTML = RUAS_ORDEM.map(r=>`<button class="rua-btn" onclick="definirPerfil('${r}')">${r}</button>`).join(''); }
+function popularBotoesRua(){
+  document.getElementById('botoesRua').innerHTML = RUAS_ORDEM.map(r=>`<button class="rua-btn" onclick="definirPerfil('${r}')">${r}</button>`).join('');
+}
 function renderPerfilBadge(){
   const label = perfil==='COORD' ? 'Coordenação (todas as ruas)' : perfil;
   document.getElementById('perfilBadge').innerHTML = `Você está em: <b>${escapeHtml(label)}</b> <button class="secondary" onclick="trocarPerfil()">Trocar</button>`;
@@ -308,20 +327,23 @@ const DEFAULTS_VINCULOS = [
   {nome:'DECARGO', sigla:'DC'}, {nome:'COOPMETRO', sigla:'CM'}, {nome:'ECO EXPRESS', sigla:'EC'},
   {nome:'ALC', sigla:'AL'}, {nome:'HAWK', sigla:'HW'}, {nome:'KANGU', sigla:'KG'},
   {nome:'MELI EXTRA', sigla:'ME'}, {nome:'PARCEIRO', sigla:'PC'}, {nome:'ONTIME', sigla:'OT'},
-  {nome:'DELUNA', sigla:'DL'}, {nome:'M.J SIMÕES', sigla:'MS'}
+  {nome:'DELUNA', sigla:'DL'}, {nome:'M.J SIMÕES', sigla:'MS'}, {nome:'PRALOG', sigla:'PL'}
 ];
 async function carregarVinculos(){
   try{ const r = await window.storage.get(VINC_KEY, true); vinculos = r && r.value ? JSON.parse(r.value) : []; }
   catch(e){ vinculos = []; }
   let mudou=false;
-  DEFAULTS_VINCULOS.forEach(d=>{ if(!vinculos.some(v=>v.sigla===d.sigla)){ vinculos.push(d); mudou=true; } });
+  const antesLen = vinculos.length;
+  vinculos = vinculos.filter(v=>!(v.nome.toUpperCase()==='PRALOG' && v.sigla==='DC'));
+  if(vinculos.length !== antesLen) mudou = true;
+  DEFAULTS_VINCULOS.forEach(d=>{ if(!vinculos.some(v=>v.nome.toUpperCase()===d.nome.toUpperCase())){ vinculos.push(d); mudou=true; } });
   if(mudou) await salvarVinculos();
 }
 async function salvarVinculos(){
   try{ await window.storage.set(VINC_KEY, JSON.stringify(vinculos), true); }
   catch(e){ document.getElementById('statusVinculo').textContent = 'Não foi possível salvar o vínculo agora.'; }
 }
-function popularSelectSiglas(){ document.getElementById('linkSigla').innerHTML = SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join(''); }
+function popularSelectSiglas(){ const el = document.getElementById('linkSigla'); if(el) el.innerHTML = SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join(''); }
 async function adicionarVinculo(){
   const nomeEl = document.getElementById('linkNome');
   const nome = nomeEl.value.trim();
@@ -344,13 +366,15 @@ async function removerVinculo(nome){
 }
 function renderVinculos(){
   const tbody = document.getElementById('tabelaVinculos');
+  if(!tbody) return;
   if(!vinculos.length){ tbody.innerHTML = `<tr><td colspan="4" class="empty">Nenhum vínculo cadastrado.</td></tr>`; return; }
   tbody.innerHTML = vinculos.map(v=>`<tr>
       <td>${escapeHtml(v.nome)}</td><td>${v.sigla}</td><td>${ruaDaSigla(v.sigla)}</td>
       <td><button class="danger" onclick="removerVinculo('${escapeHtml(v.nome).replace(/'/g,"\\'")}')">Remover</button></td>
     </tr>`).join('');
 }
-function ruaDaSigla(sigla){ const item = vagasData.find(v=>v.sigla===sigla); return item ? item.rua : '—'; }
+const RUA_SEM_VAGA = 'Direto no veículo (sem vaga)';
+function ruaDaSigla(sigla){ const item = vagasData.find(v=>v.sigla===sigla); return item ? item.rua : RUA_SEM_VAGA; }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function vinculoPorTransportadora(nome){ const up=(nome||'').toUpperCase().trim(); return vinculos.find(v=>v.nome.toUpperCase()===up); }
 
@@ -376,8 +400,8 @@ function parseLinha(linha){
   cols = cols.map(c=>c.trim()).filter((c,i,arr)=> !(c==='' && (i===0 || i===arr.length-1)));
   if(cols.length < 5) return null;
   const [idPacote, nRota, parada, ponto, transportadora, onda] = cols;
-  if(!idPacote || !nRota) return null;
-  if(idPacote.toUpperCase().includes('ID DO PACOTE') || nRota.toUpperCase().includes('ROTA')) return null;
+  if(!nRota) return null;
+  if((idPacote||'').toUpperCase().includes('ID DO PACOTE') || nRota.toUpperCase().includes('ROTA')) return null;
   return { idPacote, nRota, parada: parada||'', ponto: ponto||'', transportadora:(transportadora||'').toUpperCase(), onda: onda||'' };
 }
 async function importarRotas(){
@@ -392,7 +416,141 @@ async function importarRotas(){
   renderTudo();
   document.getElementById('statusRotas').textContent = `${novas.length} linha(s) importada(s) com sucesso.`;
 }
-async function limparRotas(){ rotasData = []; await salvarRotas(); renderTudo(); }
+async function limparRotas(){ rotasData = []; await salvarRotas(); document.getElementById('mapeamentoColunas').innerHTML=''; renderTudo(); }
+
+// ================= IMPORTAÇÃO DE PLANILHA (.xlsx / .xls / .csv) =================
+const CAMPOS_ALVO = [
+  {key:'idPacote', label:'ID do pacote', opcional:true, aliases:['id do pacote','idpacote','id pacote','pacote','id','codigo do pacote','cod pacote','codigo pacote','tracking','pacote id']},
+  {key:'nRota', label:'Rota / Gaiola', opcional:false,
+    aliasGroups:[
+      ['gaiola','n gaiola','nº gaiola','numero da gaiola','numero de gaiola','id da gaiola','id gaiola','cage','cage id'],
+      ['rota','n rota','nº rota','numero da rota','numero de rota','rota/gaiola']
+    ],
+    aliases:['gaiola','n gaiola','nº gaiola','numero da gaiola','numero de gaiola','id da gaiola','id gaiola','cage','cage id','rota','n rota','nº rota','numero da rota','numero de rota','rota/gaiola']},
+  {key:'parada', label:'Parada', opcional:true, aliases:['parada','nº parada','n parada','numero da parada','numero parada','stop','seq','sequencia','sequência']},
+  {key:'ponto', label:'Ponto', opcional:true, aliases:['ponto','ponto de entrega','zona','area','área']},
+  {key:'transportadora', label:'Transportadora', opcional:true, aliases:['transportadora','carrier','operador','operadora','mlp']},
+  {key:'onda', label:'Onda', opcional:true, aliases:['onda','ondas','wave','turno','tipo de onda']}
+];
+let planilhaHeaders = [];
+let planilhaRows = [];
+
+function normalizarHeader(h){
+  return String(h==null?'':h).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function detectarColuna(headersNorm, aliases){
+  for(let i=0;i<headersNorm.length;i++){ if(aliases.includes(headersNorm[i])) return i; }
+  for(let i=0;i<headersNorm.length;i++){ if(aliases.some(a=>headersNorm[i].includes(a))) return i; }
+  return -1;
+}
+function detectarColunaComPrioridade(headersNorm, campo){
+  if(campo.aliasGroups){
+    for(const grupo of campo.aliasGroups){
+      for(let i=0;i<headersNorm.length;i++){ if(grupo.includes(headersNorm[i])) return i; }
+    }
+    for(const grupo of campo.aliasGroups){
+      for(let i=0;i<headersNorm.length;i++){ if(grupo.some(a=>headersNorm[i].includes(a))) return i; }
+    }
+    return -1;
+  }
+  return detectarColuna(headersNorm, campo.aliases);
+}
+function encontrarLinhaCabecalho(rows){
+  let melhorIdx = 0, melhorScore = -1;
+  for(let i=0;i<Math.min(rows.length,15);i++){
+    const norm = (rows[i]||[]).map(normalizarHeader);
+    let score = 0;
+    CAMPOS_ALVO.forEach(c=>{ if(detectarColuna(norm, c.aliases) !== -1) score++; });
+    if(score>melhorScore){ melhorScore=score; melhorIdx=i; }
+  }
+  return melhorIdx;
+}
+
+async function processarPlanilha(){
+  const fileInput = document.getElementById('planilhaFile');
+  const statusEl = document.getElementById('statusPlanilha');
+  document.getElementById('mapeamentoColunas').innerHTML = '';
+  if(!fileInput.files.length){ statusEl.textContent = 'Selecione um arquivo primeiro.'; return; }
+  const file = fileInput.files[0];
+  statusEl.textContent = 'Lendo planilha…';
+  try{
+    const ehCsv = /\.csv$/i.test(file.name);
+    let wb;
+    if(ehCsv){
+      // CSV lido como texto UTF-8 explícito, evitando acentos quebrados (ex: "Õ" virando "Ã‖")
+      const buf = await file.arrayBuffer();
+      let texto = new TextDecoder('utf-8').decode(buf);
+      texto = texto.replace(/^\uFEFF/, ''); // remove BOM se houver
+      wb = XLSX.read(texto, {type:'string'});
+    }else{
+      const buf = await file.arrayBuffer();
+      wb = XLSX.read(buf, {type:'array'});
+    }
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
+    if(!rows.length){ statusEl.textContent = 'A planilha parece estar vazia.'; return; }
+    const headerIdx = encontrarLinhaCabecalho(rows);
+    planilhaHeaders = (rows[headerIdx]||[]).map(h=>String(h==null?'':h).trim());
+    planilhaRows = rows.slice(headerIdx+1).filter(r=>r.some(c=>String(c==null?'':c).trim()!==''));
+    if(!planilhaRows.length){ statusEl.textContent = 'Não encontramos linhas de dados abaixo do cabeçalho.'; return; }
+    renderMapeamentoColunas();
+    statusEl.textContent = `Lida a aba "${wb.SheetNames[0]}" · ${planilhaRows.length} linha(s) de dados encontradas. Confira o mapeamento abaixo e confirme a importação.`;
+  }catch(e){
+    statusEl.textContent = 'Não foi possível ler o arquivo. Confira se é um .xlsx, .xls ou .csv válido.';
+  }
+}
+
+function renderMapeamentoColunas(){
+  const el = document.getElementById('mapeamentoColunas');
+  const headersNorm = planilhaHeaders.map(normalizarHeader);
+  const opcoes = planilhaHeaders.map((h,i)=>({idx:i, label: h ? h : `Coluna ${i+1} (sem nome)`}));
+  el.innerHTML = `<div class="map-box">
+    <h3>Confirme as colunas</h3>
+    <p class="hint">A planilha original não é alterada — só lemos os valores dessas colunas para dentro do painel.</p>
+    ${CAMPOS_ALVO.map(c=>{
+      const detectado = detectarColunaComPrioridade(headersNorm, c);
+      return `<div class="map-row">
+        <label>${c.label}${c.opcional?' (opcional)':''}</label>
+        <select id="map-${c.key}">
+          <option value="-1" ${detectado===-1?'selected':''}>— não usar —</option>
+          ${opcoes.map(o=>`<option value="${o.idx}" ${o.idx===detectado?'selected':''}>${escapeHtml(o.label)}</option>`).join('')}
+        </select>
+      </div>`;
+    }).join('')}
+    <div class="rotas-actions">
+      <button onclick="confirmarImportacaoPlanilha()">Confirmar e importar</button>
+      <button class="secondary" onclick="document.getElementById('mapeamentoColunas').innerHTML=''">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+async function confirmarImportacaoPlanilha(){
+  const statusEl = document.getElementById('statusPlanilha');
+  const idx = {};
+  CAMPOS_ALVO.forEach(c=>{ idx[c.key] = parseInt(document.getElementById(`map-${c.key}`).value, 10); });
+  if(idx.nRota < 0){ statusEl.textContent = 'É necessário indicar qual coluna é a Rota/Gaiola.'; return; }
+  const pegar = (row, i) => i>=0 ? String(row[i]==null?'':row[i]).trim() : '';
+  const novas = [];
+  planilhaRows.forEach(row=>{
+    const nRota = pegar(row, idx.nRota);
+    if(!nRota) return;
+    novas.push({
+      idPacote: pegar(row, idx.idPacote),
+      nRota,
+      parada: pegar(row, idx.parada),
+      ponto: pegar(row, idx.ponto),
+      transportadora: pegar(row, idx.transportadora).toUpperCase(),
+      onda: pegar(row, idx.onda)
+    });
+  });
+  if(!novas.length){ statusEl.textContent = 'Nenhuma linha com Rota/Gaiola preenchida foi encontrada com esse mapeamento.'; return; }
+  rotasData = novas;
+  await salvarRotas();
+  document.getElementById('mapeamentoColunas').innerHTML = '';
+  document.getElementById('planilhaFile').value = '';
+  renderTudo();
+  statusEl.textContent = `${novas.length} linha(s) importada(s) da planilha com sucesso.`;
+}
 function renderPendentes(){
   const el = document.getElementById('pendentes');
   if(!rotasData.length){ el.innerHTML=''; return; }
@@ -414,7 +572,7 @@ async function vincularPendente(nome){
   renderTudo();
 }
 
-// ================= STATUS MANUAL DE VAGA (compartilhado) =================
+// ================= STATUS MANUAL (compartilhado) =================
 let statusOverrides = {};
 const STATUS_KEY = 'status-vagas';
 async function carregarStatusData(){
@@ -451,160 +609,101 @@ async function carregarChamados(){
 }
 async function salvarChamados(){ try{ await window.storage.set(CHAMADOS_KEY, JSON.stringify(chamadosData), true); }catch(e){} }
 
-function transportadorasDaRua(rua){
-  const siglas = vagasData.filter(v=>v.rua===rua).map(v=>v.sigla);
-  return vinculos.filter(v=>siglas.includes(v.sigla)).map(v=>v.nome);
+function popularChamarVaga(){
+  const sel = document.getElementById('chamarVaga');
+  if(!perfil || perfil==='COORD'){ sel.innerHTML=''; return; }
+  const vagas = vagasData.filter(v=>v.rua===perfil);
+  sel.innerHTML = vagas.map(v=>{
+    const vinc = vinculos.find(x=>x.sigla===v.sigla);
+    return `<option value="${v.num}">Vaga ${v.num} · ${v.sigla}${vinc?' · '+vinc.nome:''}</option>`;
+  }).join('');
 }
-function popularChamarRota(){
-  const selRota = document.getElementById('chamarRota');
-  const avisoEl = document.getElementById('avisoChamar');
-  if(!perfil || perfil==='COORD'){ selRota.innerHTML=''; document.getElementById('chamarVaga').innerHTML=''; return; }
-  const transps = transportadorasDaRua(perfil);
-  const rotasDaRua = rotasData.filter(r=>transps.includes(r.transportadora));
-  const rotasUnicas = [...new Map(rotasDaRua.map(r=>[r.nRota,r])).values()];
-  if(!rotasUnicas.length){
-    selRota.innerHTML = '<option value="">— nenhuma rota —</option>';
-    document.getElementById('chamarVaga').innerHTML = '';
-    if(avisoEl) avisoEl.innerHTML = `<div class="pendente">Nenhuma rota importada para <b>${escapeHtml(perfil)}</b> ainda. Cole a tabela do dia no card "Importar tabela do dia" mais abaixo — depois de importar, as rotas dessa rua aparecem aqui automaticamente.</div>`;
-    return;
-  }
-  if(avisoEl) avisoEl.innerHTML = '';
-  selRota.innerHTML = rotasUnicas.map(r=>`<option value="${escapeHtml(r.nRota)}">${escapeHtml(r.nRota)} · ${escapeHtml(r.transportadora)}${r.onda?' · '+escapeHtml(r.onda):''}</option>`).join('');
-  popularChamarVagaPorRota();
-}
-function popularChamarVagaPorRota(){
-  const selRota = document.getElementById('chamarRota');
-  const selVaga = document.getElementById('chamarVaga');
-  const nRota = selRota.value;
-  const linha = rotasData.find(r=>r.nRota===nRota);
-  if(!linha){ selVaga.innerHTML=''; return; }
-  const vinc = vinculoPorTransportadora(linha.transportadora);
-  if(!vinc){ selVaga.innerHTML = '<option value="">Transportadora sem sigla vinculada</option>'; return; }
-  const vagas = vagasData.filter(v=>v.rua===perfil && v.sigla===vinc.sigla);
-  selVaga.innerHTML = vagas.map(v=>`<option value="${v.num}">Vaga ${v.num} — ${STATUS_INFO[getStatus(v.num)].label}</option>`).join('');
-}
+
 async function chamarGaiola(){
   const statusEl = document.getElementById('statusChamar');
-  if(!perfil || perfil==='COORD'){ statusEl.textContent='Chamados são feitos pela rua específica.'; return; }
-  const nRota = document.getElementById('chamarRota').value;
+  if(!perfil || perfil==='COORD'){ statusEl.textContent='Chamados são feitos pela rua específica, não pela coordenação.'; return; }
   const numVaga = parseInt(document.getElementById('chamarVaga').value,10);
-  if(!nRota){ statusEl.textContent='Escolha a rota.'; return; }
-  if(!numVaga){ statusEl.textContent='Escolha a vaga.'; return; }
-  const linha = rotasData.find(r=>r.nRota===nRota);
+  const nRota = document.getElementById('chamarRota').value.trim();
+  if(!numVaga){ statusEl.textContent='Selecione a vaga.'; return; }
+  if(!nRota){ statusEl.textContent='Digite o número da rota.'; return; }
   const vaga = vagasData.find(v=>v.num===numVaga);
   const vinc = vinculos.find(v=>v.sigla===vaga.sigla);
   await carregarChamados();
-  chamadosData = chamadosData.filter(c=> !(c.nRota===nRota && c.status!=='finalizado'));
+  chamadosData = chamadosData.filter(c=>c.vaga!==numVaga);
   chamadosData.push({
     id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
     rua: perfil, vaga: numVaga, sigla: vaga.sigla,
-    transportadora: vinc ? vinc.nome : '', nRota,
-    onda: linha ? linha.onda : '',
-    criadoEm: Date.now(), status:'chamado'
+    transportadora: vinc ? vinc.nome : '', nRota, criadoEm: Date.now(), status:'chamado'
   });
   await salvarChamados();
-  statusEl.textContent = `Chamado enviado: rota ${nRota} · vaga ${numVaga}.`;
+  document.getElementById('chamarRota').value='';
+  statusEl.textContent = `Chamado enviado: Vaga ${numVaga} · rota ${nRota}.`;
   renderTudo();
 }
-async function avancarStatus(id, novoStatus){
+
+async function marcarRecebido(id){
   await carregarChamados();
-  const idx = chamadosData.findIndex(c=>c.id===id);
-  if(idx<0) return;
-  chamadosData[idx].status = novoStatus;
-  if(novoStatus==='recebido') chamadosData[idx].recebidoEm = Date.now();
-  if(novoStatus==='finalizado') chamadosData[idx].finalizadoEm = Date.now();
+  chamadosData = chamadosData.filter(c=>c.id!==id);
   await salvarChamados();
   renderTudo();
 }
-async function limparFinalizados(){
-  await carregarChamados();
-  chamadosData = chamadosData.filter(c=>c.status!=='finalizado');
-  await salvarChamados();
-  renderTudo();
-}
+
 function tempoDesde(ts){
   const min = Math.max(0, Math.round((Date.now()-ts)/60000));
   if(min<1) return 'agora mesmo';
   if(min===1) return '1 min atrás';
   return `${min} min atrás`;
 }
-function chamadosVisiveis(){ return perfil==='COORD' ? chamadosData : chamadosData.filter(c=>c.rua===perfil); }
-function chamadosEmAndamento(){ return chamadosVisiveis().filter(c=>c.status!=='finalizado'); }
-function acoesChamado(c){
-  if(c.status==='chamado') return `<button class="ok sm" onclick="avancarStatus('${c.id}','recebido')">Marcar recebido</button>`;
-  if(c.status==='recebido') return `<button class="ok sm" onclick="avancarStatus('${c.id}','finalizado')">Finalizar</button><button class="roxo sm" onclick="avancarStatus('${c.id}','aduana')">Aduana</button>`;
-  if(c.status==='aduana') return `<button class="secondary sm" onclick="avancarStatus('${c.id}','recebido')">Resolvido</button><button class="ok sm" onclick="avancarStatus('${c.id}','finalizado')">Finalizar</button>`;
-  return '';
+
+function chamadosVisiveis(){
+  if(perfil==='COORD') return chamadosData;
+  return chamadosData.filter(c=>c.rua===perfil);
 }
+
 function renderChamados(){
   const el = document.getElementById('chamadosList');
-  const lista = chamadosEmAndamento().sort((a,b)=>a.criadoEm-b.criadoEm);
+  const lista = chamadosVisiveis().sort((a,b)=>a.criadoEm-b.criadoEm);
   if(!lista.length){ el.innerHTML = '<div class="empty">Nenhum chamado ativo no momento.</div>'; return; }
   el.innerHTML = lista.map(c=>{
     const cor = CORES[c.sigla] || {bg:'#ccc',fg:'#000'};
-    const st = CHAMADO_STATUS_INFO[c.status];
-    return `<div class="chamado-card" style="border-color:${st.hex}33;background:${st.hex}11;">
+    return `<div class="chamado-card">
       <div class="info">
-        <span class="badge-status" style="background:${st.hex}">${st.label}</span>
-        &nbsp;<b style="background:${cor.bg};color:${cor.fg};padding:2px 7px;border-radius:5px;">${c.sigla}</b>
+        <b style="background:${cor.bg};color:${cor.fg};padding:2px 7px;border-radius:5px;">${c.sigla}</b>
         &nbsp;<b>Vaga ${c.vaga}</b> · ${escapeHtml(c.rua)}
-        <span>${escapeHtml(c.transportadora||'')} · rota ${escapeHtml(c.nRota)}${c.onda?' · '+escapeHtml(c.onda):''} · ${tempoDesde(c.criadoEm)}</span>
+        <span>${escapeHtml(c.transportadora||'')} · rota ${escapeHtml(c.nRota)} · chamado ${tempoDesde(c.criadoEm)}</span>
       </div>
-      <div class="acoes">${acoesChamado(c)}</div>
+      <button class="ok" onclick="marcarRecebido('${c.id}')">Marcar recebido</button>
     </div>`;
   }).join('');
 }
 
-// ================= DASHBOARD DA ONDA =================
-function ondasDisponiveis(){ return [...new Set(rotasData.map(r=>r.onda).filter(Boolean))]; }
-function popularOndaSelect(){
-  const sel = document.getElementById('ondaSelect');
-  const atual = sel.value;
-  const ondas = ondasDisponiveis();
-  sel.innerHTML = `<option value="TODAS">Todas as ondas</option>` + ondas.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
-  if(ondas.includes(atual)) sel.value = atual;
-}
-function renderDashboard(){
-  const el = document.getElementById('dashboardOnda');
-  if(!rotasData.length){ el.innerHTML = '<div class="empty">Importe a tabela do dia para ver o progresso.</div>'; return; }
-  const ondaFiltro = document.getElementById('ondaSelect').value || 'TODAS';
-  const rotasEscopo = rotasData.filter(r=>{
-    const vinc = vinculoPorTransportadora(r.transportadora);
-    if(!vinc) return false;
-    if(!permitida(ruaDaSigla(vinc.sigla))) return false;
-    return ondaFiltro==='TODAS' || r.onda===ondaFiltro;
-  });
-  const rotasUnicas = [...new Set(rotasEscopo.map(r=>r.nRota))];
-  const finalizados = chamadosVisiveis().filter(c=>c.status==='finalizado' && rotasUnicas.includes(c.nRota));
-  const nomesFinalizados = [...new Set(finalizados.map(c=>c.nRota))];
-  const total = rotasUnicas.length;
-  const feitas = nomesFinalizados.length;
-  const pct = total ? Math.round(feitas/total*100) : 0;
-
-  const vagasVisiveis = vagasData.filter(v=>permitida(v.rua));
-  const ocupadas = vagasVisiveis.filter(v=>getStatus(v.num)==='ocupado').length;
-  const livres = vagasVisiveis.filter(v=>getStatus(v.num)==='livre').length;
-
-  el.innerHTML = `
-    <div><b>${feitas} de ${total}</b> rotas finalizadas ${ondaFiltro!=='TODAS'?'· '+escapeHtml(ondaFiltro):''}</div>
-    <div class="progress-outer"><div class="progress-inner" style="width:${pct}%">${pct}%</div></div>
-    <div style="font-size:12.5px;color:var(--muted);">Faltam <b>${total-feitas}</b> rotas · Vagas ocupadas: <b>${ocupadas}</b> · Vagas livres: <b>${livres}</b></div>
-    ${nomesFinalizados.length ? `<div class="finalizados-list">${nomesFinalizados.map(n=>`<span class="finalizado-chip">${escapeHtml(n)}</span>`).join('')}</div>` : ''}
-  `;
-}
-
 // ================= RESUMO POR RUA =================
+let resumoRuasAbertas = new Set();
+function toggleResumoRua(idSeguro){
+  if(resumoRuasAbertas.has(idSeguro)) resumoRuasAbertas.delete(idSeguro);
+  else resumoRuasAbertas.add(idSeguro);
+  renderResumo();
+}
+function ondaOrdem(label){
+  if(/sem onda/i.test(label)) return 9999;
+  const m = label.match(/(\d+)/);
+  return m ? parseInt(m[1],10) : 9998;
+}
 function computeResumo(){
+  // map: rua -> sigla -> {transportadora, ondas: { ondaLabel: { nRota: Set(parada) } }}
   const map = {};
   rotasData.forEach(r=>{
     const vinc = vinculoPorTransportadora(r.transportadora);
     if(!vinc) return;
     const rua = ruaDaSigla(vinc.sigla);
     if(!permitida(rua)) return;
+    const ondaLabel = (r.onda && r.onda.trim()) ? r.onda.trim() : 'Sem onda (saca)';
     if(!map[rua]) map[rua] = {};
-    if(!map[rua][vinc.sigla]) map[rua][vinc.sigla] = {transportadora:r.transportadora, rotas:new Set(), pacotes:0};
-    map[rua][vinc.sigla].rotas.add(r.nRota);
-    map[rua][vinc.sigla].pacotes++;
+    if(!map[rua][vinc.sigla]) map[rua][vinc.sigla] = {transportadora:r.transportadora, ondas:{}};
+    const grupo = map[rua][vinc.sigla];
+    if(!grupo.ondas[ondaLabel]) grupo.ondas[ondaLabel] = {};
+    if(!grupo.ondas[ondaLabel][r.nRota]) grupo.ondas[ondaLabel][r.nRota] = new Set();
+    if(r.parada) grupo.ondas[ondaLabel][r.nRota].add(r.parada);
   });
   return map;
 }
@@ -613,20 +712,48 @@ function renderResumo(){
   if(!rotasData.length){ el.innerHTML = '<div class="empty">Importe a tabela do dia para ver o resumo.</div>'; return; }
   const map = computeResumo();
   const ruasComDados = RUAS_ORDEM.filter(r=>map[r]);
+  if(map[RUA_SEM_VAGA]) ruasComDados.push(RUA_SEM_VAGA);
   if(!ruasComDados.length){ el.innerHTML = '<div class="empty">Nenhuma rota vinculada na sua área ainda.</div>'; return; }
   el.innerHTML = ruasComDados.map(rua=>{
-    const siglas = map[rua]; let totalRotas=0, totalPacotes=0;
-    const blocos = Object.keys(siglas).map(sigla=>{
-      const d = siglas[sigla]; totalRotas += d.rotas.size; totalPacotes += d.pacotes;
+    const siglas = map[rua];
+    let totalRotasRua = 0;
+    const blocosTransp = Object.keys(siglas).map(sigla=>{
+      const d = siglas[sigla];
+      const ondaLabels = Object.keys(d.ondas).sort((a,b)=>ondaOrdem(a)-ondaOrdem(b));
+      let totalRotasTransp = 0;
+      const colunasOnda = ondaLabels.map(ondaLabel=>{
+        const rotasObj = d.ondas[ondaLabel];
+        const rotasList = Object.keys(rotasObj).sort((a,b)=>a.localeCompare(b, 'pt-BR', {numeric:true}));
+        totalRotasTransp += rotasList.length;
+        const linhas = rotasList.map(nRota=>{
+          const paradas = rotasObj[nRota];
+          const paradaTxt = paradas.size ? [...paradas].join(', ') : '—';
+          return `<tr><td class="rota">${escapeHtml(nRota || '—')}</td><td class="parada">${escapeHtml(paradaTxt)}</td></tr>`;
+        }).join('');
+        return `<div class="onda-col">
+          <div class="onda-title">${escapeHtml(ondaLabel)} <span class="qtd">— ${rotasList.length} rota(s)</span></div>
+          <table class="resumo-table"><thead><tr><th>Rota</th><th>Parada</th></tr></thead><tbody>${linhas}</tbody></table>
+        </div>`;
+      }).join('');
+      totalRotasRua += totalRotasTransp;
       const cor = CORES[sigla];
-      return `<div class="resumo-transp">
-        <span class="sigla-badge-sm" style="background:${cor.bg};color:${cor.fg}">${sigla}</span>
-        <b>${escapeHtml(d.transportadora)}</b>
-        <span class="qtd">${d.rotas.size} rota(s) · ${d.pacotes} pacote(s)</span>
-        <div class="rotas-list">${[...d.rotas].join(', ')}</div>
+      return `<div class="resumo-transp-block">
+        <div class="resumo-transp-head">
+          <span class="sigla-badge-sm" style="background:${cor.bg};color:${cor.fg}">${sigla}</span>
+          <b>${escapeHtml(d.transportadora)}</b>
+          <span class="qtd">${totalRotasTransp} rota(s)</span>
+        </div>
+        <div class="onda-colunas">${colunasOnda}</div>
       </div>`;
     }).join('');
-    return `<div class="resumo-rua"><div class="resumo-rua-title">${rua} <span class="qtd">— ${totalRotas} rota(s) · ${totalPacotes} pacote(s)</span></div>${blocos}</div>`;
+    const idSeguro = rua.replace(/[^a-zA-Z0-9]/g,'_');
+    const aberta = resumoRuasAbertas.has(idSeguro);
+    return `<div class="resumo-rua">
+      <div class="resumo-rua-title" onclick="toggleResumoRua('${idSeguro}')">
+        <span class="toggle-arrow">${aberta?'▾':'▸'}</span> ${escapeHtml(rua)} <span class="qtd">— ${totalRotasRua} rota(s)</span>
+      </div>
+      <div class="resumo-rua-body" style="display:${aberta?'block':'none'};">${blocosTransp}</div>
+    </div>`;
   }).join('');
 }
 
@@ -638,7 +765,7 @@ function renderKPIs(){
   vagasVisiveis.forEach(v=>{ counts[getStatus(v.num)]++; });
   const transps = [...new Set(rotasData.map(r=>r.transportadora).filter(Boolean))];
   const pendentes = transps.filter(t=>!vinculoPorTransportadora(t)).length;
-  const chamAtivos = chamadosEmAndamento().length;
+  const chamAtivos = chamadosVisiveis().length;
   el.innerHTML = `
     <div class="kpi"><div class="n">${vagasVisiveis.length}</div><div class="l">Posições visíveis</div></div>
     <div class="kpi chamados"><div class="n">${chamAtivos}</div><div class="l">Chamados ativos</div></div>
@@ -655,6 +782,7 @@ function statusButtons(num, ativo){
     return `<button class="status-btn" style="background:${isAtivo?info.hex:'#fff'};color:${isAtivo?'#fff':'#333'};border-color:${info.hex}" onclick="setStatus(${num},'${k}')">${info.label}</button>`;
   }).join('') + `<button class="status-btn secondary" style="border-color:#ccc;color:#666" onclick="limparOverride(${num})">Automático</button>`;
 }
+
 function renderDetalheVaga(vaga){
   const el = document.getElementById('detalhe');
   if(!permitida(vaga.rua)){ el.innerHTML = `<div class="empty">Vaga ${vaga.num} pertence à ${vaga.rua} — fora da sua área de acesso.</div>`; return; }
@@ -663,21 +791,21 @@ function renderDetalheVaga(vaga){
   const transp = vinc ? vinc.nome : (vaga.sigla==='VUC' ? 'Expedição / VUC — sem transportadora fixa' : 'Sem transportadora vinculada');
   const status = getStatus(vaga.num);
   const rotas = vaga.sigla==='VUC' ? [] : rotasData.filter(r=> (vinculoPorTransportadora(r.transportadora)||{}).sigla === vaga.sigla);
-  const chamado = chamadosData.find(c=>c.vaga===vaga.num && c.status!=='finalizado');
+  const chamado = chamadosData.find(c=>c.vaga===vaga.num);
   el.innerHTML = `
     <div class="det-head">
       <div class="det-badge" style="background:${cor.bg};color:${cor.fg}">${vaga.sigla}</div>
       <div class="det-info"><b>Vaga ${vaga.num} · ${vaga.rua}</b><span>${escapeHtml(transp)}</span></div>
     </div>
     <div class="status-row">${statusButtons(vaga.num, status)}</div>
-    ${chamado ? (()=>{ const st=CHAMADO_STATUS_INFO[chamado.status]; return `<div class="chamado-alerta" style="border-color:${st.hex}55;background:${st.hex}11;">
-        <span class="badge-status" style="background:${st.hex}">${st.label}</span> rota ${escapeHtml(chamado.nRota)} · ${tempoDesde(chamado.criadoEm)}
-        <div style="margin-top:8px;">${acoesChamado(chamado)}</div></div>`; })() : ''}
+    ${chamado ? `<div class="chamado-alerta"><b>Chamado ativo:</b> rota ${escapeHtml(chamado.nRota)} · ${tempoDesde(chamado.criadoEm)}
+        <div style="margin-top:6px;"><button class="ok" onclick="marcarRecebido('${chamado.id}')">Marcar recebido</button></div></div>` : ''}
     ${rotas.length ? `<table><thead><tr><th>ID Pacote</th><th>Rota</th><th>Parada</th><th>Ponto</th><th>Onda</th></tr></thead>
       <tbody>${rotas.map(r=>`<tr><td>${escapeHtml(r.idPacote)}</td><td>${escapeHtml(r.nRota)}</td><td>${escapeHtml(r.parada)}</td><td>${escapeHtml(r.ponto)}</td><td>${escapeHtml(r.onda)}</td></tr>`).join('')}</tbody></table>`
       : `<div class="empty" style="margin-top:10px;">Nenhuma rota importada para essa transportadora ainda.</div>`}
   `;
 }
+
 function renderDetalheGrupo(sigla, origem, rotasFiltradas){
   const el = document.getElementById('detalhe');
   const vagas = vagasData.filter(v=>v.sigla===sigla);
@@ -698,6 +826,7 @@ function renderDetalheGrupo(sigla, origem, rotasFiltradas){
       <tbody>${rotasFiltradas.map(r=>`<tr><td>${escapeHtml(r.idPacote)}</td><td>${escapeHtml(r.nRota)}</td><td>${escapeHtml(r.parada)}</td><td>${escapeHtml(r.ponto)}</td><td>${escapeHtml(r.onda)}</td></tr>`).join('')}</tbody></table>` : ''}
   `;
 }
+
 function renderDetalhePendente(transportadora, origem){
   document.getElementById('detalhe').innerHTML = `<div class="pendente"><b>"${escapeHtml(transportadora)}"</b> (via ${origem}) ainda não está vinculada a nenhuma sigla.
     <div class="row"><select id="selPendenteDetalhe">${SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
@@ -714,6 +843,7 @@ async function vincularEBuscarNovamente(nome){
   renderDetalheGrupo(sigla, `transportadora "${nome}"`, rotasFiltradas);
   destacar(vagasData.filter(v=>v.sigla===sigla).map(v=>v.num));
 }
+
 function selecionarVaga(num){
   const vaga = vagasData.find(v=>v.num===num);
   if(!vaga) return;
@@ -721,6 +851,7 @@ function selecionarVaga(num){
   destacarSelecionada(num);
 }
 function limpar(){ document.getElementById('q').value=''; document.getElementById('detalhe').innerHTML = '<div class="empty">Clique em uma posição no layout abaixo ou use a busca.</div>'; destacar([]); destacarSelecionada(null); }
+
 function buscar(){
   const raw = document.getElementById('q').value.trim();
   if(!raw) return;
@@ -764,18 +895,9 @@ function posBox(vaga){
   const cor = CORES[vaga.sigla];
   const st = getStatus(vaga.num);
   const info = STATUS_INFO[st];
-  const chamado = chamadosData.find(c=>c.vaga===vaga.num && c.status!=='finalizado');
-  let classeExtra = '';
-  let flagHtml = '';
-  if(chamado){
-    const cst = CHAMADO_STATUS_INFO[chamado.status];
-    flagHtml = `<span class="chamado-flag" style="background:${cst.hex}">${cst.label.split(' ')[0].toUpperCase()}</span>`;
-    if(chamado.status==='chamado') classeExtra = 'pulso-vermelho';
-    else if(chamado.status==='aduana') classeExtra = 'pulso-roxo';
-    else if(chamado.status==='recebido') classeExtra = 'borda-azul';
-  }
-  return `<div class="pos-box ${classeExtra}" data-num="${vaga.num}" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${vaga.num})">
-    ${flagHtml}
+  const chamado = chamadosData.find(c=>c.vaga===vaga.num);
+  return `<div class="pos-box ${chamado?'chamado-ativo':''}" data-num="${vaga.num}" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${vaga.num})">
+    ${chamado?'<span class="chamado-flag">CHAMADO</span>':''}
     <span class="status-dot" style="background:${info.hex}"></span>
     <span class="num">${vaga.num}</span><span class="sigla">${vaga.sigla}</span>
   </div>`;
@@ -811,10 +933,12 @@ function renderFloorplan(){
     </div>
     <div class="fp-col stretch"><div class="infra-box rampa">RAMPA SUBIDA</div><div class="infra-box rampa">RAMPA SUBIDA · 1</div></div>
   `;
+  requestAnimationFrame(ajustarEscalaA4);
 }
 
 // ================= LEGENDA =================
 function renderLegenda(){
+  if(!document.getElementById('legendaTransp')) return;
   document.getElementById('legendaTransp').innerHTML = SIGLAS.map(s=>{
     const cor = CORES[s]; const vinc = vinculos.find(v=>v.sigla===s);
     const nome = vinc ? vinc.nome : (s==='VUC' ? 'Expedição / VUC' : 'Sem vínculo');
@@ -822,10 +946,6 @@ function renderLegenda(){
   }).join('');
   document.getElementById('legendaStatus').innerHTML = Object.keys(STATUS_INFO).map(k=>{
     const info = STATUS_INFO[k];
-    return `<div class="legend-item"><span class="legend-swatch" style="background:${info.hex}"></span>${info.label}</div>`;
-  }).join('');
-  document.getElementById('legendaChamado').innerHTML = Object.keys(CHAMADO_STATUS_INFO).map(k=>{
-    const info = CHAMADO_STATUS_INFO[k];
     return `<div class="legend-item"><span class="legend-swatch" style="background:${info.hex}"></span>${info.label}</div>`;
   }).join('');
 }
@@ -836,23 +956,44 @@ function renderTudo(){
   renderPerfilBadge();
   renderKPIs();
   renderChamados();
-  popularOndaSelect();
-  renderDashboard();
   renderFloorplan();
   renderLegenda();
   renderVinculos();
   renderPendentes();
   renderResumo();
   atualizarStatusRotas();
-  popularChamarRota();
+  popularChamarVaga();
   document.getElementById('cardChamar').style.display = (perfil && perfil!=='COORD') ? 'block' : 'none';
 }
+
 async function carregarTudoCompartilhado(){
   await carregarVinculos();
   await carregarRotas();
   await carregarStatusData();
   await carregarChamados();
 }
+
+// ================= LAYOUT NAS PROPORÇÕES A4 =================
+function ajustarEscalaA4(){
+  const folha = document.getElementById('folhaA4');
+  const fp = document.getElementById('floorplan');
+  if(!folha || !fp) return;
+  const outer = folha.querySelector('.floorplan-outer');
+  fp.style.transform = 'none';
+  const espacoW = outer.clientWidth;
+  const espacoH = outer.clientHeight;
+  const conteudoW = fp.scrollWidth;
+  const conteudoH = fp.scrollHeight;
+  if(!conteudoW || !conteudoH) return;
+  const escala = Math.min(espacoW / conteudoW, espacoH / conteudoH, 1);
+  fp.style.transform = `scale(${escala})`;
+}
+let redimensionaTimeout;
+window.addEventListener('resize', ()=>{
+  clearTimeout(redimensionaTimeout);
+  redimensionaTimeout = setTimeout(ajustarEscalaA4, 150);
+});
+
 async function init(){
   popularSelectSiglas();
   popularBotoesRua();
