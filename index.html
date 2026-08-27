@@ -513,6 +513,7 @@ async function carregarSupabaseCoord(){
     rotasData=(p.data||[]).map(rowPlanejamentoToLocal);
     chamadosData=(o.data||[]).map(rowOperacaoToLocal);
     try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));localStorage.setItem(CHAMADOS_KEY,JSON.stringify(chamadosData));}catch(e){}
+    await carregarLideres();
     renderTudo(); if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord();
   }catch(e){ console.error('Supabase coord:',e); }
 }
@@ -520,6 +521,7 @@ function iniciarRealtimeCoord(){
   db.channel('svc-coordenacao')
     .on('postgres_changes',{event:'*',schema:'public',table:'planejamento'},()=>carregarSupabaseCoord())
     .on('postgres_changes',{event:'*',schema:'public',table:'operacoes_vagas'},()=>carregarSupabaseCoord())
+    .on('postgres_changes',{event:'*',schema:'public',table:'lideres_rua'},()=>carregarSupabaseCoord())
     .subscribe();
 }
 
@@ -1539,14 +1541,15 @@ async function carregarTudoCompartilhado(){
 
 // ================= LÍDERES DE RUA (quem está logado em cada rua) =================
 let lideresPorRua = {};
-const LIDERES_KEY = 'lideres-por-rua';
 async function carregarLideres(){
   try{
-    if(window.storage && typeof window.storage.get==='function'){
-      const r = await window.storage.get(LIDERES_KEY, true);
-      lideresPorRua = r && r.value ? JSON.parse(r.value) : {};
-    }
-  }catch(e){ lideresPorRua = {}; }
+    const {data,error} = await db.from('lideres_rua').select('*');
+    if(error) throw error;
+    lideresPorRua = {};
+    (data||[]).forEach(row=>{
+      lideresPorRua[row.rua] = { nome: row.nome, atualizadoEm: new Date(row.atualizado_em).getTime() };
+    });
+  }catch(e){ console.error('Erro ao carregar líderes:', e); }
 }
 function tempoDesdeMin(ts){
   if(!ts) return '';
