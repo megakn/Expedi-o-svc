@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Layout SVC-SD · Painel de Posições</title>
+<title>SVC · Painel de Acompanhamento da Coordenação</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -167,101 +167,300 @@
   .folha-a4::after{content:'A4 · 297×210mm';position:absolute;bottom:6px;right:10px;font-size:9.5px;color:var(--slate-400);font-weight:700;letter-spacing:.04em;}
   .folha-a4 .floorplan-outer{position:absolute;inset:0;padding:14px;box-sizing:border-box;overflow:hidden;}
   .folha-a4 .floorplan{transform-origin:top left;}
+
+
+  /* =============== PAINEL COORDENACAO · VIEW ONLY =============== */
+  :root{
+    --accent:#0E7C86; --success:#16A34A; --warning:#F59E0B; --danger:#DC2626;
+    --cyan:#06B6D4; --blue:#2563EB; --violet:#7C3AED; --shadow:0 8px 24px rgba(15,23,42,.07);
+  }
+  html{scroll-behavior:smooth}
+  body{padding:16px 18px 28px;min-height:100vh;background:#E9EEF5}
+  .wrap{max-width:1500px;margin:0 auto}
+  .svc-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow)}
+  .svc-topbar-left{display:flex;align-items:center;gap:12px}.svc-topbar-left::before{content:'SVC';width:38px;height:38px;border-radius:9px;background:#0E2A47;color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;letter-spacing:.04em}
+  .svc-topbar-left small{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.13em}.svc-topbar-left strong{display:block;font-size:15px;margin-top:2px}
+  .svc-top-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.sys-chip{border:1px solid var(--border);background:#F8FAFC;border-radius:999px;padding:6px 9px;font-size:9.5px;font-weight:800}.online-dot{display:inline-block;width:7px;height:7px;background:#22C55E;border-radius:50%;box-shadow:0 0 0 3px rgba(34,197,94,.12);margin-right:5px}
+  #themeToggle{padding:6px 9px;border-radius:999px;background:#fff;color:var(--navy-900);border:1px solid var(--border);font-size:10px}
+  header{background:#0E2A47;color:#fff;border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+  header h1{font-size:18px;letter-spacing:.035em}header p{color:#C7D5E4;font-size:10.5px;margin-top:3px}.perfil-badge{display:none!important}
+  .coord-badge{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);padding:7px 10px;border-radius:9px;font-size:10px;font-weight:800;white-space:nowrap}
+  .kpis{grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}.kpi{border:1px solid var(--border);border-left:none!important;border-radius:10px;padding:9px 11px;box-shadow:none;position:relative}.kpi .n{font-size:20px}.kpi .l{font-size:9px;font-weight:800;letter-spacing:.065em}.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#64748B;border-radius:10px 0 0 10px}.kpi.chamados::before{background:var(--violet)}.kpi.ocupado::before{background:var(--blue)}.kpi.livre::before{background:#94A3B8}.kpi.pendente::before{background:var(--warning)}
+  .coord-main{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:10px;align-items:start}
+  .card{border:1px solid var(--border);border-radius:11px;padding:12px 14px;box-shadow:none;margin-bottom:10px}.card h2{font-size:10.5px;letter-spacing:.09em}.card .hint{font-size:10px;margin-bottom:8px}
+  #cardLayout{padding:10px 12px;margin-bottom:10px}.layout-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}.layout-head h2{margin:0}.layout-live{font-size:9px;font-weight:900;color:#166534;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:999px;padding:4px 7px}
+  .folha-a4-wrap{display:flex;justify-content:center;width:100%}.folha-a4{background:#fff;border:1px solid #CBD5E1;border-radius:8px;box-shadow:0 3px 14px rgba(15,23,42,.08);width:100%;max-width:1123px;aspect-ratio:297/210;position:relative;overflow:hidden}.folha-a4::after{content:'VISÃO GERAL · COORDENAÇÃO';position:absolute;bottom:5px;right:8px;font-size:8px;color:#94A3B8;font-weight:800;letter-spacing:.05em}.folha-a4 .floorplan-outer{position:absolute;inset:0;padding:10px;overflow:hidden}.folha-a4 .floorplan{transform-origin:top left}
+  .pos-box{border-radius:6px;box-shadow:0 1px 3px rgba(15,23,42,.12);transition:.12s}.pos-box:hover{transform:translateY(-1px);box-shadow:0 4px 9px rgba(15,23,42,.15)}
+  .pos-box.status-rota{outline:3px solid #16A34A;outline-offset:1px}.pos-box.status-atencao{outline:3px solid #F59E0B;outline-offset:1px}.pos-box.status-excedido{outline:3px solid #DC2626;outline-offset:1px}.pos-box.status-aduana{outline:3px solid #7C3AED;outline-offset:1px}
+  .pos-box.chamado-ativo{animation:pulseChamado 1.15s infinite}.chamado-flag{font-size:7px;top:-5px;left:-5px}
+  .coord-rail{display:grid;gap:10px}.rail-card{background:#fff;border:1px solid var(--border);border-radius:11px;padding:11px 12px}.rail-card h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 9px;color:var(--navy-700)}
+  .status-legend{display:grid;gap:7px}.status-line{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px}.status-name{display:flex;align-items:center;gap:7px}.status-light{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(15,23,42,.05)}
+  .route-live-list{display:grid;gap:7px;max-height:260px;overflow:auto}.route-live{border:1px solid var(--border);border-radius:8px;padding:8px;background:#F8FAFC}.route-live-top{display:flex;justify-content:space-between;gap:5px;align-items:center}.route-live b{font-size:10.5px}.route-live small{display:block;color:var(--muted);font-size:9px;margin-top:3px}.route-status{font-size:8px;font-weight:900;padding:3px 5px;border-radius:999px;white-space:nowrap}
+  .readonly-note{font-size:9px;line-height:1.45;color:var(--muted);background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:8px}
+  .coordinator-detail{margin-top:10px}.coordinator-detail .card{margin:0}
+  #importacao,#resumo,#dispositivos,.led-console,#cardChamar{display:none!important}
+  .search-row{gap:6px}.search-row input{padding:7px 9px;font-size:11px}.search-row button{padding:7px 10px;font-size:10px}
+  .status-view{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:5px 8px;font-size:9.5px;font-weight:800;background:#F8FAFC}
+  body.dark{--bg:#08121F;--surface:#0E1B2A;--surface-alt:#132235;--border:#26394E;--navy-900:#EAF3FC;--navy-700:#B7CCE0;--muted:#8FA5B8;color:#EAF3FC;background:#07111D}.dark .svc-topbar,.dark .rail-card,.dark .card,.dark .kpi{background:var(--surface)}.dark header{background:#0B223A}.dark .sys-chip,.dark #themeToggle,.dark .route-live,.dark .readonly-note,.dark .status-view{background:var(--surface-alt);color:#EAF3FC}.dark .folha-a4{background:#F8FAFC}
+  @media(max-width:1180px){body{padding:10px}.coord-main{grid-template-columns:1fr 230px}.kpis{grid-template-columns:repeat(5,1fr)}.folha-a4 .floorplan-outer{padding:7px}}
+  @media(max-width:900px){.coord-main{grid-template-columns:1fr}.coord-rail{grid-template-columns:repeat(3,1fr)}.route-live-list{max-height:160px}.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:650px){.svc-topbar{align-items:flex-start;flex-direction:column}.kpis{grid-template-columns:repeat(2,1fr)}.coord-rail{grid-template-columns:1fr}.folha-a4{min-width:620px}.folha-a4-wrap{overflow-x:auto;justify-content:flex-start}}
+
+  /* MONITORAMENTO GERAL DAS ROTAS */
+  .monitor-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-bottom:10px}
+  .monitor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .monitor-head h2{margin:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--navy-700)}
+  .monitor-summary{display:flex;gap:6px;flex-wrap:wrap}.monitor-pill{font-size:8.5px;font-weight:900;padding:4px 7px;border-radius:999px;border:1px solid var(--border);background:var(--surface-alt)}
+  .route-table-wrap{overflow:auto;max-height:275px;border:1px solid var(--border);border-radius:8px}
+  .route-table{width:100%;margin:0;border-collapse:separate;border-spacing:0;font-size:10px}
+  .route-table th{position:sticky;top:0;z-index:2;background:var(--surface-alt);font-size:8.5px;letter-spacing:.07em;color:var(--muted);padding:7px 8px;border-bottom:1px solid var(--border)}
+  .route-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+  .route-table tr:last-child td{border-bottom:none}.route-table tbody tr:hover{background:rgba(37,99,235,.035)}
+  .route-table .rota-cell{font-family:'Roboto Mono',monospace;font-weight:900}.route-table .vaga-cell{font-family:'Roboto Mono',monospace;font-weight:900;text-align:center}
+  .tempo-cell{font-family:'Roboto Mono',monospace;font-weight:900}.process-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 6px;font-size:8px;font-weight:900;border:1px solid currentColor}
+  .process-dot{width:6px;height:6px;border-radius:50%;background:currentColor}.row-excedido{background:#FEF2F2}.row-aduana{background:#F5F3FF}.row-atencao{background:#FFFBEB}
+  .delay-alert{display:none;align-items:center;justify-content:space-between;gap:10px;border:1px solid #FCA5A5;background:#FEF2F2;border-radius:9px;padding:7px 9px;margin-bottom:8px;color:#991B1B}
+  .delay-alert.show{display:flex}.delay-alert strong{font-size:9.5px}.delay-alert span{font-size:8.5px}
+  .dark .monitor-card{background:var(--surface)}.dark .monitor-pill,.dark .route-table th{background:var(--surface-alt)}.dark .row-excedido{background:rgba(220,38,38,.10)}.dark .row-aduana{background:rgba(124,58,237,.10)}.dark .row-atencao{background:rgba(245,158,11,.10)}
+
+  /* ===== Planejamento do dia / importação ===== */
+  .planning-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(14,42,71,.04)}
+  .planning-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
+  .planning-head h2{margin:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--navy-700)}
+  .planning-head p{margin:3px 0 0;font-size:9px;color:var(--muted);line-height:1.35}
+  .planning-badge{font-size:8px;font-weight:900;padding:4px 7px;border-radius:999px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;white-space:nowrap}
+  .planning-upload{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:7px;align-items:center}
+  .planning-upload input[type=file]{width:100%;min-width:0;font-size:9px;padding:6px 7px}
+  .planning-upload button{padding:7px 10px;font-size:9px;border-radius:7px}
+  .planning-status{font-size:9px;color:var(--muted);margin-top:7px;min-height:13px}
+  .planning-card .map-box{padding:10px;margin-top:9px}
+  .planning-card .map-box h3{font-size:9.5px}
+  .planning-card .map-row{margin-bottom:5px;gap:7px}
+  .planning-card .map-row label{min-width:115px;font-size:9px}
+  .planning-card .map-row select{padding:6px 8px;font-size:9px;min-width:140px}
+  .planning-card .pendente{font-size:9px;padding:8px 9px;margin-top:8px}
+  .planning-card .pendente .row{gap:5px}.planning-card .pendente select,.planning-card .pendente button{font-size:8.5px;padding:5px 7px}
+  .dark .planning-badge{background:rgba(37,99,235,.14);border-color:rgba(96,165,250,.35);color:#93C5FD}
+  @media(max-width:760px){.planning-upload{grid-template-columns:1fr 1fr}.planning-upload input[type=file]{grid-column:1/-1}}
+
+
+  .cycle-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px;}
+  .cycle-card{border:1px solid var(--border);background:var(--surface-alt);border-radius:10px;padding:12px;}
+  .cycle-card h3{margin:0 0 4px;font-size:15px;color:var(--navy-900);}
+  .cycle-card p{margin:0 0 9px;font-size:11px;color:var(--muted);}
+  .cycle-card input{width:100%;font-size:11px;margin-bottom:7px;}
+  .cycle-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .cycle-actions button{padding:7px 9px;font-size:11px;}
+  .cycle-state{font-size:10.5px;color:var(--muted);margin-top:7px;min-height:28px;}
+  .cycle-summary{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .cycle-pill{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;}
+  .sacas-table-wrap{overflow:auto;max-height:260px;}
+  .sacas-table{width:100%;border-collapse:collapse;font-size:11px;}
+  .sacas-table th,.sacas-table td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
+  .sacas-table th{font-size:9px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;}
+  @media(max-width:900px){.cycle-grid{grid-template-columns:repeat(2,1fr);}}
+
+
+  /* ===== Upload discreto de planejamento ===== */
+  .planning-compact{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:10px;display:grid;grid-template-columns:minmax(260px,1.25fr) auto;gap:8px 12px;align-items:center}
+  .upload-drop{min-height:48px;border:1px dashed #38a3ff;border-radius:8px;display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;background:rgba(56,163,255,.035);transition:.15s}
+  .upload-drop:hover{background:rgba(56,163,255,.08);border-color:#0e7c86}
+  .upload-icon{width:34px;height:34px;border-radius:8px;border:1px solid rgba(56,163,255,.35);display:grid;place-items:center;font-size:20px;font-weight:800;color:#258be3;background:rgba(56,163,255,.07)}
+  .upload-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+  .upload-copy b{font-size:11.5px;color:var(--navy-900)}
+  .upload-copy span{font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+  .cycle-picker{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .cycle-picker label{font-size:9.5px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.05em}
+  .cycle-picker select{height:34px;border:1px solid var(--border);border-radius:7px;background:var(--surface-alt);color:var(--navy-900);font-weight:800;padding:0 28px 0 9px}
+  .cycle-picker button{height:34px;border-radius:7px;padding:0 11px;font-size:10.5px;font-weight:800;cursor:pointer}
+  .upload-go{border:0;background:var(--navy-900);color:#fff}
+  .upload-clear{border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+  .cycle-summary{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
+  .cycle-pill{font-size:9.5px;border:1px solid var(--border);border-radius:20px;padding:3px 8px;color:var(--muted);background:var(--surface-alt)}
+  .cycle-pill strong{color:var(--navy-900)}
+  .compact-state{grid-column:1/-1;font-size:9.5px;color:var(--muted);min-height:12px}
+  @media(max-width:760px){.planning-compact{grid-template-columns:1fr}.cycle-picker{flex-wrap:wrap}.upload-copy span{max-width:240px}}
+
+  /* ===== Resumo de planejamento por rua/transportadora ===== */
+  .planning-detail-card{padding:10px 12px!important}
+  .planning-sub{font-size:9.5px;color:var(--muted);margin-top:2px}
+  .planning-cycle-filter{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:800;text-transform:uppercase;color:var(--muted)}
+  .planning-cycle-filter select{height:29px;border:1px solid var(--border);background:var(--surface-alt);color:var(--navy-900);border-radius:7px;font-weight:800;padding:0 25px 0 8px}
+  .planning-area-tabs{display:flex;gap:5px;flex-wrap:wrap;margin:9px 0 8px}
+  .area-tab{border:1px solid var(--border);background:var(--surface-alt);color:var(--navy-700);border-radius:999px;padding:5px 9px;font-size:9.5px;font-weight:800;cursor:pointer}
+  .area-tab.active{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+  .transp-plan-block{border:1px solid var(--border);border-radius:8px;margin-bottom:7px;overflow:hidden;background:var(--surface)}
+  .transp-plan-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;background:var(--surface-alt);border-bottom:1px solid var(--border)}
+  .transp-plan-name{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:900}
+  .transp-plan-count{font-size:9px;color:var(--muted);font-weight:800}
+  .transp-plan-table{width:100%;border-collapse:collapse;font-size:10px}
+  .transp-plan-table th{font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)}
+  .transp-plan-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+  .transp-plan-table tr:last-child td{border-bottom:0}
+  .transp-plan-table .rota{font-family:'Roboto Mono',monospace;font-weight:800}
+  .transp-plan-table .parada{font-weight:800;color:var(--teal-600)}
+  .onda-chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 6px;background:var(--surface-alt);font-size:8.5px;font-weight:800}
+  .saca-mark{font-size:8px;font-weight:900;padding:2px 5px;border-radius:4px;background:#FFF7ED;color:#9A3412;border:1px solid #FED7AA}
+
+  /* ===== Planejamento na lateral direita ===== */
+  .coord-main{grid-template-columns:minmax(0,1fr) 390px;gap:10px}
+  .coord-rail{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .rail-top-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:8px}
+  .rail-top-grid .rail-card{min-width:0}
+  .transportadoras-rail{padding:10px}
+  .transportadoras-rail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .transportadoras-rail-head h3{margin:0 0 2px}
+  .rail-sub{font-size:9px;color:var(--muted)}
+  .transportadoras-rail-head select{height:30px;border:1px solid var(--border);border-radius:7px;background:var(--surface-alt);color:var(--navy-900);font-size:10.5px;font-weight:800;padding:0 24px 0 7px}
+  .rail-area-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:5px}
+  .rail-area-tabs .area-tab{flex:0 0 auto;padding:5px 7px;font-size:9px;border-radius:6px}
+  .transportadoras-stack{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;padding-right:2px}
+  .transportadoras-stack .transp-plan-block{border:2px solid #1F2937;border-radius:8px;background:var(--surface-alt);overflow:hidden;margin:0}
+  .transportadoras-stack .transp-plan-head{padding:8px 9px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .transportadoras-stack .transp-plan-name{font-size:12.5px;font-weight:800}
+  .transportadoras-stack .transp-plan-count{font-size:9px}
+  .transportadoras-stack .transp-plan-table{width:100%;font-size:10px;margin:0}
+  .transportadoras-stack .transp-plan-table th,.transportadoras-stack .transp-plan-table td{padding:5px 7px;white-space:normal;vertical-align:top}
+  .transportadoras-stack .transp-plan-table th{font-size:8px}
+  .transportadoras-stack .transp-plan-table td.rota{font-size:10.5px}
+  .transportadoras-stack .onda-chip{font-size:8px;padding:2px 5px}
+  @media(max-width:1180px){.coord-main{grid-template-columns:minmax(0,1fr) 340px}.rail-top-grid{grid-template-columns:1fr}.transportadoras-stack{max-height:440px}}
+  @media(max-width:900px){.coord-main{grid-template-columns:1fr}.coord-rail{display:grid;grid-template-columns:1fr}.transportadoras-stack{max-height:none}.rail-top-grid{grid-template-columns:1fr 1fr}}
+
+  /* ===== Planejamento lateral em acordeão compacto ===== */
+  .transportadoras-stack{display:block;max-height:520px;overflow-y:auto;padding-right:5px}
+  .transp-accordion{border-bottom:1px solid var(--border)}
+  .transp-accordion:last-child{border-bottom:0}
+  .transp-accordion-head{
+    width:100%;display:grid;grid-template-columns:18px 28px minmax(0,1fr) auto;
+    align-items:center;gap:7px;padding:8px 3px;background:transparent;border:0;
+    color:var(--navy-900);cursor:pointer;text-align:left
+  }
+  .transp-accordion-head:hover{background:var(--surface-alt)}
+  .transp-arrow{font-size:12px;color:var(--muted);transition:transform .16s ease;text-align:center}
+  .transp-accordion.open .transp-arrow{transform:rotate(90deg)}
+  .transp-accordion .sigla-badge-sm{display:inline-grid;place-items:center;min-width:27px;height:20px;padding:0 4px}
+  .transp-accordion-name{font-size:11.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .transp-accordion-count{font-size:9px;color:var(--muted);font-weight:800;white-space:nowrap}
+  .transp-accordion-body{display:none;padding:0 2px 8px 53px}
+  .transp-accordion.open .transp-accordion-body{display:block}
+  .route-columns-head,.route-columns-row{
+    display:grid;grid-template-columns:minmax(0,1.25fr) minmax(62px,.85fr) minmax(52px,.6fr);
+    gap:8px;align-items:center
+  }
+  .route-columns-head{padding:4px 0;border-bottom:1px solid var(--border);font-size:7.5px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .route-columns-row{padding:5px 0;border-bottom:1px dashed var(--border);font-size:9.5px}
+  .route-columns-row:last-child{border-bottom:0}
+  .route-columns-row .rota{font-family:'Roboto Mono',monospace;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .route-columns-row .onda{font-weight:700;color:var(--navy-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .route-columns-row .paradas{font-weight:900;color:var(--teal-600);text-align:left}
+  .transportadoras-stack .transp-plan-block{display:none!important}
+
+
+  /* ===== Agrupamento por onda ===== */
+  .onda-section{margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:7px}
+  .onda-section:last-child{border-bottom:0;margin-bottom:0}
+  .onda-section-title{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:6px 4px 7px;font-size:10px;font-weight:900;
+    color:var(--navy-900);text-transform:uppercase;letter-spacing:.07em
+  }
+  .onda-section-title .qtd{font-size:8.5px;color:var(--muted);font-weight:800;text-transform:none;letter-spacing:0}
+  .route-columns-head.wave-rows,.route-columns-row.wave-rows{
+    grid-template-columns:minmax(0,1.5fr) minmax(55px,.65fr);
+  }
+  .route-columns-row.wave-rows .paradas{text-align:left}
+
 </style>
 </head>
 <body>
 
-<div id="seletor">
-  <div class="box">
-    <h2>Quem está acessando?</h2>
-    <p>Escolha a rua em que você está escalado hoje. Você só verá as informações dela.</p>
-    <div id="botoesRua"></div>
-    <button class="rua-btn coord" onclick="definirPerfil('COORD')">Coordenação — ver todas as ruas</button>
+<div class="wrap" id="topo">
+  <div class="svc-topbar">
+    <div class="svc-topbar-left"><div><small>Painel de acompanhamento</small><strong>SVC · Coordenação Operacional</strong></div></div>
+    <div class="svc-top-actions"><span class="sys-chip"><i class="online-dot"></i>APP CONECTADO</span><span class="sys-chip"><i class="online-dot"></i>PAINEL SINCRONIZADO</span><button id="themeToggle" onclick="toggleTheme()">◐ Tema escuro</button></div>
   </div>
-</div>
-
-<div class="wrap">
   <header>
-    <div>
-      <h1>Layout SVC · SD</h1>
-      <p>Painel operacional de posições, ruas e transportadoras</p>
-    </div>
-    <div class="perfil-badge" id="perfilBadge"></div>
+    <div><h1>Visão Geral SVC · SD</h1><p>Acompanhamento em tempo real das rotas nas vagas, cronômetro de 30 min e ocorrências de Aduana</p></div>
+    <div class="coord-badge"><i class="online-dot"></i> VISÃO COORDENAÇÃO · TODAS AS RUAS</div>
   </header>
 
   <div class="kpis" id="kpis"></div>
 
-  <div class="card" id="cardChamar" style="display:none;">
-    <h2>Chamar gaiola</h2>
-    <p class="hint">Selecione a vaga da sua rua e a rota. A posição acende no layout até alguém marcar como recebida.</p>
-    <div class="search-row">
-      <select id="chamarVaga"></select>
-      <input id="chamarRota" placeholder="Nº da rota (ex: B18_AM1)">
-      <button onclick="chamarGaiola()">Chamar</button>
+  <div class="planning-compact">
+    <div class="upload-drop" onclick="document.getElementById('planilhaFile_UNICO').click()">
+      <div class="upload-icon">⇧</div>
+      <div class="upload-copy"><b>Planilha de planejamento</b><span id="uploadHint">Clique ou arraste o arquivo CSV/XLSX aqui</span></div>
+      <input type="file" id="planilhaFile_UNICO" accept=".xlsx,.xls,.csv" hidden onchange="arquivoSelecionadoUnico()">
     </div>
-    <div id="statusChamar" class="status"></div>
-  </div>
-
-  <div class="card">
-    <h2>Chamados ativos</h2>
-    <div id="chamadosList"><div class="empty">Nenhum chamado ativo no momento.</div></div>
-  </div>
-
-  <div class="card">
-    <h2>Buscar</h2>
-    <p class="hint">Nº da rota, ID do pacote, nº da vaga, sigla ou nome da transportadora.</p>
-    <div class="search-row">
-      <input id="q" placeholder="G5_AM1, 47807885440, HAWK, DC, 9..." autocomplete="off">
-      <button onclick="buscar()">Buscar</button>
-      <button class="secondary" onclick="limpar()">Limpar</button>
+    <div class="cycle-picker">
+      <label for="cicloUpload">Ciclo</label>
+      <select id="cicloUpload">
+        <option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option>
+      </select>
+      <button class="upload-go" onclick="processarUploadUnico()">Importar</button>
+      <button class="upload-clear" onclick="limparCicloSelecionado()">Limpar ciclo</button>
     </div>
+    <div class="cycle-summary" id="cycleSummary"></div>
+    <div class="cycle-state compact-state" id="statusUploadUnico">Selecione o ciclo na seta e envie o planejamento correspondente.</div>
   </div>
+  <div style="display:none"><div id="statusPlanilha"></div><div id="mapeamentoColunas"></div></div>
 
-  <div class="card">
-    <h2>Detalhe da posição</h2>
-    <div id="detalhe"><div class="empty">Clique em uma posição no layout abaixo ou use a busca.</div></div>
-  </div>
-
-  <div class="card" id="cardLayout">
-    <h2>Layout interativo</h2>
-    <p class="hint">Clique em qualquer posição para ver rota, transportadora e status. Desenho nas proporções de uma folha A4.</p>
-    <div class="folha-a4-wrap">
-      <div class="folha-a4" id="folhaA4">
-        <div class="floorplan-outer"><div class="floorplan" id="floorplan"></div></div>
+  <div class="coord-main">
+    <main>
+      <div class="card" id="cardLayout">
+        <div class="layout-head"><div><h2>Layout operacional</h2><p class="hint" style="margin:3px 0 0">Mapa completo em proporção A4 para caber na tela do notebook sem cortar posições.</p></div><span class="layout-live">● TEMPO REAL</span></div>
+        <div class="folha-a4-wrap"><div class="folha-a4" id="folhaA4"><div class="floorplan-outer"><div class="floorplan" id="floorplan"></div></div></div></div>
       </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Importar tabela do dia</h2>
-    <p class="hint">Envie a planilha de planejamento como ela vier (.xlsx, .xls ou .csv) — nada é apagado ou alterado nela. O sistema identifica sozinho as colunas de ID do pacote, gaiola/rota, parada e onda; você só confirma antes de importar.</p>
-    <div class="upload-row">
-      <input type="file" id="planilhaFile" accept=".xlsx,.xls,.csv">
-      <button onclick="processarPlanilha()">Ler planilha</button>
-      <button class="secondary" onclick="limparRotas()">Limpar rotas importadas</button>
-      <span id="statusPlanilha" class="status"></span>
-    </div>
-    <div id="mapeamentoColunas"></div>
-
-    <details class="manual-import">
-      <summary>ou colar manualmente</summary>
-      <p class="hint">Cole a tabela (ID do pacote | Nº Rota | Parada | Ponto | Transportadora | Ondas). O ID do pacote pode ficar em branco quando não houver.</p>
-      <textarea id="rotasInput" placeholder="47807885440 | G5_AM1 | 12 | A | HAWK | Onda 1"></textarea>
-      <div class="rotas-actions">
-        <button onclick="importarRotas()">Importar colado</button>
-        <span id="statusRotas" class="status"></span>
+      <div class="monitor-card">
+        <div class="monitor-head">
+          <h2>Monitoramento geral das rotas</h2>
+          <div class="monitor-summary" id="monitorSummary"></div>
+        </div>
+        <div class="delay-alert" id="delayAlert"></div>
+        <div class="route-table-wrap">
+          <table class="route-table">
+            <thead><tr><th>Rua</th><th>Transportadora</th><th>Rota</th><th>Vaga</th><th>Processo</th><th>Tempo</th></tr></thead>
+            <tbody id="routeMonitorBody"><tr><td colspan="6" class="empty">Nenhuma rota em processo.</td></tr></tbody>
+          </table>
+        </div>
       </div>
-    </details>
+      <div class="monitor-card">
+        <div class="monitor-head"><h2>Sacas · área separada das ruas</h2><div class="monitor-summary" id="sacasSummary"></div></div>
+        <div class="sacas-table-wrap"><table class="sacas-table"><thead><tr><th>Ciclo</th><th>Transportadora</th><th>Rota/Saca</th><th>Onda</th><th>Paradas</th><th>Status</th></tr></thead><tbody id="sacasBody"><tr><td colspan="6" class="empty">Nenhuma saca carregada.</td></tr></tbody></table></div>
+      </div>
+      <div class="coordinator-detail">
+        <div class="card">
+          <h2>Consulta rápida</h2>
+          <div class="search-row"><input id="q" placeholder="Buscar rota, pacote, vaga ou transportadora..." autocomplete="off"><button onclick="buscar()">Buscar</button><button class="secondary" onclick="limpar()">Limpar</button></div>
+          <div id="detalhe" style="margin-top:10px"><div class="empty">Clique em uma vaga no mapa para consultar seus dados.</div></div>
+        </div>
+      </div>
+    </main>
 
-    <div id="pendentes"></div>
+    <aside class="coord-rail">
+      <div class="rail-top-grid">
+        <div class="rail-card"><h3>Status das luzes</h3><div class="status-legend" id="statusLegendCoord"></div></div>
+        <div class="rail-card"><h3>Rotas em acompanhamento</h3><div class="route-live-list" id="routeLiveList"><div class="empty">Nenhuma rota ativa.</div></div></div>
+      </div>
+
+      <div class="rail-card transportadoras-rail">
+        <div class="transportadoras-rail-head">
+          <div><h3>Planejamento por transportadora</h3><div class="rail-sub">Rotas, ondas, paradas e sacas</div></div>
+          <select id="cicloResumo" onchange="renderResumoPlanejamentoCoord()">
+            <option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option>
+          </select>
+        </div>
+        <div class="planning-area-tabs rail-area-tabs" id="planningAreaTabs"></div>
+        <div id="resumoPlanejamentoCoord" class="transportadoras-stack"><div class="empty">Importe um planejamento para visualizar as transportadoras.</div></div>
+      </div>
+    </aside>
   </div>
 
-  <div class="card">
-    <h2>Resumo por rua</h2>
-    <div id="resumoRuas"><div class="empty">Importe a tabela do dia para ver o resumo.</div></div>
+  <!-- elementos mantidos ocultos para compatibilidade com a lógica original -->
+  <div style="display:none">
+    <div id="perfilBadge"></div><div id="chamadosList"></div><div id="resumoRuas"></div><div id="legendaTransp"></div><div id="legendaStatus"></div><div id="botoesRua"></div><select id="chamarVaga"></select><input id="chamarRota"><div id="statusChamar"></div><div id="statusRotas"></div><div id="pendentes"></div><textarea id="rotasInput"></textarea><select id="linkSigla"></select><input id="linkNome"><div id="statusVinculo"></div><table><tbody id="tabelaVinculos"></tbody></table>
   </div>
-
-
 </div>
 
 <script>
@@ -298,20 +497,12 @@ const SIGLAS = Object.keys(CORES);
 const RUAS_ORDEM = ['Rua 1','Rua 2','Rua 3','Rua 4 - Expedição VUC','Área VUC'];
 
 // ================= PERFIL (quem está acessando) =================
-let perfil = null;
+let perfil = 'COORD';
 const PERFIL_KEY = 'meu-perfil';
 function permitida(rua){ return perfil==='COORD' || perfil===rua; }
-async function carregarPerfil(){
-  try{ const r = await window.storage.get(PERFIL_KEY, false); perfil = r && r.value ? r.value : null; }
-  catch(e){ perfil = null; }
-}
-async function definirPerfil(valor){
-  perfil = valor;
-  try{ await window.storage.set(PERFIL_KEY, valor, false); }catch(e){}
-  document.getElementById('seletor').style.display='none';
-  renderTudo();
-}
-function trocarPerfil(){ document.getElementById('seletor').style.display='flex'; }
+async function carregarPerfil(){ perfil = 'COORD'; }
+async function definirPerfil(valor){ perfil = 'COORD'; renderTudo(); }
+function trocarPerfil(){}
 function popularBotoesRua(){
   document.getElementById('botoesRua').innerHTML = RUAS_ORDEM.map(r=>`<button class="rua-btn" onclick="definirPerfil('${r}')">${r}</button>`).join('');
 }
@@ -330,8 +521,11 @@ const DEFAULTS_VINCULOS = [
   {nome:'DELUNA', sigla:'DL'}, {nome:'M.J SIMÕES', sigla:'MS'}, {nome:'PRALOG', sigla:'PL'}
 ];
 async function carregarVinculos(){
-  try{ const r = await window.storage.get(VINC_KEY, true); vinculos = r && r.value ? JSON.parse(r.value) : []; }
-  catch(e){ vinculos = []; }
+  try{
+    if(window.storage && typeof window.storage.get==='function'){
+      const r=await window.storage.get(VINC_KEY,true); vinculos=r&&r.value?JSON.parse(r.value):[];
+    }else vinculos=JSON.parse(localStorage.getItem(VINC_KEY)||'[]');
+  }catch(e){ try{vinculos=JSON.parse(localStorage.getItem(VINC_KEY)||'[]')}catch(_){vinculos=[];} }
   let mudou=false;
   const antesLen = vinculos.length;
   vinculos = vinculos.filter(v=>!(v.nome.toUpperCase()==='PRALOG' && v.sigla==='DC'));
@@ -340,8 +534,9 @@ async function carregarVinculos(){
   if(mudou) await salvarVinculos();
 }
 async function salvarVinculos(){
-  try{ await window.storage.set(VINC_KEY, JSON.stringify(vinculos), true); }
-  catch(e){ document.getElementById('statusVinculo').textContent = 'Não foi possível salvar o vínculo agora.'; }
+  const valor=JSON.stringify(vinculos);
+  try{ if(window.storage&&typeof window.storage.set==='function') await window.storage.set(VINC_KEY,valor,true); }catch(e){}
+  try{ localStorage.setItem(VINC_KEY,valor); }catch(e){}
 }
 function popularSelectSiglas(){ const el = document.getElementById('linkSigla'); if(el) el.innerHTML = SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join(''); }
 async function adicionarVinculo(){
@@ -382,12 +577,31 @@ function vinculoPorTransportadora(nome){ const up=(nome||'').toUpperCase().trim(
 let rotasData = [];
 const ROTAS_KEY = 'rotas-importadas';
 async function carregarRotas(){
-  try{ const r = await window.storage.get(ROTAS_KEY, true); rotasData = r && r.value ? JSON.parse(r.value) : []; }
-  catch(e){ rotasData = []; }
+  try{
+    if(window.storage && typeof window.storage.get==='function'){
+      const r=await window.storage.get(ROTAS_KEY,true);
+      rotasData=r&&r.value?JSON.parse(r.value):[];
+    }else{
+      rotasData=JSON.parse(localStorage.getItem(ROTAS_KEY)||'[]');
+    }
+  }catch(e){
+    try{rotasData=JSON.parse(localStorage.getItem(ROTAS_KEY)||'[]')}catch(_){rotasData=[];}
+  }
 }
 async function salvarRotas(){
-  try{ await window.storage.set(ROTAS_KEY, JSON.stringify(rotasData), true); }
-  catch(e){ document.getElementById('statusRotas').textContent = 'Não foi possível salvar as rotas agora.'; }
+  const valor=JSON.stringify(rotasData);
+  let salvo=false;
+  try{
+    if(window.storage && typeof window.storage.set==='function'){
+      await window.storage.set(ROTAS_KEY,valor,true);
+      salvo=true;
+    }
+  }catch(e){}
+  try{localStorage.setItem(ROTAS_KEY,valor);salvo=true;}catch(e){}
+  if(!salvo){
+    const el=document.getElementById('statusRotas');
+    if(el) el.textContent='Não foi possível salvar as rotas neste navegador.';
+  }
 }
 function atualizarStatusRotas(){
   document.getElementById('statusRotas').textContent = rotasData.length ? `${rotasData.length} linha(s) carregada(s).` : 'Nenhuma tabela importada ainda.';
@@ -410,30 +624,41 @@ async function importarRotas(){
   const novas = [];
   linhas.forEach(l=>{ const item = parseLinha(l); if(item) novas.push(item); });
   if(!novas.length){ document.getElementById('statusRotas').textContent = 'Nenhuma linha válida encontrada.'; return; }
-  rotasData = novas;
+  rotasData = rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==String(cicloImportacao||'').toUpperCase()).concat(novas);
   await salvarRotas();
   document.getElementById('rotasInput').value='';
   renderTudo();
   document.getElementById('statusRotas').textContent = `${novas.length} linha(s) importada(s) com sucesso.`;
 }
-async function limparRotas(){ rotasData = []; await salvarRotas(); document.getElementById('mapeamentoColunas').innerHTML=''; renderTudo(); }
+async function limparRotas(){ rotasData = []; await salvarRotas(); document.getElementById('mapeamentoColunas').innerHTML=''; const sp=document.getElementById('statusPlanilha'); if(sp) sp.textContent='Planejamento removido. Nenhuma rota carregada.'; renderTudo(); }
 
 // ================= IMPORTAÇÃO DE PLANILHA (.xlsx / .xls / .csv) =================
 const CAMPOS_ALVO = [
-  {key:'idPacote', label:'ID do pacote', opcional:true, aliases:['id do pacote','idpacote','id pacote','pacote','id','codigo do pacote','cod pacote','codigo pacote','tracking','pacote id']},
-  {key:'nRota', label:'Rota / Gaiola', opcional:false,
-    aliasGroups:[
-      ['gaiola','n gaiola','nº gaiola','numero da gaiola','numero de gaiola','id da gaiola','id gaiola','cage','cage id'],
-      ['rota','n rota','nº rota','numero da rota','numero de rota','rota/gaiola']
-    ],
-    aliases:['gaiola','n gaiola','nº gaiola','numero da gaiola','numero de gaiola','id da gaiola','id gaiola','cage','cage id','rota','n rota','nº rota','numero da rota','numero de rota','rota/gaiola']},
-  {key:'parada', label:'Parada', opcional:true, aliases:['parada','nº parada','n parada','numero da parada','numero parada','stop','seq','sequencia','sequência']},
-  {key:'ponto', label:'Ponto', opcional:true, aliases:['ponto','ponto de entrega','zona','area','área']},
-  {key:'transportadora', label:'Transportadora', opcional:true, aliases:['transportadora','carrier','operador','operadora','mlp']},
-  {key:'onda', label:'Onda', opcional:true, aliases:['onda','ondas','wave','turno','tipo de onda']}
+  {key:'transportadora', label:'Transportadora', opcional:false, tipo:'mlpAtual',
+    aliases:['transportadora','carrier','operador','operadora','mlp']},
+  {key:'nRota', label:'Rota operacional (GAIOLA)', opcional:false, preferido:'gaiola',
+    aliases:['gaiola','n gaiola','nº gaiola','numero da gaiola','numero de gaiola','id da gaiola','id gaiola','cage','cage id','rota']},
+  {key:'onda', label:'Onda', opcional:true, preferido:'onda cadastrada',
+    aliases:['onda cadastrada','onda','ondas','wave','turno','tipo de onda']},
+  {key:'parada', label:'Paradas', opcional:true, preferido:'paradas',
+    aliases:['paradas','parada','nº parada','n parada','numero da parada','numero parada','stop']},
+  {key:'dataExp', label:'Data expedição', opcional:true, preferido:'data exp',
+    aliases:['data exp','data expedicao','data de expedicao','data']},
+  {key:'bairros', label:'Bairros', opcional:true, preferido:'bairros',
+    aliases:['bairros','bairro']},
+  {key:'cluster', label:'Cluster', opcional:true, preferido:'cluster',
+    aliases:['cluster']},
+  {key:'modal', label:'Modal', opcional:true, preferido:'modal',
+    aliases:['modal','veiculo','veículo']},
+  {key:'saca', label:'Saca', opcional:true, preferido:'saca', aliases:['saca']},
+  {key:'rotaPlanejamento', label:'Código do planejamento', opcional:true, tipo:'rotaPlanejamento',
+    aliases:['rota']}
 ];
 let planilhaHeaders = [];
 let planilhaRows = [];
+let formatoViaQuery = false;
+let cicloImportacao = null;
+let inputImportacaoId = null;
 
 function normalizarHeader(h){
   return String(h==null?'':h).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
@@ -444,59 +669,110 @@ function detectarColuna(headersNorm, aliases){
   return -1;
 }
 function detectarColunaComPrioridade(headersNorm, campo){
-  if(campo.aliasGroups){
-    for(const grupo of campo.aliasGroups){
-      for(let i=0;i<headersNorm.length;i++){ if(grupo.includes(headersNorm[i])) return i; }
-    }
-    for(const grupo of campo.aliasGroups){
-      for(let i=0;i<headersNorm.length;i++){ if(grupo.some(a=>headersNorm[i].includes(a))) return i; }
-    }
-    return -1;
+  if(campo.tipo==='mlpAtual'){
+    const i=headersNorm.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
+    if(i!==-1) return i;
+  }
+  if(campo.tipo==='rotaPlanejamento'){
+    const indices=headersNorm.map((h,i)=>h==='rota'?i:-1).filter(i=>i>=0);
+    if(indices.length) return indices[0];
+  }
+  if(campo.preferido){
+    const i=headersNorm.findIndex(h=>h===campo.preferido);
+    if(i!==-1) return i;
   }
   return detectarColuna(headersNorm, campo.aliases);
 }
 function encontrarLinhaCabecalho(rows){
+  for(let i=0;i<Math.min(rows.length,15);i++){
+    const norm=(rows[i]||[]).map(normalizarHeader);
+    if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas') && norm.some(h=>/^mlp\s*-\s*\d/.test(h))){
+      formatoViaQuery=true;
+      return i;
+    }
+  }
+  formatoViaQuery=false;
   let melhorIdx = 0, melhorScore = -1;
   for(let i=0;i<Math.min(rows.length,15);i++){
     const norm = (rows[i]||[]).map(normalizarHeader);
     let score = 0;
-    CAMPOS_ALVO.forEach(c=>{ if(detectarColuna(norm, c.aliases) !== -1) score++; });
+    CAMPOS_ALVO.forEach(c=>{ if(detectarColunaComPrioridade(norm,c) !== -1) score++; });
     if(score>melhorScore){ melhorScore=score; melhorIdx=i; }
   }
   return melhorIdx;
 }
 
-async function processarPlanilha(){
-  const fileInput = document.getElementById('planilhaFile');
+
+function parseCSVNativo(texto){
+  texto = String(texto || '').replace(/^\uFEFF/, '');
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<texto.length;i++){
+    const ch = texto[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(texto[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      }else{
+        field += ch;
+      }
+    }else{
+      if(ch === '"') inQuotes = true;
+      else if(ch === ','){ row.push(field); field = ''; }
+      else if(ch === '\n'){
+        row.push(field); field = '';
+        if(row.some(v=>String(v).trim()!=='')) rows.push(row);
+        row = [];
+      }else if(ch !== '\r'){
+        field += ch;
+      }
+    }
+  }
+  row.push(field);
+  if(row.some(v=>String(v).trim()!=='')) rows.push(row);
+  return rows;
+}
+
+async function processarPlanilha(ciclo,inputId){
+  cicloImportacao = ciclo; inputImportacaoId = inputId;
+  const fileInput = document.getElementById(inputId);
   const statusEl = document.getElementById('statusPlanilha');
   document.getElementById('mapeamentoColunas').innerHTML = '';
-  if(!fileInput.files.length){ statusEl.textContent = 'Selecione um arquivo primeiro.'; return; }
+  if(!fileInput || !fileInput.files.length){ statusEl.textContent = `Selecione o arquivo do ciclo ${ciclo||''}.`; return; }
   const file = fileInput.files[0];
-  statusEl.textContent = 'Lendo planilha…';
+  statusEl.textContent = `Lendo planejamento ${ciclo||''}…`;
   try{
     const ehCsv = /\.csv$/i.test(file.name);
     let wb;
+    let rows = [];
+    let nomeAba = 'CSV';
     if(ehCsv){
-      // CSV lido como texto UTF-8 explícito, evitando acentos quebrados (ex: "Õ" virando "Ã‖")
+      // CSV VIA QUERY: leitura nativa, sem depender da biblioteca XLSX/CDN.
       const buf = await file.arrayBuffer();
-      let texto = new TextDecoder('utf-8').decode(buf);
-      texto = texto.replace(/^\uFEFF/, ''); // remove BOM se houver
-      wb = XLSX.read(texto, {type:'string'});
+      const texto = new TextDecoder('utf-8').decode(buf);
+      rows = parseCSVNativo(texto);
     }else{
+      if(typeof XLSX === 'undefined'){
+        throw new Error('Biblioteca XLSX indisponível. Para .xlsx/.xls é necessário acesso à biblioteca externa.');
+      }
       const buf = await file.arrayBuffer();
       wb = XLSX.read(buf, {type:'array'});
+      nomeAba = wb.SheetNames[0];
+      const sheet = wb.Sheets[nomeAba];
+      rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
     }
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
     if(!rows.length){ statusEl.textContent = 'A planilha parece estar vazia.'; return; }
     const headerIdx = encontrarLinhaCabecalho(rows);
     planilhaHeaders = (rows[headerIdx]||[]).map(h=>String(h==null?'':h).trim());
     planilhaRows = rows.slice(headerIdx+1).filter(r=>r.some(c=>String(c==null?'':c).trim()!==''));
     if(!planilhaRows.length){ statusEl.textContent = 'Não encontramos linhas de dados abaixo do cabeçalho.'; return; }
     renderMapeamentoColunas();
-    statusEl.textContent = `Lida a aba "${wb.SheetNames[0]}" · ${planilhaRows.length} linha(s) de dados encontradas. Confira o mapeamento abaixo e confirme a importação.`;
+    statusEl.textContent = formatoViaQuery
+      ? `Formato VIA QUERY reconhecido · ${planilhaRows.length} linha(s) lidas. GAIOLA será usada como rota e a coluna MLP com data/hora como transportadora. Confira e confirme.`
+      : `Lido "${nomeAba}" · ${planilhaRows.length} linha(s) de dados encontradas. Confira o mapeamento abaixo e confirme a importação.`;
   }catch(e){
-    statusEl.textContent = 'Não foi possível ler o arquivo. Confira se é um .xlsx, .xls ou .csv válido.';
+    console.error('Erro ao ler planejamento:', e);
+    statusEl.textContent = 'Erro ao ler o arquivo: ' + (e && e.message ? e.message : 'formato não reconhecido.');
   }
 }
 
@@ -507,6 +783,7 @@ function renderMapeamentoColunas(){
   el.innerHTML = `<div class="map-box">
     <h3>Confirme as colunas</h3>
     <p class="hint">A planilha original não é alterada — só lemos os valores dessas colunas para dentro do painel.</p>
+    ${formatoViaQuery?`<div style="padding:9px 11px;margin:8px 0 12px;border:1px solid #A7F3D0;background:#ECFDF5;border-radius:8px;font-size:12px;color:#065F46;font-weight:700">✓ Formato VIA QUERY reconhecido: GAIOLA = rota operacional · MLP com data/hora = transportadora · ONDA CADASTRADA = onda · PARADAS = total de paradas.</div>`:''}
     ${CAMPOS_ALVO.map(c=>{
       const detectado = detectarColunaComPrioridade(headersNorm, c);
       return `<div class="map-row">
@@ -528,29 +805,79 @@ async function confirmarImportacaoPlanilha(){
   const statusEl = document.getElementById('statusPlanilha');
   const idx = {};
   CAMPOS_ALVO.forEach(c=>{ idx[c.key] = parseInt(document.getElementById(`map-${c.key}`).value, 10); });
-  if(idx.nRota < 0){ statusEl.textContent = 'É necessário indicar qual coluna é a Rota/Gaiola.'; return; }
+  if(idx.nRota < 0 || idx.transportadora < 0){
+    statusEl.textContent = 'É necessário indicar Transportadora e Rota operacional (GAIOLA).';
+    return;
+  }
   const pegar = (row, i) => i>=0 ? String(row[i]==null?'':row[i]).trim() : '';
   const novas = [];
-  planilhaRows.forEach(row=>{
-    const nRota = pegar(row, idx.nRota);
-    if(!nRota) return;
+  let ignoradas=0;
+  planilhaRows.forEach((row,rowIndex)=>{
+    const gaiola = pegar(row, idx.nRota);
+    const rotaPlanejamento = pegar(row, idx.rotaPlanejamento);
+    const transportadora = pegar(row, idx.transportadora).toUpperCase();
+    const sacaValor = pegar(row, idx.saca);
+    const ehSaca = String(gaiola).toUpperCase()==='SACA' || (sacaValor && sacaValor!=='0' && sacaValor!=='0.0');
+    const nRota = ehSaca ? (rotaPlanejamento || gaiola) : gaiola;
+    if(!nRota || !transportadora || transportadora==='#N/A' || nRota==='#N/A'){ ignoradas++; return; }
     novas.push({
-      idPacote: pegar(row, idx.idPacote),
+      idPacote:'',
       nRota,
+      gaiola,
+      ciclo:cicloImportacao||'',
+      tipoOperacao:ehSaca?'SACA':'ROTA',
+      transportadora,
+      onda: pegar(row, idx.onda),
       parada: pegar(row, idx.parada),
-      ponto: pegar(row, idx.ponto),
-      transportadora: pegar(row, idx.transportadora).toUpperCase(),
-      onda: pegar(row, idx.onda)
+      ponto: pegar(row, idx.bairros),
+      bairros: pegar(row, idx.bairros),
+      cluster: pegar(row, idx.cluster),
+      modal: pegar(row, idx.modal),
+      dataExp: pegar(row, idx.dataExp),
+      rotaPlanejamento,
+      origem:'VIA_QUERY',
+      linhaOrigem:rowIndex+1
     });
   });
-  if(!novas.length){ statusEl.textContent = 'Nenhuma linha com Rota/Gaiola preenchida foi encontrada com esse mapeamento.'; return; }
-  rotasData = novas;
+  if(!novas.length){
+    statusEl.textContent = 'Nenhuma rota válida com GAIOLA e transportadora preenchidas foi encontrada.';
+    return;
+  }
+  rotasData = rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==String(cicloImportacao||'').toUpperCase()).concat(novas);
   await salvarRotas();
   document.getElementById('mapeamentoColunas').innerHTML = '';
-  document.getElementById('planilhaFile').value = '';
+  if(inputImportacaoId && document.getElementById(inputImportacaoId)) document.getElementById(inputImportacaoId).value = '';
   renderTudo();
-  statusEl.textContent = `${novas.length} linha(s) importada(s) da planilha com sucesso.`;
+  const unicas=new Set(novas.map(r=>r.nRota)).size;
+  const sacas=novas.filter(r=>r.tipoOperacao==='SACA').length;
+  statusEl.textContent = `Ciclo ${cicloImportacao}: ${novas.length} linha(s) válidas · ${unicas} rota(s)/saca(s) · ${sacas} saca(s) · ${ignoradas} ignorada(s).`;
+  const ce=document.getElementById('statusCiclo_'+cicloImportacao); if(ce) ce.textContent=`${unicas} itens · ${sacas} sacas · carregado agora`;
+  renderPendentes();
 }
+async function limparCiclo(ciclo){
+  rotasData=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==String(ciclo).toUpperCase());
+  await salvarRotas();
+  const el=document.getElementById('statusCiclo_'+ciclo); if(el) el.textContent='Planejamento removido.';
+  const sp=document.getElementById('statusPlanilha'); if(sp) sp.textContent=`Planejamento ${ciclo} removido sem alterar os outros ciclos.`;
+  renderTudo();
+}
+function renderCiclosPlanejamento(){
+  ['AM1','PM1','SD','CHP'].forEach(c=>{
+    const itens=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===c);
+    const unicos=new Set(itens.map(r=>r.nRota));
+    const sacas=itens.filter(r=>r.tipoOperacao==='SACA').length;
+    const el=document.getElementById('statusCiclo_'+c);
+    if(el && itens.length) el.textContent=`${unicos.size} itens · ${sacas} sacas`;
+  });
+}
+function renderSacas(){
+  const body=document.getElementById('sacasBody'); const sum=document.getElementById('sacasSummary'); if(!body) return;
+  const sacas=rotasData.filter(r=>r.tipoOperacao==='SACA');
+  if(sum) sum.innerHTML=['AM1','PM1','SD','CHP'].map(c=>`<span class="cycle-pill">${c}: ${sacas.filter(r=>r.ciclo===c).length}</span>`).join('');
+  if(!sacas.length){body.innerHTML='<tr><td colspan="6" class="empty">Nenhuma saca carregada.</td></tr>';return;}
+  body.innerHTML=sacas.slice().sort((a,b)=>String(a.ciclo).localeCompare(String(b.ciclo))||String(a.transportadora).localeCompare(String(b.transportadora))).map(r=>`<tr><td><b>${escapeHtml(r.ciclo||'—')}</b></td><td>${escapeHtml(r.transportadora||'—')}</td><td><b>${escapeHtml(r.nRota||'—')}</b></td><td>${escapeHtml(r.onda||'—')}</td><td>${escapeHtml(r.parada||'—')}</td><td>Planejada</td></tr>`).join('');
+}
+
 function renderPendentes(){
   const el = document.getElementById('pendentes');
   if(!rotasData.length){ el.innerHTML=''; return; }
@@ -604,10 +931,16 @@ async function limparOverride(num){
 let chamadosData = [];
 const CHAMADOS_KEY = 'chamados-ativos';
 async function carregarChamados(){
-  try{ const r = await window.storage.get(CHAMADOS_KEY, true); chamadosData = r && r.value ? JSON.parse(r.value) : []; }
-  catch(e){ chamadosData = []; }
+  try{
+    if(window.storage&&typeof window.storage.get==='function'){const r=await window.storage.get(CHAMADOS_KEY,true);chamadosData=r&&r.value?JSON.parse(r.value):[];}
+    else chamadosData=JSON.parse(localStorage.getItem(CHAMADOS_KEY)||'[]');
+  }catch(e){try{chamadosData=JSON.parse(localStorage.getItem(CHAMADOS_KEY)||'[]')}catch(_){chamadosData=[];}}
 }
-async function salvarChamados(){ try{ await window.storage.set(CHAMADOS_KEY, JSON.stringify(chamadosData), true); }catch(e){} }
+async function salvarChamados(){
+  const v=JSON.stringify(chamadosData);
+  try{if(window.storage&&typeof window.storage.set==='function')await window.storage.set(CHAMADOS_KEY,v,true)}catch(e){}
+  try{localStorage.setItem(CHAMADOS_KEY,v)}catch(e){}
+}
 
 function popularChamarVaga(){
   const sel = document.getElementById('chamarVaga');
@@ -672,7 +1005,7 @@ function renderChamados(){
         &nbsp;<b>Vaga ${c.vaga}</b> · ${escapeHtml(c.rua)}
         <span>${escapeHtml(c.transportadora||'')} · rota ${escapeHtml(c.nRota)} · chamado ${tempoDesde(c.criadoEm)}</span>
       </div>
-      <button class="ok" onclick="marcarRecebido('${c.id}')">Marcar recebido</button>
+      
     </div>`;
   }).join('');
 }
@@ -777,10 +1110,8 @@ function renderKPIs(){
 
 // ================= DETALHE / SELEÇÃO =================
 function statusButtons(num, ativo){
-  return Object.keys(STATUS_INFO).map(k=>{
-    const info = STATUS_INFO[k]; const isAtivo = k===ativo;
-    return `<button class="status-btn" style="background:${isAtivo?info.hex:'#fff'};color:${isAtivo?'#fff':'#333'};border-color:${info.hex}" onclick="setStatus(${num},'${k}')">${info.label}</button>`;
-  }).join('') + `<button class="status-btn secondary" style="border-color:#ccc;color:#666" onclick="limparOverride(${num})">Automático</button>`;
+  const info = STATUS_INFO[ativo] || STATUS_INFO.livre;
+  return `<span class="status-view"><span class="status-light" style="background:${info.hex}"></span>${info.label}</span>`;
 }
 
 function renderDetalheVaga(vaga){
@@ -791,15 +1122,14 @@ function renderDetalheVaga(vaga){
   const transp = vinc ? vinc.nome : (vaga.sigla==='VUC' ? 'Expedição / VUC — sem transportadora fixa' : 'Sem transportadora vinculada');
   const status = getStatus(vaga.num);
   const rotas = vaga.sigla==='VUC' ? [] : rotasData.filter(r=> (vinculoPorTransportadora(r.transportadora)||{}).sigla === vaga.sigla);
-  const chamado = chamadosData.find(c=>c.vaga===vaga.num);
+  const chamado = chamadoAtivoNaVaga(vaga.num);
   el.innerHTML = `
     <div class="det-head">
       <div class="det-badge" style="background:${cor.bg};color:${cor.fg}">${vaga.sigla}</div>
       <div class="det-info"><b>Vaga ${vaga.num} · ${vaga.rua}</b><span>${escapeHtml(transp)}</span></div>
     </div>
     <div class="status-row">${statusButtons(vaga.num, status)}</div>
-    ${chamado ? `<div class="chamado-alerta"><b>Chamado ativo:</b> rota ${escapeHtml(chamado.nRota)} · ${tempoDesde(chamado.criadoEm)}
-        <div style="margin-top:6px;"><button class="ok" onclick="marcarRecebido('${chamado.id}')">Marcar recebido</button></div></div>` : ''}
+    ${chamado ? `<div class="chamado-alerta"><b>Chamado ativo:</b> rota ${escapeHtml(chamado.nRota)} · ${tempoDesde(chamado.criadoEm)}</div>` : ''}
     ${rotas.length ? `<table><thead><tr><th>ID Pacote</th><th>Rota</th><th>Parada</th><th>Ponto</th><th>Onda</th></tr></thead>
       <tbody>${rotas.map(r=>`<tr><td>${escapeHtml(r.idPacote)}</td><td>${escapeHtml(r.nRota)}</td><td>${escapeHtml(r.parada)}</td><td>${escapeHtml(r.ponto)}</td><td>${escapeHtml(r.onda)}</td></tr>`).join('')}</tbody></table>`
       : `<div class="empty" style="margin-top:10px;">Nenhuma rota importada para essa transportadora ainda.</div>`}
@@ -889,17 +1219,119 @@ document.getElementById('q').addEventListener('keydown', e=>{ if(e.key==='Enter'
 function destacar(nums){ document.querySelectorAll('.pos-box').forEach(b=>{ b.classList.toggle('match', nums.includes(parseInt(b.dataset.num,10))); }); }
 function destacarSelecionada(num){ document.querySelectorAll('.pos-box').forEach(b=>{ b.classList.toggle('selected', num!==null && parseInt(b.dataset.num,10)===num); b.classList.remove('match'); }); }
 
+// ================= STATUS OPERACIONAL RECEBIDO DO APP =================
+// O app precisa enviar principalmente: rota_na_vaga, aduana ou finalizada.
+// inicioVaga deve ser o horário em que o motorista ocupou a vaga; se não vier, usamos criadoEm.
+const LIMITE_VAGA_MS = 30 * 60 * 1000;
+const ALERTA_VAGA_MS = 25 * 60 * 1000;
+const STATUS_APP = {
+  rota_na_vaga:{label:'Rota na vaga', cor:'#16A34A', classe:'status-rota'},
+  aduana:{label:'Aduana', cor:'#7C3AED', classe:'status-aduana'},
+  finalizada:{label:'Finalizada', cor:'#64748B', classe:''}
+};
+function inicioDaVaga(chamado){
+  return Number(chamado && (chamado.inicioVaga || chamado.chegouEm || chamado.criadoEm)) || Date.now();
+}
+function tempoNaVagaMs(chamado){ return Math.max(0, Date.now() - inicioDaVaga(chamado)); }
+function formatarCronometro(ms){
+  const total = Math.floor(ms/1000), min = Math.floor(total/60), seg = total%60;
+  return `${String(min).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
+}
+function statusDoChamado(chamado){
+  if(!chamado) return null;
+  const key=String(chamado.status||'rota_na_vaga').toLowerCase().trim().replace(/\s+/g,'_');
+  if(key==='finalizada') return STATUS_APP.finalizada;
+  if(key==='aduana') return STATUS_APP.aduana;
+  const ms=tempoNaVagaMs(chamado);
+  if(ms>=LIMITE_VAGA_MS) return {label:'Prazo excedido', cor:'#DC2626', classe:'status-excedido'};
+  if(ms>=ALERTA_VAGA_MS) return {label:'Próximo de 30 min', cor:'#F59E0B', classe:'status-atencao'};
+  return STATUS_APP.rota_na_vaga;
+}
+function chamadoAtivoNaVaga(num){
+  return chamadosData.find(c=>c.vaga===num && String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada');
+}
+function renderStatusCoord(){
+  const leg=document.getElementById('statusLegendCoord');
+  if(leg) leg.innerHTML=[
+    {label:'Rota na vaga · 0–24 min',cor:'#16A34A'},
+    {label:'Atenção · 25–29 min',cor:'#F59E0B'},
+    {label:'30 min ou mais',cor:'#DC2626'},
+    {label:'Aduana',cor:'#7C3AED'},
+    {label:'Livre',cor:'#94A3B8'}
+  ].map(s=>`<div class="status-line"><span class="status-name"><span class="status-light" style="background:${s.cor}"></span>${s.label}</span></div>`).join('');
+  const list=document.getElementById('routeLiveList'); if(!list) return;
+  const ativos=chamadosData.filter(c=>String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada').slice().sort((a,b)=>inicioDaVaga(a)-inicioDaVaga(b));
+  if(!ativos.length){list.innerHTML='<div class="empty">Todas as vagas estão livres no momento.</div>';return;}
+  list.innerHTML=ativos.map(c=>{
+    const s=statusDoChamado(c), tempo=formatarCronometro(tempoNaVagaMs(c));
+    return `<div class="route-live"><div class="route-live-top"><b>${escapeHtml(c.nRota||'Rota')}</b><span class="route-status" style="background:${s.cor}18;color:${s.cor};border:1px solid ${s.cor}55">${s.label}</span></div><small>Vaga ${c.vaga} · ${escapeHtml(c.rua||'')} ${c.transportadora?'· '+escapeHtml(c.transportadora):''}</small><small style="font-weight:900;color:${s.cor}">Tempo na vaga ${tempo}</small></div>`;
+  }).join('');
+}
+
+
+function transportadoraDaVaga(num){
+  const vaga=vagasData.find(v=>v.num===Number(num));
+  if(!vaga) return '—';
+  if(vaga.sigla==='VUC') return 'EXPEDIÇÃO / VUC';
+  const vinc=vinculos.find(v=>v.sigla===vaga.sigla);
+  return vinc ? vinc.nome : vaga.sigla;
+}
+function prioridadeStatus(s){
+  if(!s) return 9;
+  if(s.classe==='status-excedido') return 0;
+  if(s.classe==='status-aduana') return 1;
+  if(s.classe==='status-atencao') return 2;
+  return 3;
+}
+function renderMonitorRotas(){
+  const body=document.getElementById('routeMonitorBody');
+  const summary=document.getElementById('monitorSummary');
+  const alert=document.getElementById('delayAlert');
+  if(!body) return;
+  const ativos=chamadosData
+    .filter(c=>String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada')
+    .map(c=>({c,s:statusDoChamado(c),ms:tempoNaVagaMs(c)}))
+    .sort((a,b)=>prioridadeStatus(a.s)-prioridadeStatus(b.s) || b.ms-a.ms);
+  const atrasadas=ativos.filter(x=>x.s && x.s.classe==='status-excedido');
+  const aduana=ativos.filter(x=>x.s && x.s.classe==='status-aduana');
+  const atencao=ativos.filter(x=>x.s && x.s.classe==='status-atencao');
+  if(summary){
+    summary.innerHTML=`<span class="monitor-pill">${ativos.length} em processo</span><span class="monitor-pill" style="color:#DC2626">${atrasadas.length} acima de 30 min</span><span class="monitor-pill" style="color:#7C3AED">${aduana.length} em Aduana</span>`;
+  }
+  if(alert){
+    if(atrasadas.length){
+      const top=atrasadas[0].c;
+      alert.className='delay-alert show';
+      alert.innerHTML=`<strong>⚠ ROTA DEMORANDO: ${escapeHtml(top.nRota||'—')} · VAGA ${top.vaga} · ${escapeHtml(top.rua||'')}</strong><span>${escapeHtml(transportadoraDaVaga(top.vaga))} · ${formatarCronometro(tempoNaVagaMs(top))}</span>`;
+    }else{
+      alert.className='delay-alert'; alert.innerHTML='';
+    }
+  }
+  if(!ativos.length){body.innerHTML='<tr><td colspan="6" class="empty">Todas as vagas estão livres no momento.</td></tr>';return;}
+  body.innerHTML=ativos.map(({c,s,ms})=>{
+    const rowClass=s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
+    const transp=transportadoraDaVaga(c.vaga);
+    return `<tr class="${rowClass}" onclick="selecionarVaga(${Number(c.vaga)})" style="cursor:pointer"><td><b>${escapeHtml(c.rua||'—')}</b></td><td>${escapeHtml(transp)}</td><td class="rota-cell">${escapeHtml(c.nRota||'—')}${c.onda||c.parada?`<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">${c.onda?escapeHtml(c.onda):''}${c.onda&&c.parada?' · ':''}${c.parada?escapeHtml(c.parada)+' paradas':''}</small>`:''}</td><td class="vaga-cell">${c.vaga??'—'}</td><td><span class="process-badge" style="color:${s.cor}"><span class="process-dot"></span>${escapeHtml(s.label)}</span></td><td class="tempo-cell" style="color:${s.cor}">${formatarCronometro(ms)}</td></tr>`;
+  }).join('');
+}
+
 // ================= FLOORPLAN =================
 function arrowSVG(){ return `<svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
 function posBox(vaga){
   const cor = CORES[vaga.sigla];
   const st = getStatus(vaga.num);
   const info = STATUS_INFO[st];
-  const chamado = chamadosData.find(c=>c.vaga===vaga.num);
-  return `<div class="pos-box ${chamado?'chamado-ativo':''}" data-num="${vaga.num}" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${vaga.num})">
-    ${chamado?'<span class="chamado-flag">CHAMADO</span>':''}
-    <span class="status-dot" style="background:${info.hex}"></span>
-    <span class="num">${vaga.num}</span><span class="sigla">${vaga.sigla}</span>
+  const chamado = chamadoAtivoNaVaga(vaga.num);
+  const appSt = statusDoChamado(chamado);
+  const statusCor = appSt ? appSt.cor : '#94A3B8';
+  const classe = appSt ? appSt.classe : '';
+  const rota = chamado && chamado.nRota ? chamado.nRota : '';
+  const cron = chamado ? formatarCronometro(tempoNaVagaMs(chamado)) : '';
+  return `<div class="pos-box ${chamado?'chamado-ativo':''} ${classe}" data-num="${vaga.num}" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${vaga.num})">
+    ${chamado?`<span class="chamado-flag" style="background:${statusCor}">${escapeHtml(rota||'ATIVA')}</span>`:''}
+    <span class="status-dot" style="background:${statusCor}"></span>
+    <span class="num">${vaga.num}</span><span class="sigla">${rota?escapeHtml(rota):vaga.sigla}</span>
+    ${chamado?`<span style="font-size:7px;font-weight:900;margin-top:2px">${cron}</span>`:''}
   </div>`;
 }
 function ruaBlock(rua, label){
@@ -950,20 +1382,66 @@ function renderLegenda(){
   }).join('');
 }
 
+
+
+// ================= CONTROL CENTER 2.0 / IOT DEMO =================
+const DEVICES = [
+  {id:'ESP-RUA-01', area:'Rua 1', luzes:16, sinal:'Excelente'},
+  {id:'ESP-RUA-02', area:'Rua 2', luzes:17, sinal:'Excelente'},
+  {id:'ESP-RUA-03', area:'Rua 3', luzes:31, sinal:'Bom'},
+  {id:'ESP-VUC-01', area:'VUC / Expedição', luzes:33, sinal:'Excelente'}
+];
+let ledDemo = {vaga:null, modo:null};
+function renderDevices(){
+  const el=document.getElementById('deviceGrid'); if(!el) return;
+  el.innerHTML=DEVICES.map(d=>`<div class="device"><div class="device-top"><div><div class="device-name">${d.id}</div><div class="device-area">${d.area}</div></div><span class="device-badge">● ONLINE</span></div><div class="device-meta"><span>${d.luzes} luzes</span><span>Sinal: ${d.sinal}</span></div><button class="device-test" onclick="testarDevice('${d.id}','${d.area}')">Testar controlador</button></div>`).join('');
+}
+function testarDevice(id,area){
+  const st=document.getElementById('ledState'); if(st) st.innerHTML=`<b>Teste enviado:</b> ${id} · ${area} · pulso de diagnóstico simulado com sucesso.`;
+}
+function popularLedVagas(){
+  const sel=document.getElementById('ledVaga'); if(!sel) return;
+  const atuais=[...vagasData].filter(v=>perfil==='COORD'||!perfil||permitida(v.rua));
+  sel.innerHTML=atuais.map(v=>`<option value="${v.num}">Vaga ${v.num} · ${v.rua} · ${v.sigla}</option>`).join('');
+}
+function acionarLuzDemo(){
+  const vaga=Number(document.getElementById('ledVaga').value); const modo=document.getElementById('ledModo').value;
+  ledDemo={vaga,modo}; const st=document.getElementById('ledState');
+  if(st) st.innerHTML=`<b style="color:#7C3AED">● LUZ ATIVA</b> · Vaga ${vaga} · modo ${modo}. <span style="color:var(--muted)">Simulação visual pronta para ser ligada ao gateway/ESP32.</span>`;
+  const box=document.querySelector(`.pos-box[data-num="${vaga}"]`); if(box){box.classList.add('chamado-ativo');box.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+function apagarLuzDemo(){
+  if(ledDemo.vaga){const box=document.querySelector(`.pos-box[data-num="${ledDemo.vaga}"]`); if(box && !chamadosData.some(c=>c.vaga===ledDemo.vaga)) box.classList.remove('chamado-ativo');}
+  ledDemo={vaga:null,modo:null}; const st=document.getElementById('ledState'); if(st) st.textContent='Luz manual desligada. Chamados ativos continuam sinalizados automaticamente.';
+}
+function renderActivity(){
+  const el=document.getElementById('activityList'); if(!el) return;
+  const ativos=chamadosVisiveis().slice().sort((a,b)=>b.criadoEm-a.criadoEm).slice(0,3);
+  const itens=ativos.map(c=>`<div class="activity-item"><span class="activity-pulse"></span><div><b>Vaga ${c.vaga} · ${escapeHtml(c.nRota)}</b>Chamado ${tempoDesde(c.criadoEm)} · ${escapeHtml(c.rua)}</div></div>`);
+  if(!itens.length) itens.push(`<div class="activity-item"><span class="activity-pulse"></span><div><b>Sistema sincronizado</b>Nenhum chamado ativo neste momento.</div></div>`);
+  itens.push(`<div class="activity-item"><span class="activity-pulse"></span><div><b>Gateway IoT em modo demonstração</b>Interface pronta para integração física.</div></div>`);
+  el.innerHTML=itens.join('');
+}
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  const dark=document.body.classList.contains('dark'); localStorage.setItem('svc-theme',dark?'dark':'light');
+  const b=document.getElementById('themeToggle'); if(b) b.textContent=dark?'☀ Tema claro':'◐ Tema escuro';
+}
+function initTheme(){
+  const dark=localStorage.getItem('svc-theme')==='dark'; document.body.classList.toggle('dark',dark);
+  const b=document.getElementById('themeToggle'); if(b) b.textContent=dark?'☀ Tema claro':'◐ Tema escuro';
+}
+
 // ================= RENDER GERAL / INIT =================
 function renderTudo(){
-  if(!perfil) return;
-  renderPerfilBadge();
+  perfil = 'COORD';
   renderKPIs();
-  renderChamados();
   renderFloorplan();
-  renderLegenda();
-  renderVinculos();
-  renderPendentes();
-  renderResumo();
-  atualizarStatusRotas();
-  popularChamarVaga();
-  document.getElementById('cardChamar').style.display = (perfil && perfil!=='COORD') ? 'block' : 'none';
+  renderStatusCoord();
+  renderMonitorRotas();
+  renderCiclosPlanejamento();
+  renderSacas();
+  renderResumoPlanejamentoCoord();
 }
 
 async function carregarTudoCompartilhado(){
@@ -995,14 +1473,228 @@ window.addEventListener('resize', ()=>{
 });
 
 async function init(){
-  popularSelectSiglas();
-  popularBotoesRua();
-  await carregarPerfil();
+  initTheme();
+  perfil = 'COORD';
   await carregarTudoCompartilhado();
-  if(perfil){ document.getElementById('seletor').style.display='none'; renderTudo(); }
-  setInterval(async ()=>{ await carregarTudoCompartilhado(); renderTudo(); }, 6000);
+  renderTudo();
+  setInterval(async ()=>{ await carregarTudoCompartilhado(); renderTudo(); }, 3000);
+  setInterval(()=>{ renderStatusCoord(); renderMonitorRotas(); renderFloorplan(); }, 1000);
 }
 init();
 </script>
+<script id="compact-upload-helper">
+function arquivoSelecionadoUnico(){
+  const f=document.getElementById('planilhaFile_UNICO')?.files?.[0];
+  const hint=document.getElementById('uploadHint');
+  if(f && hint) hint.textContent=f.name;
+}
+async function processarUploadUnico(){
+  const ciclo=document.getElementById('cicloUpload').value;
+  const input=document.getElementById('planilhaFile_UNICO');
+  const status=document.getElementById('statusUploadUnico');
+  if(!input || !input.files.length){ if(status) status.textContent='Escolha um arquivo primeiro.'; return; }
+  const file=input.files[0];
+  try{
+    if(status) status.textContent='Lendo planejamento '+ciclo+'…';
+    let rows=[];
+    if(/\.csv$/i.test(file.name)){
+      const texto=new TextDecoder('utf-8').decode(await file.arrayBuffer());
+      rows=parseCSVNativo(texto);
+    }else{
+      if(typeof XLSX==='undefined') throw new Error('Para XLSX/XLS é necessário conexão para carregar a biblioteca. Prefira o CSV gerado pela VIA QUERY.');
+      const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+      const sh=wb.Sheets[wb.SheetNames[0]];
+      rows=XLSX.utils.sheet_to_json(sh,{header:1,raw:false,defval:''});
+    }
+    if(!rows.length) throw new Error('Arquivo vazio.');
+
+    let hi=-1;
+    for(let i=0;i<Math.min(rows.length,20);i++){
+      const norm=(rows[i]||[]).map(normalizarHeader);
+      if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas')){hi=i;break;}
+    }
+    if(hi<0) throw new Error('Não encontrei o cabeçalho VIA QUERY (GAIOLA / ONDA CADASTRADA / PARADAS).');
+
+    const headers=(rows[hi]||[]).map(v=>String(v??'').trim());
+    const hn=headers.map(normalizarHeader);
+    const idxG=hn.indexOf('gaiola');
+    const idxO=hn.indexOf('onda cadastrada');
+    const idxP=hn.indexOf('paradas');
+    const idxS=hn.indexOf('saca');
+    const idxData=hn.indexOf('data exp');
+    const idxB=hn.indexOf('bairros');
+    const idxCl=hn.indexOf('cluster');
+    const idxMo=hn.indexOf('modal');
+    const idxMlp=hn.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
+    const idxRota=hn.indexOf('rota');
+    if(idxG<0 || idxP<0 || idxMlp<0) throw new Error('Faltam as colunas GAIOLA, PARADAS ou MLP da operação.');
+
+    const get=(r,i)=>i>=0?String(r[i]??'').trim():'';
+    const novas=[];
+    let ignoradas=0;
+    for(const r of rows.slice(hi+1)){
+      const gaiola=get(r,idxG);
+      const transp=get(r,idxMlp).toUpperCase();
+      const rotaPlan=get(r,idxRota);
+      const sv=get(r,idxS);
+      const ehSaca=gaiola.toUpperCase()==='SACA' || (sv!=='' && sv!=='0' && sv!=='0.0');
+      const nRota=ehSaca?(rotaPlan||gaiola):gaiola;
+      if(!nRota || !transp || transp==='#N/A' || nRota==='#N/A'){ignoradas++;continue;}
+      novas.push({
+        idPacote:'', nRota, gaiola, ciclo, tipoOperacao:ehSaca?'SACA':'ROTA',
+        transportadora:transp, onda:get(r,idxO), parada:get(r,idxP),
+        ponto:get(r,idxB), bairros:get(r,idxB), cluster:get(r,idxCl), modal:get(r,idxMo),
+        dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
+      });
+    }
+    if(!novas.length) throw new Error('Nenhuma rota válida foi encontrada.');
+
+    rotasData=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==ciclo).concat(novas);
+    await salvarRotas();
+    renderTudo();
+    renderCycleSummaryCompact();
+    renderResumoPlanejamentoCoord();
+    const rotasU=new Set(novas.filter(r=>r.tipoOperacao!=='SACA').map(r=>r.nRota)).size;
+    const sacasU=new Set(novas.filter(r=>r.tipoOperacao==='SACA').map(r=>r.nRota)).size;
+    if(status) status.textContent='✓ '+ciclo+' importado: '+rotasU+' rotas · '+sacasU+' sacas · '+ignoradas+' linhas ignoradas.';
+  }catch(e){
+    console.error('IMPORTAÇÃO:',e);
+    if(status) status.textContent='Erro: '+(e?.message||'não foi possível importar o planejamento.');
+  }finally{
+    input.value='';
+    const hint=document.getElementById('uploadHint');
+    if(hint) hint.textContent='Clique ou arraste o arquivo CSV/XLSX aqui';
+  }
+}
+async function limparCicloSelecionado(){
+  const ciclo=document.getElementById('cicloUpload').value;
+  await limparCiclo(ciclo);
+  const status=document.getElementById('statusUploadUnico');
+  if(status) status.textContent='Planejamento '+ciclo+' removido.';
+  renderCycleSummaryCompact();
+}
+function renderCycleSummaryCompact(){
+  const el=document.getElementById('cycleSummary'); if(!el) return;
+  const ciclos=['AM1','PM1','SD','CHP'];
+  el.innerHTML=ciclos.map(c=>{
+    const rows=(typeof rotasData!=='undefined') ? rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===c) : [];
+    const rotas=new Set(rows.filter(r=>r.tipoOperacao!=='SACA').map(r=>r.nRota).filter(Boolean)).size;
+    const sacas=new Set(rows.filter(r=>r.tipoOperacao==='SACA').map(r=>r.nRota).filter(Boolean)).size;
+    return '<span class="cycle-pill"><strong>'+c+'</strong> · '+rotas+' rotas · '+sacas+' sacas</span>';
+  }).join('');
+}
+
+let areaResumoSelecionada='Rua 1';
+function areaDaRotaPlanejada(r){
+  if(r.tipoOperacao==='SACA') return 'Sacas';
+  const vinc=vinculoPorTransportadora(r.transportadora);
+  if(!vinc) return 'Sem rua vinculada';
+  return ruaDaSigla(vinc.sigla);
+}
+
+const transportadorasAbertas = new Set();
+
+function toggleTransportadoraResumo(key){
+  if(transportadorasAbertas.has(key)) transportadorasAbertas.delete(key);
+  else transportadorasAbertas.add(key);
+  renderResumoPlanejamentoCoord();
+}
+
+function renderResumoPlanejamentoCoord(){
+  const el=document.getElementById('resumoPlanejamentoCoord');
+  const tabs=document.getElementById('planningAreaTabs');
+  const cicloEl=document.getElementById('cicloResumo');
+  if(!el||!tabs||!cicloEl) return;
+
+  const ciclo=cicloEl.value;
+  const dados=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo);
+  const areas=['Rua 1','Rua 2','Rua 3','Rua 4 - Expedição VUC','Sacas'];
+
+  if(!areas.includes(areaResumoSelecionada)) areaResumoSelecionada='Rua 1';
+
+  tabs.innerHTML=areas.map(a=>{
+    const n=dados.filter(r=>areaDaRotaPlanejada(r)===a).length;
+    const label=a==='Rua 4 - Expedição VUC'?'Rua 4':a;
+    return '<button class="area-tab '+(areaResumoSelecionada===a?'active':'')+'" onclick="areaResumoSelecionada='+JSON.stringify(a)+';renderResumoPlanejamentoCoord()">'+escapeHtml(label)+' · '+n+'</button>';
+  }).join('');
+
+  const areaDados=dados.filter(r=>areaDaRotaPlanejada(r)===areaResumoSelecionada);
+  if(!areaDados.length){
+    el.innerHTML='<div class="empty">Nenhum item de '+escapeHtml(ciclo)+' em '+escapeHtml(areaResumoSelecionada)+'.</div>';
+    return;
+  }
+
+  // 1º nível: ONDA. A operação sobe toda a Onda 1 antes da Onda 2, e assim por diante.
+  const porOnda={};
+  areaDados.forEach(r=>{
+    const onda=(r.onda && String(r.onda).trim()) ? String(r.onda).trim() : 'Sem onda';
+    (porOnda[onda]??=[]).push(r);
+  });
+
+  function ordemOndaLocal(label){
+    const m=String(label).match(/(\d+)/);
+    return m ? parseInt(m[1],10) : 9999;
+  }
+
+  const ondas=Object.keys(porOnda).sort((a,b)=>
+    ordemOndaLocal(a)-ordemOndaLocal(b) ||
+    a.localeCompare(b,'pt-BR',{numeric:true})
+  );
+
+  el.innerHTML=ondas.map(onda=>{
+    const itensOnda=porOnda[onda];
+
+    // 2º nível: transportadora dentro da mesma onda.
+    const porTransp={};
+    itensOnda.forEach(r=>{
+      const nome=(r.transportadora||'Sem transportadora').trim();
+      (porTransp[nome]??=[]).push(r);
+    });
+
+    const transportadorasHtml=Object.keys(porTransp)
+      .sort((a,b)=>a.localeCompare(b,'pt-BR'))
+      .map(nome=>{
+        const lista=porTransp[nome].slice().sort((a,b)=>
+          String(a.nRota||'').localeCompare(String(b.nRota||''),'pt-BR',{numeric:true})
+        );
+
+        const vinc=vinculoPorTransportadora(nome);
+        const sig=vinc?.sigla||'—';
+        const cor=CORES[sig]||{bg:'#E2E8F0',fg:'#0F172A'};
+        const key=ciclo+'|'+areaResumoSelecionada+'|'+onda+'|'+nome;
+        const aberta=transportadorasAbertas.has(key);
+
+        const rows=lista.map(r=>
+          '<div class="route-columns-row wave-rows">'+
+            '<div class="rota" title="'+escapeHtml(r.nRota||'—')+'">'+escapeHtml(r.nRota||'—')+'</div>'+
+            '<div class="paradas">'+escapeHtml(r.parada||'—')+'</div>'+
+          '</div>'
+        ).join('');
+
+        return '<div class="transp-accordion '+(aberta?'open':'')+'">'+
+          '<button class="transp-accordion-head" onclick="toggleTransportadoraResumo('+JSON.stringify(key).replace(/"/g,'&quot;')+')">'+
+            '<span class="transp-arrow">▶</span>'+
+            '<span class="sigla-badge-sm" style="background:'+cor.bg+';color:'+cor.fg+'">'+escapeHtml(sig)+'</span>'+
+            '<span class="transp-accordion-name">'+escapeHtml(nome)+'</span>'+
+            '<span class="transp-accordion-count">'+lista.length+' rota(s)</span>'+
+          '</button>'+
+          '<div class="transp-accordion-body">'+
+            '<div class="route-columns-head wave-rows"><span>Rota</span><span>Parada</span></div>'+
+            rows+
+          '</div>'+
+        '</div>';
+      }).join('');
+
+    return '<div class="onda-section">'+
+      '<div class="onda-section-title"><span>'+escapeHtml(onda)+'</span><span class="qtd">'+itensOnda.length+' item(ns)</span></div>'+
+      transportadorasHtml+
+    '</div>';
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded',()=>setTimeout(renderCycleSummaryCompact,300));
+setInterval(renderCycleSummaryCompact,5000);
+</script>
+
 </body>
 </html>
