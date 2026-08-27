@@ -623,14 +623,12 @@ let rotasData = [];
 const ROTAS_KEY = 'rotas-importadas';
 async function carregarRotas(){
   try{
-    if(window.storage && typeof window.storage.get==='function'){
-      const r=await window.storage.get(ROTAS_KEY,true);
-      rotasData=r&&r.value?JSON.parse(r.value):[];
-    }else{
-      rotasData=JSON.parse(localStorage.getItem(ROTAS_KEY)||'[]');
-    }
+    const {data,error}=await db.from('planejamento').select('*').eq('data_operacao',hojeISO());
+    if(error) throw error;
+    rotasData=(data||[]).map(rowPlanejamentoToLocal);
+    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
   }catch(e){
-    try{rotasData=JSON.parse(localStorage.getItem(ROTAS_KEY)||'[]')}catch(_){rotasData=[];}
+    console.error('Erro ao carregar planejamento do Supabase:',e);
   }
 }
 async function salvarRotas(){
@@ -639,27 +637,38 @@ async function salvarRotas(){
     if(!ciclo) return;
     const {error:delErr}=await db.from('planejamento').delete().eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
     if(delErr) throw delErr;
-    const itens=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo).map(r=>({
-      data_operacao:hojeISO(), ciclo,
-      transportadora:r.transportadora||null, rota:r.nRota,
-      onda:r.onda||null, paradas:r.parada||null, bairros:r.bairros||r.ponto||null,
-      cluster:r.cluster||null, modal:r.modal||null,
-      rua:(typeof areaDaRotaPlanejada==='function'?areaDaRotaPlanejada(r):null),
-      is_saca:String(r.tipoOperacao||'').toUpperCase()==='SACA',
-      origem_arquivo:'VIA_QUERY'
-    }));
-    if(itens.length){
-      const {error}=await db.from('planejamento').insert(itens);
+
+    const vistos=new Set();
+    const itens=[];
+    rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo).forEach(r=>{
+      const item={
+        data_operacao:hojeISO(), ciclo,
+        transportadora:r.transportadora||null, rota:r.nRota,
+        onda:r.onda||null, paradas:r.parada||null, bairros:r.bairros||r.ponto||null,
+        cluster:r.cluster||null, modal:r.modal||null,
+        rua:(typeof areaDaRotaPlanejada==='function'?areaDaRotaPlanejada(r):null),
+        is_saca:String(r.tipoOperacao||'').toUpperCase()==='SACA',
+        origem_arquivo:'VIA_QUERY'
+      };
+      const k=[item.data_operacao,item.ciclo,item.transportadora||'',item.rota,item.onda||'',item.paradas||'',item.is_saca].join('|');
+      if(!vistos.has(k)){vistos.add(k);itens.push(item);}
+    });
+
+    // insere em lotes menores para facilitar planilhas grandes
+    for(let i=0;i<itens.length;i+=300){
+      const {error}=await db.from('planejamento').insert(itens.slice(i,i+300));
       if(error) throw error;
     }
+    rotasData=itens.map(rowPlanejamentoToLocal);
     try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
   }catch(e){
     console.error(e);
-    const el=document.getElementById('statusPlanilha')||document.getElementById('statusRotas');
+    const el=document.getElementById('statusPlanilha')||document.getElementById('statusRotas')||document.getElementById('statusUploadUnico');
     if(el) el.textContent='Erro ao salvar no Supabase: '+(e.message||e);
     throw e;
   }
 }
+
 function atualizarStatusRotas(){
   document.getElementById('statusRotas').textContent = rotasData.length ? `${rotasData.length} linha(s) carregada(s).` : 'Nenhuma tabela importada ainda.';
 }
@@ -989,9 +998,13 @@ let chamadosData = [];
 const CHAMADOS_KEY = 'chamados-ativos';
 async function carregarChamados(){
   try{
-    if(window.storage&&typeof window.storage.get==='function'){const r=await window.storage.get(CHAMADOS_KEY,true);chamadosData=r&&r.value?JSON.parse(r.value):[];}
-    else chamadosData=JSON.parse(localStorage.getItem(CHAMADOS_KEY)||'[]');
-  }catch(e){try{chamadosData=JSON.parse(localStorage.getItem(CHAMADOS_KEY)||'[]')}catch(_){chamadosData=[];}}
+    const {data,error}=await db.from('operacoes_vagas').select('*').eq('data_operacao',hojeISO()).neq('status','FINALIZADA');
+    if(error) throw error;
+    chamadosData=(data||[]).map(rowOperacaoToLocal);
+    try{localStorage.setItem(CHAMADOS_KEY,JSON.stringify(chamadosData));}catch(e){}
+  }catch(e){
+    console.error('Erro ao carregar operações do Supabase:',e);
+  }
 }
 async function salvarChamados(){
   const v=JSON.stringify(chamadosData);
