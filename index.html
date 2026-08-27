@@ -485,7 +485,7 @@ const SUPABASE_URL = 'https://cnpcsovjomonctbggbac.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1lqP4jYYMR96Aq8DX-DSHA_JKcGESRt';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function hojeISO(){ return new Date().toISOString().slice(0,10); }
+function hojeISO(){ const d=new Date(); const off=d.getTimezoneOffset(); const local=new Date(d.getTime()-off*60000); return local.toISOString().slice(0,10); }
 function rowPlanejamentoToLocal(r){
   return {
     nRota:r.rota||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
@@ -1621,6 +1621,7 @@ async function processarUploadUnico(){
   const status=document.getElementById('statusUploadUnico');
   if(!input || !input.files.length){ if(status) status.textContent='Escolha um arquivo primeiro.'; return; }
   const file=input.files[0];
+  cicloImportacao = ciclo; // necessário: salvarRotas() lê essa variável global, não a local acima
   try{
     if(status) status.textContent='Lendo planejamento '+ciclo+'…';
     let rows=[];
