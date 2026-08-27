@@ -201,6 +201,18 @@
   #importacao,#resumo,#dispositivos,.led-console,#cardChamar{display:none!important}
   .search-row{gap:6px}.search-row input{padding:7px 9px;font-size:11px}.search-row button{padding:7px 10px;font-size:10px}
   .status-view{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:5px 8px;font-size:9.5px;font-weight:800;background:#F8FAFC}
+  .lideres-panel{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .lider-chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;flex:1;min-width:170px}
+  .lider-chip .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .lider-chip .dot.online{background:#16A34A;box-shadow:0 0 0 3px rgba(22,163,74,.15)}
+  .lider-chip .dot.offline{background:#94A3B8}
+  .lider-chip .txt{min-width:0}
+  .lider-chip .rua{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .lider-chip .nome{font-size:12.5px;font-weight:700;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lider-chip .nome.vazio{color:var(--slate-400);font-weight:600;font-style:italic}
+  .lider-chip .desde{font-size:9px;color:var(--muted);margin-left:auto;white-space:nowrap}
+  .dark .lider-chip{background:var(--surface)}
+  @media(max-width:650px){.lideres-panel{flex-direction:column}.lider-chip{min-width:0}}
   body.dark{--bg:#08121F;--surface:#0E1B2A;--surface-alt:#132235;--border:#26394E;--navy-900:#EAF3FC;--navy-700:#B7CCE0;--muted:#8FA5B8;color:#EAF3FC;background:#07111D}.dark .svc-topbar,.dark .rail-card,.dark .card,.dark .kpi{background:var(--surface)}.dark header{background:#0B223A}.dark .sys-chip,.dark #themeToggle,.dark .route-live,.dark .readonly-note,.dark .status-view{background:var(--surface-alt);color:#EAF3FC}.dark .folha-a4{background:#F8FAFC}
   @media(max-width:1180px){body{padding:10px}.coord-main{grid-template-columns:1fr 230px}.kpis{grid-template-columns:repeat(5,1fr)}.folha-a4 .floorplan-outer{padding:7px}}
   @media(max-width:900px){.coord-main{grid-template-columns:1fr}.coord-rail{grid-template-columns:repeat(3,1fr)}.route-live-list{max-height:160px}.kpis{grid-template-columns:repeat(3,1fr)}}
@@ -388,6 +400,8 @@
 
   <div class="kpis" id="kpis"></div>
 
+  <div class="lideres-panel" id="lideresPanel"></div>
+
   <div class="planning-compact">
     <div class="upload-drop" onclick="document.getElementById('planilhaFile_UNICO').click()">
       <div class="upload-icon">⇧</div>
@@ -471,11 +485,7 @@ const SUPABASE_URL = 'https://cnpcsovjomonctbggbac.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1lqP4jYYMR96Aq8DX-DSHA_JKcGESRt';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function hojeLocalISO(){
-  const d=new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function hojeISO(){ return hojeLocalISO(); }
+function hojeISO(){ return new Date().toISOString().slice(0,10); }
 function rowPlanejamentoToLocal(r){
   return {
     nRota:r.rota||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
@@ -631,7 +641,6 @@ async function carregarRotas(){
     if(error) throw error;
     rotasData=(data||[]).map(rowPlanejamentoToLocal);
     try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
-    console.log('Planejamento salvo no Supabase:',itens.length,'linhas',ciclo);
   }catch(e){
     console.error('Erro ao carregar planejamento do Supabase:',e);
   }
@@ -1510,6 +1519,7 @@ function initTheme(){
 // ================= RENDER GERAL / INIT =================
 function renderTudo(){
   perfil = 'COORD';
+  renderLideresPanel();
   renderKPIs();
   renderFloorplan();
   renderStatusCoord();
@@ -1524,6 +1534,45 @@ async function carregarTudoCompartilhado(){
   await carregarRotas();
   await carregarStatusData();
   await carregarChamados();
+  await carregarLideres();
+}
+
+// ================= LÍDERES DE RUA (quem está logado em cada rua) =================
+let lideresPorRua = {};
+const LIDERES_KEY = 'lideres-por-rua';
+async function carregarLideres(){
+  try{
+    if(window.storage && typeof window.storage.get==='function'){
+      const r = await window.storage.get(LIDERES_KEY, true);
+      lideresPorRua = r && r.value ? JSON.parse(r.value) : {};
+    }
+  }catch(e){ lideresPorRua = {}; }
+}
+function tempoDesdeMin(ts){
+  if(!ts) return '';
+  const min = Math.floor((Date.now()-ts)/60000);
+  if(min < 1) return 'agora';
+  if(min < 60) return `há ${min} min`;
+  const h = Math.floor(min/60);
+  return `há ${h}h${min%60?String(min%60).padStart(2,'0'):''}`;
+}
+function renderLideresPanel(){
+  const el = document.getElementById('lideresPanel');
+  if(!el) return;
+  el.innerHTML = RUAS_ORDEM.filter(r=>r!=='Área VUC').map(rua=>{
+    const info = lideresPorRua[rua];
+    // considera "online" se registrou presença nos últimos 20 minutos
+    const online = info && info.atualizadoEm && (Date.now()-info.atualizadoEm) < 20*60*1000;
+    const nome = info ? escapeHtml(info.nome) : 'Ninguém logado';
+    return `<div class="lider-chip">
+      <span class="dot ${online?'online':'offline'}"></span>
+      <div class="txt">
+        <div class="rua">${escapeHtml(rua)}</div>
+        <div class="nome ${info?'':'vazio'}">${nome}</div>
+      </div>
+      ${info ? `<span class="desde">${tempoDesdeMin(info.atualizadoEm)}</span>` : ''}
+    </div>`;
+  }).join('');
 }
 
 // ================= LAYOUT NAS PROPORÇÕES A4 =================
