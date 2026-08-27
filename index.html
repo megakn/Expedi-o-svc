@@ -471,7 +471,11 @@ const SUPABASE_URL = 'https://cnpcsovjomonctbggbac.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1lqP4jYYMR96Aq8DX-DSHA_JKcGESRt';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function hojeISO(){ return new Date().toISOString().slice(0,10); }
+function hojeLocalISO(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function hojeISO(){ return hojeLocalISO(); }
 function rowPlanejamentoToLocal(r){
   return {
     nRota:r.rota||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
@@ -627,6 +631,7 @@ async function carregarRotas(){
     if(error) throw error;
     rotasData=(data||[]).map(rowPlanejamentoToLocal);
     try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
+    console.log('Planejamento salvo no Supabase:',itens.length,'linhas',ciclo);
   }catch(e){
     console.error('Erro ao carregar planejamento do Supabase:',e);
   }
