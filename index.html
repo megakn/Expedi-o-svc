@@ -372,6 +372,7 @@
   .route-columns-row.wave-rows .paradas{text-align:left}
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -464,6 +465,50 @@
 </div>
 
 <script>
+
+// ================= SUPABASE =================
+const SUPABASE_URL = 'https://cnpcsovjomonctbggbac.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_1lqP4jYYMR96Aq8DX-DSHA_JKcGESRt';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function hojeISO(){ return new Date().toISOString().slice(0,10); }
+function rowPlanejamentoToLocal(r){
+  return {
+    nRota:r.rota||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
+    transportadora:(r.transportadora||'').toUpperCase(), onda:r.onda||'',
+    parada:r.paradas||'', ponto:r.bairros||'', bairros:r.bairros||'',
+    cluster:r.cluster||'', modal:r.modal||'', dataExp:r.data_operacao||'',
+    origem:'SUPABASE'
+  };
+}
+function rowOperacaoToLocal(r){
+  return {
+    id:r.id, rua:r.rua, vaga:r.vaga, transportadora:r.transportadora,
+    nRota:r.rota, ciclo:r.ciclo, status:r.status==='ADUANA'?'aduana':'rota_na_vaga',
+    inicioVaga:new Date(r.entrada_em).getTime(), criadoEm:new Date(r.entrada_em).getTime(),
+    lider:r.lider||'', aduanaEm:r.aduana_em?new Date(r.aduana_em).getTime():null
+  };
+}
+async function carregarSupabaseCoord(){
+  try{
+    const [p,o]=await Promise.all([
+      db.from('planejamento').select('*').eq('data_operacao',hojeISO()),
+      db.from('operacoes_vagas').select('*').eq('data_operacao',hojeISO()).neq('status','FINALIZADA')
+    ]);
+    if(p.error) throw p.error; if(o.error) throw o.error;
+    rotasData=(p.data||[]).map(rowPlanejamentoToLocal);
+    chamadosData=(o.data||[]).map(rowOperacaoToLocal);
+    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));localStorage.setItem(CHAMADOS_KEY,JSON.stringify(chamadosData));}catch(e){}
+    renderTudo(); if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord();
+  }catch(e){ console.error('Supabase coord:',e); }
+}
+function iniciarRealtimeCoord(){
+  db.channel('svc-coordenacao')
+    .on('postgres_changes',{event:'*',schema:'public',table:'planejamento'},()=>carregarSupabaseCoord())
+    .on('postgres_changes',{event:'*',schema:'public',table:'operacoes_vagas'},()=>carregarSupabaseCoord())
+    .subscribe();
+}
+
 // ================= DADOS BASE =================
 const CORES = {
   DC:{bg:'#22d3ee',fg:'#04222a'}, CM:{bg:'#22c55e',fg:'#052e12'}, OT:{bg:'#fde047',fg:'#2b2400'},
@@ -589,18 +634,30 @@ async function carregarRotas(){
   }
 }
 async function salvarRotas(){
-  const valor=JSON.stringify(rotasData);
-  let salvo=false;
   try{
-    if(window.storage && typeof window.storage.set==='function'){
-      await window.storage.set(ROTAS_KEY,valor,true);
-      salvo=true;
+    const ciclo=String(cicloImportacao||'').toUpperCase();
+    if(!ciclo) return;
+    const {error:delErr}=await db.from('planejamento').delete().eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
+    if(delErr) throw delErr;
+    const itens=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo).map(r=>({
+      data_operacao:hojeISO(), ciclo,
+      transportadora:r.transportadora||null, rota:r.nRota,
+      onda:r.onda||null, paradas:r.parada||null, bairros:r.bairros||r.ponto||null,
+      cluster:r.cluster||null, modal:r.modal||null,
+      rua:(typeof areaDaRotaPlanejada==='function'?areaDaRotaPlanejada(r):null),
+      is_saca:String(r.tipoOperacao||'').toUpperCase()==='SACA',
+      origem_arquivo:'VIA_QUERY'
+    }));
+    if(itens.length){
+      const {error}=await db.from('planejamento').insert(itens);
+      if(error) throw error;
     }
-  }catch(e){}
-  try{localStorage.setItem(ROTAS_KEY,valor);salvo=true;}catch(e){}
-  if(!salvo){
-    const el=document.getElementById('statusRotas');
-    if(el) el.textContent='Não foi possível salvar as rotas neste navegador.';
+    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
+  }catch(e){
+    console.error(e);
+    const el=document.getElementById('statusPlanilha')||document.getElementById('statusRotas');
+    if(el) el.textContent='Erro ao salvar no Supabase: '+(e.message||e);
+    throw e;
   }
 }
 function atualizarStatusRotas(){
@@ -1696,5 +1753,10 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(renderCycleSummaryCo
 setInterval(renderCycleSummaryCompact,5000);
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(async()=>{ await carregarSupabaseCoord(); iniciarRealtimeCoord(); },600);
+});
+</script>
 </body>
 </html>
