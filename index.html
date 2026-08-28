@@ -647,9 +647,9 @@ async function carregarRotas(){
     console.error('Erro ao carregar planejamento do Supabase:',e);
   }
 }
-async function salvarRotas(){
+async function salvarRotas(cicloOverride){
   try{
-    const ciclo=String(cicloImportacao||'').toUpperCase();
+    const ciclo=String(cicloOverride||cicloImportacao||'').toUpperCase();
     if(!ciclo) return;
     const {error:delErr}=await db.from('planejamento').delete().eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
     if(delErr) throw delErr;
@@ -712,7 +712,22 @@ async function importarRotas(){
   renderTudo();
   document.getElementById('statusRotas').textContent = `${novas.length} linha(s) importada(s) com sucesso.`;
 }
-async function limparRotas(){ rotasData = []; await salvarRotas(); document.getElementById('mapeamentoColunas').innerHTML=''; const sp=document.getElementById('statusPlanilha'); if(sp) sp.textContent='Planejamento removido. Nenhuma rota carregada.'; renderTudo(); }
+async function limparRotas(){
+  rotasData = [];
+  try{
+    const {error}=await db.from('planejamento').delete().eq('data_operacao',hojeISO());
+    if(error) throw error;
+    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
+  }catch(e){
+    console.error(e);
+    const el=document.getElementById('statusPlanilha')||document.getElementById('statusRotas')||document.getElementById('statusUploadUnico');
+    if(el) el.textContent='Erro ao limpar no Supabase: '+(e.message||e);
+    return;
+  }
+  document.getElementById('mapeamentoColunas').innerHTML='';
+  const sp=document.getElementById('statusPlanilha'); if(sp) sp.textContent='Planejamento removido. Nenhuma rota carregada.';
+  renderTudo();
+}
 
 // ================= IMPORTAÇÃO DE PLANILHA (.xlsx / .xls / .csv) =================
 const CAMPOS_ALVO = [
@@ -938,7 +953,7 @@ async function confirmarImportacaoPlanilha(){
 }
 async function limparCiclo(ciclo){
   rotasData=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==String(ciclo).toUpperCase());
-  await salvarRotas();
+  await salvarRotas(ciclo);
   const el=document.getElementById('statusCiclo_'+ciclo); if(el) el.textContent='Planejamento removido.';
   const sp=document.getElementById('statusPlanilha'); if(sp) sp.textContent=`Planejamento ${ciclo} removido sem alterar os outros ciclos.`;
   renderTudo();
@@ -1350,7 +1365,7 @@ function renderStatusCoord(){
   if(!ativos.length){list.innerHTML='<div class="empty">Todas as vagas estão livres no momento.</div>';return;}
   list.innerHTML=ativos.map(c=>{
     const s=statusDoChamado(c), tempo=formatarCronometro(tempoNaVagaMs(c));
-    return `<div class="route-live"><div class="route-live-top"><b>${escapeHtml(c.nRota||'Rota')}</b><span class="route-status" style="background:${s.cor}18;color:${s.cor};border:1px solid ${s.cor}55">${s.label}</span></div><small>Vaga ${c.vaga} · ${escapeHtml(c.rua||'')} ${c.transportadora?'· '+escapeHtml(c.transportadora):''}</small><small style="font-weight:900;color:${s.cor}">Tempo na vaga ${tempo}</small></div>`;
+    return `<div class="route-live" data-live-vaga="${c.vaga}"><div class="route-live-top"><b>${escapeHtml(c.nRota||'Rota')}</b><span class="route-status" style="background:${s.cor}18;color:${s.cor};border:1px solid ${s.cor}55">${s.label}</span></div><small>Vaga ${c.vaga} · ${escapeHtml(c.rua||'')} ${c.transportadora?'· '+escapeHtml(c.transportadora):''}</small><small class="live-tempo" style="font-weight:900;color:${s.cor}">Tempo na vaga ${tempo}</small></div>`;
   }).join('');
 }
 
@@ -1397,7 +1412,7 @@ function renderMonitorRotas(){
   body.innerHTML=ativos.map(({c,s,ms})=>{
     const rowClass=s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
     const transp=transportadoraDaVaga(c.vaga);
-    return `<tr class="${rowClass}" onclick="selecionarVaga(${Number(c.vaga)})" style="cursor:pointer"><td><b>${escapeHtml(c.rua||'—')}</b></td><td>${escapeHtml(transp)}</td><td class="rota-cell">${escapeHtml(c.nRota||'—')}${c.onda||c.parada?`<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">${c.onda?escapeHtml(c.onda):''}${c.onda&&c.parada?' · ':''}${c.parada?escapeHtml(c.parada)+' paradas':''}</small>`:''}</td><td class="vaga-cell">${c.vaga??'—'}</td><td><span class="process-badge" style="color:${s.cor}"><span class="process-dot"></span>${escapeHtml(s.label)}</span></td><td class="tempo-cell" style="color:${s.cor}">${formatarCronometro(ms)}</td></tr>`;
+    return `<tr class="${rowClass}" data-vaga-row="${c.vaga}" onclick="selecionarVaga(${Number(c.vaga)})" style="cursor:pointer"><td><b>${escapeHtml(c.rua||'—')}</b></td><td>${escapeHtml(transp)}</td><td class="rota-cell">${escapeHtml(c.nRota||'—')}${c.onda||c.parada?`<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">${c.onda?escapeHtml(c.onda):''}${c.onda&&c.parada?' · ':''}${c.parada?escapeHtml(c.parada)+' paradas':''}</small>`:''}</td><td class="vaga-cell">${c.vaga??'—'}</td><td><span class="process-badge" style="color:${s.cor}"><span class="process-dot"></span>${escapeHtml(s.label)}</span></td><td class="tempo-cell" style="color:${s.cor}">${formatarCronometro(ms)}</td></tr>`;
   }).join('');
 }
 
@@ -1417,7 +1432,7 @@ function posBox(vaga){
     ${chamado?`<span class="chamado-flag" style="background:${statusCor}">${escapeHtml(rota||'ATIVA')}</span>`:''}
     <span class="status-dot" style="background:${statusCor}"></span>
     <span class="num">${vaga.num}</span><span class="sigla">${rota?escapeHtml(rota):vaga.sigla}</span>
-    ${chamado?`<span style="font-size:7px;font-weight:900;margin-top:2px">${cron}</span>`:''}
+    ${chamado?`<span class="pos-cron" style="font-size:7px;font-weight:900;margin-top:2px">${cron}</span>`:''}
   </div>`;
 }
 function ruaBlock(rua, label){
@@ -1599,13 +1614,65 @@ window.addEventListener('resize', ()=>{
   redimensionaTimeout = setTimeout(ajustarEscalaA4, 150);
 });
 
+// Atualiza só cronômetros e cores de status a cada segundo, sem reconstruir o HTML inteiro
+// (o piso, o monitor de rotas e a lista ao vivo continuam corretos porque os dados
+// em si só mudam via realtime/poll de 3s — aqui é só o relógio andando).
+function atualizarCronometrosCoord(){
+  const ativos = chamadosData.filter(c=>String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada');
+  const CLASSES_STATUS=['status-excedido','status-aduana','status-atencao'];
+
+  ativos.forEach(c=>{
+    const s=statusDoChamado(c);
+    const tempo=formatarCronometro(tempoNaVagaMs(c));
+
+    const box=document.querySelector(`.pos-box[data-num="${c.vaga}"]`);
+    if(box){
+      const cronEl=box.querySelector('.pos-cron'); if(cronEl) cronEl.textContent=tempo;
+      const dot=box.querySelector('.status-dot'); if(dot) dot.style.background=s.cor;
+      box.classList.remove(...CLASSES_STATUS);
+      if(s.classe) box.classList.add(s.classe);
+    }
+
+    const row=document.querySelector(`tr[data-vaga-row="${c.vaga}"]`);
+    if(row){
+      row.className = s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
+      const tempoCell=row.querySelector('.tempo-cell'); if(tempoCell){tempoCell.textContent=tempo;tempoCell.style.color=s.cor;}
+      const badge=row.querySelector('.process-badge'); if(badge){badge.style.color=s.cor;badge.innerHTML=`<span class="process-dot"></span>${escapeHtml(s.label)}`;}
+    }
+
+    const live=document.querySelector(`[data-live-vaga="${c.vaga}"]`);
+    if(live){
+      const tempoEl=live.querySelector('.live-tempo'); if(tempoEl){tempoEl.textContent='Tempo na vaga '+tempo;tempoEl.style.color=s.cor;}
+      const statusEl=live.querySelector('.route-status');
+      if(statusEl){statusEl.style.background=s.cor+'18';statusEl.style.color=s.cor;statusEl.style.border='1px solid '+s.cor+'55';statusEl.textContent=s.label;}
+    }
+  });
+
+  const atrasadas=ativos.filter(c=>statusDoChamado(c)?.classe==='status-excedido');
+  const aduanaCount=ativos.filter(c=>statusDoChamado(c)?.classe==='status-aduana').length;
+  const summary=document.getElementById('monitorSummary');
+  if(summary) summary.innerHTML=`<span class="monitor-pill">${ativos.length} em processo</span><span class="monitor-pill" style="color:#DC2626">${atrasadas.length} acima de 30 min</span><span class="monitor-pill" style="color:#7C3AED">${aduanaCount} em Aduana</span>`;
+  const alert=document.getElementById('delayAlert');
+  if(alert){
+    if(atrasadas.length){
+      const top=atrasadas[0];
+      alert.className='delay-alert show';
+      alert.innerHTML=`<strong>⚠ ROTA DEMORANDO: ${escapeHtml(top.nRota||'—')} · VAGA ${top.vaga} · ${escapeHtml(top.rua||'')}</strong><span>${escapeHtml(transportadoraDaVaga(top.vaga))} · ${formatarCronometro(tempoNaVagaMs(top))}</span>`;
+    }else{
+      alert.className='delay-alert'; alert.innerHTML='';
+    }
+  }
+}
+
 async function init(){
   initTheme();
   perfil = 'COORD';
   await carregarTudoCompartilhado();
   renderTudo();
-  setInterval(async ()=>{ await carregarTudoCompartilhado(); renderTudo(); }, 3000);
-  setInterval(()=>{ renderStatusCoord(); renderMonitorRotas(); renderFloorplan(); }, 1000);
+  // O poll a cada alguns segundos é só um reforço — quem realmente traz os dados novos
+  // é o realtime (iniciarRealtimeCoord), que já dispara na hora que algo muda no Supabase.
+  setInterval(async ()=>{ await carregarTudoCompartilhado(); renderTudo(); }, 6000);
+  setInterval(atualizarCronometrosCoord, 1000);
 }
 init();
 </script>
