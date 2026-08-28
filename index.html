@@ -313,6 +313,9 @@
   .transp-plan-table .parada{font-weight:800;color:var(--teal-600)}
   .onda-chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 6px;background:var(--surface-alt);font-size:8.5px;font-weight:800}
   .saca-mark{font-size:8px;font-weight:900;padding:2px 5px;border-radius:4px;background:#FFF7ED;color:#9A3412;border:1px solid #FED7AA}
+  .saca-lista{margin-top:4px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:7px;padding:6px 8px}
+  .saca-lista-head{font-size:8px;font-weight:900;letter-spacing:.05em;color:#9A3412;text-transform:uppercase;margin-bottom:3px}
+  .saca-lista-item{font-size:11px;font-weight:800;color:#9A3412;line-height:1.6}
 
   /* ===== Planejamento na lateral direita ===== */
   .coord-main{grid-template-columns:minmax(0,1fr) 390px;gap:10px}
@@ -1973,10 +1976,11 @@ function renderResumoPlanejamentoCoord(){
         const rows=nRotasOrdenadas.map(chave=>{
           const g=porNRota[chave];
           const paradaTxt=g.paradasRota.size?[...g.paradasRota].join(', '):'—';
-          const sacaBadge=g.sacas.length?` <span class="saca-mark" title="Sacas: ${escapeHtml(g.sacas.join(', '))}">🧺 ${g.sacas.length} saca(s)</span>`:'';
+          const sacaMark=g.sacas.length?` <span class="saca-mark">🧺 ${g.sacas.length}</span>`:'';
+          const sacaLista=g.sacas.length?`<div class="saca-lista"><div class="saca-lista-head">🧺 Saca (${g.sacas.length})</div>${g.sacas.map(s=>`<div class="saca-lista-item">${escapeHtml(s)}</div>`).join('')}</div>`:'';
           return '<div class="route-columns-row wave-rows">'+
-            '<div class="rota" title="'+escapeHtml(g.nRota||'—')+'">'+escapeHtml(g.nRota||'—')+sacaBadge+'</div>'+
-            '<div class="paradas">'+escapeHtml(paradaTxt)+'</div>'+
+            '<div class="rota" title="'+escapeHtml(g.nRota||'—')+'">'+escapeHtml(g.nRota||'—')+sacaMark+'</div>'+
+            '<div class="paradas">'+escapeHtml(paradaTxt)+sacaLista+'</div>'+
           '</div>';
         }).join('');
 
