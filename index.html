@@ -899,6 +899,10 @@ function renderMapeamentoColunas(){
   </div>`;
 }
 
+function baseDaGaiola(g){
+  const m=String(g||'').trim().match(/^(.*)_(\d+)$/);
+  return m ? m[1] : null;
+}
 async function confirmarImportacaoPlanilha(){
   const statusEl = document.getElementById('statusPlanilha');
   const idx = {};
@@ -915,8 +919,25 @@ async function confirmarImportacaoPlanilha(){
     const rotaPlanejamento = pegar(row, idx.rotaPlanejamento);
     const transportadora = pegar(row, idx.transportadora).toUpperCase();
     const sacaValor = pegar(row, idx.saca);
-    const ehSaca = String(gaiola).toUpperCase()==='SACA' || (sacaValor && sacaValor!=='0' && sacaValor!=='0.0');
-    const nRota = ehSaca ? (rotaPlanejamento || gaiola) : gaiola;
+    const ehTextoSaca = rotaPlanejamento.toUpperCase()==='SACA';
+    // Se a própria linha já traz um código de rota real (ex: P1_AM1), ela é a rota-mãe —
+    // não deixa a coluna "Saca" (quantidade) transformar essa linha numa saca também.
+    const temCodigoRealDePlanejamento = rotaPlanejamento && !ehTextoSaca;
+    const ehSaca = !temCodigoRealDePlanejamento && (
+      String(gaiola).toUpperCase()==='SACA' || ehTextoSaca || (sacaValor && sacaValor!=='0' && sacaValor!=='0.0')
+    );
+    let nRota, parada = pegar(row, idx.parada);
+    if(ehSaca && ehTextoSaca){
+      const base = baseDaGaiola(gaiola);
+      // Usa o mesmo código que a rota-mãe usa como nRota (a gaiola-base, ex: AM1_1) —
+      // é esse código que aparece no select/vagas do líder, então é nele que a saca precisa casar.
+      nRota = base || gaiola;
+      // Sem uma "parada" real vinda da planilha, usa o próprio código da saca (ex: AM1_1_3)
+      // como identificador — assim dá pra saber quais sacas fazem parte dessa rota.
+      if(!parada) parada = gaiola;
+    } else {
+      nRota = ehSaca ? (rotaPlanejamento || gaiola) : gaiola;
+    }
     if(!nRota || !transportadora || transportadora==='#N/A' || nRota==='#N/A'){ ignoradas++; return; }
     novas.push({
       idPacote:'',
@@ -926,7 +947,7 @@ async function confirmarImportacaoPlanilha(){
       tipoOperacao:ehSaca?'SACA':'ROTA',
       transportadora,
       onda: pegar(row, idx.onda),
-      parada: pegar(row, idx.parada),
+      parada,
       ponto: pegar(row, idx.bairros),
       bairros: pegar(row, idx.bairros),
       cluster: pegar(row, idx.cluster),
@@ -1793,17 +1814,29 @@ async function processarUploadUnico(){
     const get=(r,i)=>i>=0?String(r[i]??'').trim():'';
     const novas=[];
     let ignoradas=0;
-    for(const r of rows.slice(hi+1)){
+    const linhasDados=rows.slice(hi+1);
+    for(const r of linhasDados){
       const gaiola=get(r,idxG);
       const transp=get(r,idxMlp).toUpperCase();
       const rotaPlan=get(r,idxRota);
       const sv=get(r,idxS);
-      const ehSaca=gaiola.toUpperCase()==='SACA' || (sv!=='' && sv!=='0' && sv!=='0.0');
-      const nRota=ehSaca?(rotaPlan||gaiola):gaiola;
+      const ehTextoSaca=rotaPlan.toUpperCase()==='SACA';
+      const temCodigoRealDePlanejamento=rotaPlan && !ehTextoSaca;
+      const ehSaca=!temCodigoRealDePlanejamento && (gaiola.toUpperCase()==='SACA' || ehTextoSaca || (sv!=='' && sv!=='0' && sv!=='0.0'));
+      let nRota, parada=get(r,idxP);
+      if(ehSaca && ehTextoSaca){
+        // Usa o mesmo código que a rota-mãe usa como nRota (a gaiola-base, ex: AM1_1) —
+        // é esse código que aparece no select/vagas do líder, então é nele que a saca precisa casar.
+        const base=baseDaGaiola(gaiola);
+        nRota=base||gaiola;
+        if(!parada) parada=gaiola;
+      }else{
+        nRota=ehSaca?(rotaPlan||gaiola):gaiola;
+      }
       if(!nRota || !transp || transp==='#N/A' || nRota==='#N/A'){ignoradas++;continue;}
       novas.push({
         idPacote:'', nRota, gaiola, ciclo, tipoOperacao:ehSaca?'SACA':'ROTA',
-        transportadora:transp, onda:get(r,idxO), parada:get(r,idxP),
+        transportadora:transp, onda:get(r,idxO), parada,
         ponto:get(r,idxB), bairros:get(r,idxB), cluster:get(r,idxCl), modal:get(r,idxMo),
         dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
       });
@@ -1926,19 +1959,33 @@ function renderResumoPlanejamentoCoord(){
         const key=ciclo+'|'+areaResumoSelecionada+'|'+onda+'|'+nome;
         const aberta=transportadorasAbertas.has(key);
 
-        const rows=lista.map(r=>
-          '<div class="route-columns-row wave-rows">'+
-            '<div class="rota" title="'+escapeHtml(r.nRota||'—')+'">'+escapeHtml(r.nRota||'—')+(r.tipoOperacao==='SACA'?' <span class="saca-mark">SACA</span>':'')+'</div>'+
-            '<div class="paradas">'+escapeHtml(r.parada||'—')+'</div>'+
-          '</div>'
-        ).join('');
+        // Agrupa por rota: uma linha só, juntando a quantidade/lista de sacas dela —
+        // evita repetir a mesma rota várias vezes só porque ela tem várias sacas individuais.
+        const porNRota={};
+        lista.forEach(r=>{
+          const chave=String(r.nRota||'');
+          if(!porNRota[chave]) porNRota[chave]={nRota:r.nRota, paradasRota:new Set(), sacas:[]};
+          const g=porNRota[chave];
+          if(r.tipoOperacao==='SACA'){ if(r.parada) g.sacas.push(r.parada); }
+          else if(r.parada) g.paradasRota.add(r.parada);
+        });
+        const nRotasOrdenadas=Object.keys(porNRota).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+        const rows=nRotasOrdenadas.map(chave=>{
+          const g=porNRota[chave];
+          const paradaTxt=g.paradasRota.size?[...g.paradasRota].join(', '):'—';
+          const sacaBadge=g.sacas.length?` <span class="saca-mark" title="Sacas: ${escapeHtml(g.sacas.join(', '))}">🧺 ${g.sacas.length} saca(s)</span>`:'';
+          return '<div class="route-columns-row wave-rows">'+
+            '<div class="rota" title="'+escapeHtml(g.nRota||'—')+'">'+escapeHtml(g.nRota||'—')+sacaBadge+'</div>'+
+            '<div class="paradas">'+escapeHtml(paradaTxt)+'</div>'+
+          '</div>';
+        }).join('');
 
         return '<div class="transp-accordion '+(aberta?'open':'')+'">'+
           '<button class="transp-accordion-head" onclick="toggleTransportadoraResumo('+JSON.stringify(key).replace(/"/g,'&quot;')+')">'+
             '<span class="transp-arrow">▶</span>'+
             '<span class="sigla-badge-sm" style="background:'+cor.bg+';color:'+cor.fg+'">'+escapeHtml(sig)+'</span>'+
             '<span class="transp-accordion-name">'+escapeHtml(nome)+'</span>'+
-            '<span class="transp-accordion-count">'+lista.length+' rota(s)</span>'+
+            '<span class="transp-accordion-count">'+nRotasOrdenadas.length+' rota(s)</span>'+
           '</button>'+
           '<div class="transp-accordion-body">'+
             '<div class="route-columns-head wave-rows"><span>Rota</span><span>Parada</span></div>'+
