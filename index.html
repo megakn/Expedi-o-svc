@@ -902,6 +902,15 @@ function renderMapeamentoColunas(){
   </div>`;
 }
 
+// Nas planilhas exportadas assim, a linha da rota-mãe já traz nos Bairros um texto tipo
+// "ROTA MÃE - 10 SACAS - 85, 87, 90, 92, 94, 98, 100, 101, 102, 103" — é essa lista que manda.
+const REGEX_ROTA_MAE = /ROTA\s*M[ÃA]E\s*-\s*(\d+)\s*SACAS?\s*-\s*(.+)/i;
+function extrairSacasDoTexto(texto){
+  const m = String(texto||'').match(REGEX_ROTA_MAE);
+  if(!m) return null;
+  const lista = m[2].split(',').map(s=>s.trim()).filter(Boolean);
+  return {qtd: parseInt(m[1],10)||lista.length, lista};
+}
 async function confirmarImportacaoPlanilha(){
   const statusEl = document.getElementById('statusPlanilha');
   const idx = {};
@@ -912,46 +921,49 @@ async function confirmarImportacaoPlanilha(){
   }
   const pegar = (row, i) => i>=0 ? String(row[i]==null?'':row[i]).trim() : '';
   const novas = [];
-  let ignoradas=0;
-  // A saca não segue um padrão de nome fixo (pode ser "A4_AM1_1" ou só "35") — o jeito confiável
-  // de saber de qual rota ela é é pela posição: ela pertence à última linha-mãe (rota real) vista
-  // logo acima dela na planilha, igual ao jeito que a maioria das exportações agrupa em blocos.
-  let ultimaRotaMae = null, ultimaRotaMaeTransp = null;
+  let ignoradas=0, sacasDetalheIgnoradas=0;
+  // Enquanto varre as linhas em ordem: se uma linha de GAIOLA="SACA" aparecer sem uma lista de
+  // sacas já ter sido extraída da linha-mãe anterior (fallback pra planilha fora do padrão),
+  // ela herda a rota da última linha-mãe vista.
+  let ultimaRotaMae = null, ultimaRotaMaeTransp = null, ultimaRotaMaeTeveLista = false;
   planilhaRows.forEach((row,rowIndex)=>{
-    const gaiola = pegar(row, idx.nRota);
-    const rotaPlanejamento = pegar(row, idx.rotaPlanejamento);
+    const gaiola = pegar(row, idx.nRota); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
+    const rotaPlanejamento = pegar(row, idx.rotaPlanejamento); // número sequencial da planilha (ex: AM1_1) — não é o identificador usado no app
     const transportadora = pegar(row, idx.transportadora).toUpperCase();
-    const sacaValor = pegar(row, idx.saca);
-    const ehTextoSaca = rotaPlanejamento.toUpperCase()==='SACA';
-    // Se a própria linha já traz um código de rota real (ex: P1_AM1), ela é a rota-mãe —
-    // não deixa a coluna "Saca" (quantidade) transformar essa linha numa saca também.
-    const temCodigoRealDePlanejamento = rotaPlanejamento && !ehTextoSaca;
-    const ehSaca = !temCodigoRealDePlanejamento && (
-      String(gaiola).toUpperCase()==='SACA' || ehTextoSaca || (sacaValor && sacaValor!=='0' && sacaValor!=='0.0')
-    );
-    let nRota, parada = pegar(row, idx.parada);
-    if(ehSaca){
-      nRota = (ultimaRotaMaeTransp===transportadora && ultimaRotaMae) ? ultimaRotaMae : gaiola;
-      // Sem uma "parada" real vinda da planilha, usa o próprio código da saca (ex: 35)
-      // como identificador — assim dá pra saber quais sacas fazem parte dessa rota.
-      if(!parada) parada = gaiola;
-    } else {
-      nRota = gaiola;
-      ultimaRotaMae = gaiola;
-      ultimaRotaMaeTransp = transportadora;
+    const bairrosBruto = pegar(row, idx.bairros);
+    const ehLinhaDetalheSaca = String(gaiola).toUpperCase()==='SACA';
+
+    if(ehLinhaDetalheSaca){
+      // Linha de detalhe (bairro/paradas de UMA saca) — se a rota-mãe já trouxe a lista completa
+      // no texto "ROTA MÃE...", essa linha de detalhe é redundante e não vira item separado.
+      if(ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transportadora){ sacasDetalheIgnoradas++; return; }
+      // Fallback: planilha sem o texto "ROTA MÃE" — usa a rota da última linha-mãe vista.
+      const nRota = (ultimaRotaMaeTransp===transportadora && ultimaRotaMae) ? ultimaRotaMae : gaiola;
+      if(!nRota || !transportadora || transportadora==='#N/A'){ ignoradas++; return; }
+      novas.push({
+        idPacote:'', nRota, gaiola, ciclo:cicloImportacao||'', tipoOperacao:'SACA',
+        transportadora, onda: pegar(row, idx.onda), parada: rotaPlanejamento||gaiola,
+        ponto:'', bairros:'', cluster: pegar(row, idx.cluster), modal: pegar(row, idx.modal),
+        dataExp: pegar(row, idx.dataExp), rotaPlanejamento, origem:'VIA_QUERY', linhaOrigem:rowIndex+1
+      });
+      return;
     }
-    if(!nRota || !transportadora || transportadora==='#N/A' || nRota==='#N/A'){ ignoradas++; return; }
+
+    // Linha de rota normal (a rota-mãe de um lote de sacas também cai aqui).
+    if(!gaiola || !transportadora || transportadora==='#N/A' || gaiola==='#N/A'){ ignoradas++; return; }
+    const infoSacas = extrairSacasDoTexto(bairrosBruto);
+    ultimaRotaMae = gaiola; ultimaRotaMaeTransp = transportadora; ultimaRotaMaeTeveLista = !!infoSacas;
     novas.push({
       idPacote:'',
-      nRota,
+      nRota: gaiola,
       gaiola,
       ciclo:cicloImportacao||'',
-      tipoOperacao:ehSaca?'SACA':'ROTA',
+      tipoOperacao:'ROTA',
       transportadora,
       onda: pegar(row, idx.onda),
-      parada,
-      ponto: pegar(row, idx.bairros),
-      bairros: pegar(row, idx.bairros),
+      parada: pegar(row, idx.parada),
+      ponto: infoSacas ? '' : bairrosBruto,
+      bairros: infoSacas ? '' : bairrosBruto,
       cluster: pegar(row, idx.cluster),
       modal: pegar(row, idx.modal),
       dataExp: pegar(row, idx.dataExp),
@@ -959,6 +971,16 @@ async function confirmarImportacaoPlanilha(){
       origem:'VIA_QUERY',
       linhaOrigem:rowIndex+1
     });
+    if(infoSacas){
+      infoSacas.lista.forEach((numSaca,i)=>{
+        novas.push({
+          idPacote:'', nRota: gaiola, gaiola: gaiola+'_SACA_'+(i+1), ciclo:cicloImportacao||'', tipoOperacao:'SACA',
+          transportadora, onda: pegar(row, idx.onda), parada: numSaca,
+          ponto:'', bairros:'', cluster: pegar(row, idx.cluster), modal: pegar(row, idx.modal),
+          dataExp: pegar(row, idx.dataExp), rotaPlanejamento, origem:'VIA_QUERY', linhaOrigem:rowIndex+1
+        });
+      });
+    }
   });
   if(!novas.length){
     statusEl.textContent = 'Nenhuma rota válida com GAIOLA e transportadora preenchidas foi encontrada.';
@@ -971,7 +993,7 @@ async function confirmarImportacaoPlanilha(){
   renderTudo();
   const unicas=new Set(novas.map(r=>r.nRota)).size;
   const sacas=novas.filter(r=>r.tipoOperacao==='SACA').length;
-  statusEl.textContent = `Ciclo ${cicloImportacao}: ${novas.length} linha(s) válidas · ${unicas} rota(s)/saca(s) · ${sacas} saca(s) · ${ignoradas} ignorada(s).`;
+  statusEl.textContent = `Ciclo ${cicloImportacao}: ${novas.length} linha(s) válidas · ${unicas} rota(s)/saca(s) · ${sacas} saca(s) · ${ignoradas} ignorada(s)${sacasDetalheIgnoradas?` · ${sacasDetalheIgnoradas} linha(s) de detalhe de saca já cobertas pela lista da rota-mãe`:''}.`;
   const ce=document.getElementById('statusCiclo_'+cicloImportacao); if(ce) ce.textContent=`${unicas} itens · ${sacas} sacas · carregado agora`;
   renderPendentes();
 }
@@ -1815,34 +1837,48 @@ async function processarUploadUnico(){
 
     const get=(r,i)=>i>=0?String(r[i]??'').trim():'';
     const novas=[];
-    let ignoradas=0;
+    let ignoradas=0, sacasDetalheIgnoradas=0;
     const linhasDados=rows.slice(hi+1);
-    let ultimaRotaMae=null, ultimaRotaMaeTransp=null;
+    let ultimaRotaMae=null, ultimaRotaMaeTransp=null, ultimaRotaMaeTeveLista=false;
     for(const r of linhasDados){
-      const gaiola=get(r,idxG);
+      const gaiola=get(r,idxG); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
       const transp=get(r,idxMlp).toUpperCase();
-      const rotaPlan=get(r,idxRota);
-      const sv=get(r,idxS);
-      const ehTextoSaca=rotaPlan.toUpperCase()==='SACA';
-      const temCodigoRealDePlanejamento=rotaPlan && !ehTextoSaca;
-      const ehSaca=!temCodigoRealDePlanejamento && (gaiola.toUpperCase()==='SACA' || ehTextoSaca || (sv!=='' && sv!=='0' && sv!=='0.0'));
-      let nRota, parada=get(r,idxP);
-      if(ehSaca){
-        // A saca herda a rota da última linha-mãe (rota real) vista logo acima dela na planilha.
-        nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:gaiola;
-        if(!parada) parada=gaiola;
-      }else{
-        nRota=gaiola;
-        ultimaRotaMae=gaiola;
-        ultimaRotaMaeTransp=transp;
+      const rotaPlan=get(r,idxRota); // número sequencial da planilha — não é o identificador usado no app
+      const bairrosBruto=get(r,idxB);
+      const ehLinhaDetalheSaca=gaiola.toUpperCase()==='SACA';
+
+      if(ehLinhaDetalheSaca){
+        if(ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp){ sacasDetalheIgnoradas++; continue; }
+        const nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:gaiola;
+        if(!nRota || !transp || transp==='#N/A'){ignoradas++;continue;}
+        novas.push({
+          idPacote:'', nRota, gaiola, ciclo, tipoOperacao:'SACA',
+          transportadora:transp, onda:get(r,idxO), parada:rotaPlan||gaiola,
+          ponto:'', bairros:'', cluster:get(r,idxCl), modal:get(r,idxMo),
+          dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
+        });
+        continue;
       }
-      if(!nRota || !transp || transp==='#N/A' || nRota==='#N/A'){ignoradas++;continue;}
+
+      if(!gaiola || !transp || transp==='#N/A' || gaiola==='#N/A'){ignoradas++;continue;}
+      const infoSacas=extrairSacasDoTexto(bairrosBruto);
+      ultimaRotaMae=gaiola; ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas;
       novas.push({
-        idPacote:'', nRota, gaiola, ciclo, tipoOperacao:ehSaca?'SACA':'ROTA',
-        transportadora:transp, onda:get(r,idxO), parada,
-        ponto:get(r,idxB), bairros:get(r,idxB), cluster:get(r,idxCl), modal:get(r,idxMo),
+        idPacote:'', nRota:gaiola, gaiola, ciclo, tipoOperacao:'ROTA',
+        transportadora:transp, onda:get(r,idxO), parada:get(r,idxP),
+        ponto:infoSacas?'':bairrosBruto, bairros:infoSacas?'':bairrosBruto, cluster:get(r,idxCl), modal:get(r,idxMo),
         dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
       });
+      if(infoSacas){
+        infoSacas.lista.forEach((numSaca,i)=>{
+          novas.push({
+            idPacote:'', nRota:gaiola, gaiola:gaiola+'_SACA_'+(i+1), ciclo, tipoOperacao:'SACA',
+            transportadora:transp, onda:get(r,idxO), parada:numSaca,
+            ponto:'', bairros:'', cluster:get(r,idxCl), modal:get(r,idxMo),
+            dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
+          });
+        });
+      }
     }
     if(!novas.length) throw new Error('Nenhuma rota válida foi encontrada.');
 
