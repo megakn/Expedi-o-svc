@@ -191,7 +191,7 @@
   #cardLayout{padding:10px 12px;margin-bottom:10px}.layout-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}.layout-head h2{margin:0}.layout-live{font-size:9px;font-weight:900;color:#166534;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:999px;padding:4px 7px}
   .folha-a4-wrap{display:flex;justify-content:center;width:100%}.folha-a4{background:#fff;border:1px solid #CBD5E1;border-radius:8px;box-shadow:0 3px 14px rgba(15,23,42,.08);width:100%;max-width:1123px;aspect-ratio:297/210;position:relative;overflow:hidden}.folha-a4::after{content:'VISÃO GERAL · COORDENAÇÃO';position:absolute;bottom:5px;right:8px;font-size:8px;color:#94A3B8;font-weight:800;letter-spacing:.05em}.folha-a4 .floorplan-outer{position:absolute;inset:0;padding:10px;overflow:hidden}.folha-a4 .floorplan{transform-origin:top left}
   .pos-box{border-radius:6px;box-shadow:0 1px 3px rgba(15,23,42,.12);transition:.12s}.pos-box:hover{transform:translateY(-1px);box-shadow:0 4px 9px rgba(15,23,42,.15)}
-  .pos-box.status-rota{outline:3px solid #16A34A;outline-offset:1px}.pos-box.status-atencao{outline:3px solid #F59E0B;outline-offset:1px}.pos-box.status-excedido{outline:3px solid #DC2626;outline-offset:1px}.pos-box.status-aduana{outline:3px solid #7C3AED;outline-offset:1px}
+  .pos-box.status-rota{outline:3px solid #16A34A;outline-offset:1px}.pos-box.status-atencao{outline:3px solid #F59E0B;outline-offset:1px}.pos-box.status-excedido{outline:3px solid #DC2626;outline-offset:1px}.pos-box.status-aduana{outline:3px solid #7C3AED;outline-offset:1px}.pos-box.status-aduana-excedida{outline:3px solid #DC2626;outline-offset:1px;animation:pulseChamado 1s infinite}
   .pos-box.chamado-ativo{animation:pulseChamado 1.15s infinite}.chamado-flag{font-size:7px;top:-5px;left:-5px}
   .coord-rail{display:grid;gap:10px}.rail-card{background:#fff;border:1px solid var(--border);border-radius:11px;padding:11px 12px}.rail-card h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 9px;color:var(--navy-700)}
   .status-legend{display:grid;gap:7px}.status-line{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px}.status-name{display:flex;align-items:center;gap:7px}.status-light{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(15,23,42,.05)}
@@ -230,10 +230,10 @@
   .route-table tr:last-child td{border-bottom:none}.route-table tbody tr:hover{background:rgba(37,99,235,.035)}
   .route-table .rota-cell{font-family:'Roboto Mono',monospace;font-weight:900}.route-table .vaga-cell{font-family:'Roboto Mono',monospace;font-weight:900;text-align:center}
   .tempo-cell{font-family:'Roboto Mono',monospace;font-weight:900}.process-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 6px;font-size:8px;font-weight:900;border:1px solid currentColor}
-  .process-dot{width:6px;height:6px;border-radius:50%;background:currentColor}.row-excedido{background:#FEF2F2}.row-aduana{background:#F5F3FF}.row-atencao{background:#FFFBEB}
+  .process-dot{width:6px;height:6px;border-radius:50%;background:currentColor}.row-excedido{background:#FEF2F2}.row-aduana{background:#F5F3FF}.row-atencao{background:#FFFBEB}.row-aduana-excedida{background:#FEE2E2}
   .delay-alert{display:none;align-items:center;justify-content:space-between;gap:10px;border:1px solid #FCA5A5;background:#FEF2F2;border-radius:9px;padding:7px 9px;margin-bottom:8px;color:#991B1B}
   .delay-alert.show{display:flex}.delay-alert strong{font-size:9.5px}.delay-alert span{font-size:8.5px}
-  .dark .monitor-card{background:var(--surface)}.dark .monitor-pill,.dark .route-table th{background:var(--surface-alt)}.dark .row-excedido{background:rgba(220,38,38,.10)}.dark .row-aduana{background:rgba(124,58,237,.10)}.dark .row-atencao{background:rgba(245,158,11,.10)}
+  .dark .monitor-card{background:var(--surface)}.dark .monitor-pill,.dark .route-table th{background:var(--surface-alt)}.dark .row-excedido{background:rgba(220,38,38,.10)}.dark .row-aduana{background:rgba(124,58,237,.10)}.dark .row-atencao{background:rgba(245,158,11,.10)}.dark .row-aduana-excedida{background:rgba(220,38,38,.18)}
 
   /* ===== Planejamento do dia / importação ===== */
   .planning-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(14,42,71,.04)}
@@ -433,6 +433,7 @@
           <div class="monitor-summary" id="monitorSummary"></div>
         </div>
         <div class="delay-alert" id="delayAlert"></div>
+        <div class="delay-alert aduana-alert" id="alertaAduanaCoord" style="display:none"></div>
         <div class="route-table-wrap">
           <table class="route-table">
             <thead><tr><th>Rua</th><th>Transportadora</th><th>Rota</th><th>Vaga</th><th>Processo</th><th>Tempo</th></tr></thead>
@@ -972,7 +973,19 @@ function renderSacas(){
   const sacas=rotasData.filter(r=>r.tipoOperacao==='SACA');
   if(sum) sum.innerHTML=['AM1','PM1','SD','CHP'].map(c=>`<span class="cycle-pill">${c}: ${sacas.filter(r=>r.ciclo===c).length}</span>`).join('');
   if(!sacas.length){body.innerHTML='<tr><td colspan="6" class="empty">Nenhuma saca carregada.</td></tr>';return;}
-  body.innerHTML=sacas.slice().sort((a,b)=>String(a.ciclo).localeCompare(String(b.ciclo))||String(a.transportadora).localeCompare(String(b.transportadora))).map(r=>`<tr><td><b>${escapeHtml(r.ciclo||'—')}</b></td><td>${escapeHtml(r.transportadora||'—')}</td><td><b>${escapeHtml(r.nRota||'—')}</b></td><td>${escapeHtml(r.onda||'—')}</td><td>${escapeHtml(r.parada||'—')}</td><td>Planejada</td></tr>`).join('');
+  function ordemOndaSaca(label){
+    const l=String(label||'').trim();
+    if(!l) return 9999;
+    const m=l.match(/(\d+)/);
+    return m ? parseInt(m[1],10) : 9998;
+  }
+  body.innerHTML=sacas.slice().sort((a,b)=>
+    String(a.ciclo).localeCompare(String(b.ciclo))
+    || (ordemOndaSaca(a.onda)-ordemOndaSaca(b.onda))
+    || String(a.onda||'').localeCompare(String(b.onda||''),'pt-BR',{numeric:true})
+    || String(a.transportadora).localeCompare(String(b.transportadora))
+    || String(a.nRota||'').localeCompare(String(b.nRota||''),'pt-BR',{numeric:true})
+  ).map(r=>`<tr><td><b>${escapeHtml(r.ciclo||'—')}</b></td><td>${escapeHtml(r.transportadora||'—')}</td><td><b>${escapeHtml(r.nRota||'—')}</b></td><td>${escapeHtml(r.onda||'—')}</td><td>${escapeHtml(r.parada||'—')}</td><td>Planejada</td></tr>`).join('');
 }
 
 function renderPendentes(){
@@ -1325,15 +1338,21 @@ function destacarSelecionada(num){ document.querySelectorAll('.pos-box').forEach
 // inicioVaga deve ser o horário em que o motorista ocupou a vaga; se não vier, usamos criadoEm.
 const LIMITE_VAGA_MS = 30 * 60 * 1000;
 const ALERTA_VAGA_MS = 25 * 60 * 1000;
+const LIMITE_ADUANA_MS = 7 * 60 * 1000;
 const STATUS_APP = {
   rota_na_vaga:{label:'Rota na vaga', cor:'#16A34A', classe:'status-rota'},
   aduana:{label:'Aduana', cor:'#7C3AED', classe:'status-aduana'},
+  aduana_excedida:{label:'Aduana acima de 7 min', cor:'#DC2626', classe:'status-aduana-excedida'},
   finalizada:{label:'Finalizada', cor:'#64748B', classe:''}
 };
 function inicioDaVaga(chamado){
   return Number(chamado && (chamado.inicioVaga || chamado.chegouEm || chamado.criadoEm)) || Date.now();
 }
 function tempoNaVagaMs(chamado){ return Math.max(0, Date.now() - inicioDaVaga(chamado)); }
+function tempoEmAduanaMs(chamado){
+  if(!chamado || !chamado.aduanaEm) return 0;
+  return Math.max(0, Date.now() - Number(chamado.aduanaEm));
+}
 function formatarCronometro(ms){
   const total = Math.floor(ms/1000), min = Math.floor(total/60), seg = total%60;
   return `${String(min).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
@@ -1342,7 +1361,7 @@ function statusDoChamado(chamado){
   if(!chamado) return null;
   const key=String(chamado.status||'rota_na_vaga').toLowerCase().trim().replace(/\s+/g,'_');
   if(key==='finalizada') return STATUS_APP.finalizada;
-  if(key==='aduana') return STATUS_APP.aduana;
+  if(key==='aduana') return tempoEmAduanaMs(chamado)>=LIMITE_ADUANA_MS ? STATUS_APP.aduana_excedida : STATUS_APP.aduana;
   const ms=tempoNaVagaMs(chamado);
   if(ms>=LIMITE_VAGA_MS) return {label:'Prazo excedido', cor:'#DC2626', classe:'status-excedido'};
   if(ms>=ALERTA_VAGA_MS) return {label:'Próximo de 30 min', cor:'#F59E0B', classe:'status-atencao'};
@@ -1357,7 +1376,8 @@ function renderStatusCoord(){
     {label:'Rota na vaga · 0–24 min',cor:'#16A34A'},
     {label:'Atenção · 25–29 min',cor:'#F59E0B'},
     {label:'30 min ou mais',cor:'#DC2626'},
-    {label:'Aduana',cor:'#7C3AED'},
+    {label:'Aduana · até 7 min',cor:'#7C3AED'},
+    {label:'Aduana acima de 7 min',cor:'#DC2626'},
     {label:'Livre',cor:'#94A3B8'}
   ].map(s=>`<div class="status-line"><span class="status-name"><span class="status-light" style="background:${s.cor}"></span>${s.label}</span></div>`).join('');
   const list=document.getElementById('routeLiveList'); if(!list) return;
@@ -1379,10 +1399,11 @@ function transportadoraDaVaga(num){
 }
 function prioridadeStatus(s){
   if(!s) return 9;
-  if(s.classe==='status-excedido') return 0;
-  if(s.classe==='status-aduana') return 1;
-  if(s.classe==='status-atencao') return 2;
-  return 3;
+  if(s.classe==='status-aduana-excedida') return 0;
+  if(s.classe==='status-excedido') return 1;
+  if(s.classe==='status-aduana') return 2;
+  if(s.classe==='status-atencao') return 3;
+  return 4;
 }
 function renderMonitorRotas(){
   const body=document.getElementById('routeMonitorBody');
@@ -1410,7 +1431,7 @@ function renderMonitorRotas(){
   }
   if(!ativos.length){body.innerHTML='<tr><td colspan="6" class="empty">Todas as vagas estão livres no momento.</td></tr>';return;}
   body.innerHTML=ativos.map(({c,s,ms})=>{
-    const rowClass=s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
+    const rowClass=s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana-excedida'?'row-aduana-excedida':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
     const transp=transportadoraDaVaga(c.vaga);
     return `<tr class="${rowClass}" data-vaga-row="${c.vaga}" onclick="selecionarVaga(${Number(c.vaga)})" style="cursor:pointer"><td><b>${escapeHtml(c.rua||'—')}</b></td><td>${escapeHtml(transp)}</td><td class="rota-cell">${escapeHtml(c.nRota||'—')}${c.onda||c.parada?`<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">${c.onda?escapeHtml(c.onda):''}${c.onda&&c.parada?' · ':''}${c.parada?escapeHtml(c.parada)+' paradas':''}</small>`:''}</td><td class="vaga-cell">${c.vaga??'—'}</td><td><span class="process-badge" style="color:${s.cor}"><span class="process-dot"></span>${escapeHtml(s.label)}</span></td><td class="tempo-cell" style="color:${s.cor}">${formatarCronometro(ms)}</td></tr>`;
   }).join('');
@@ -1619,7 +1640,7 @@ window.addEventListener('resize', ()=>{
 // em si só mudam via realtime/poll de 3s — aqui é só o relógio andando).
 function atualizarCronometrosCoord(){
   const ativos = chamadosData.filter(c=>String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada');
-  const CLASSES_STATUS=['status-excedido','status-aduana','status-atencao'];
+  const CLASSES_STATUS=['status-excedido','status-aduana','status-aduana-excedida','status-atencao'];
 
   ativos.forEach(c=>{
     const s=statusDoChamado(c);
@@ -1635,7 +1656,7 @@ function atualizarCronometrosCoord(){
 
     const row=document.querySelector(`tr[data-vaga-row="${c.vaga}"]`);
     if(row){
-      row.className = s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
+      row.className = s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana-excedida'?'row-aduana-excedida':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
       const tempoCell=row.querySelector('.tempo-cell'); if(tempoCell){tempoCell.textContent=tempo;tempoCell.style.color=s.cor;}
       const badge=row.querySelector('.process-badge'); if(badge){badge.style.color=s.cor;badge.innerHTML=`<span class="process-dot"></span>${escapeHtml(s.label)}`;}
     }
@@ -1649,7 +1670,8 @@ function atualizarCronometrosCoord(){
   });
 
   const atrasadas=ativos.filter(c=>statusDoChamado(c)?.classe==='status-excedido');
-  const aduanaCount=ativos.filter(c=>statusDoChamado(c)?.classe==='status-aduana').length;
+  const aduanaExcedida=ativos.filter(c=>statusDoChamado(c)?.classe==='status-aduana-excedida');
+  const aduanaCount=ativos.filter(c=>{const cl=statusDoChamado(c)?.classe; return cl==='status-aduana'||cl==='status-aduana-excedida';}).length;
   const summary=document.getElementById('monitorSummary');
   if(summary) summary.innerHTML=`<span class="monitor-pill">${ativos.length} em processo</span><span class="monitor-pill" style="color:#DC2626">${atrasadas.length} acima de 30 min</span><span class="monitor-pill" style="color:#7C3AED">${aduanaCount} em Aduana</span>`;
   const alert=document.getElementById('delayAlert');
@@ -1662,11 +1684,55 @@ function atualizarCronometrosCoord(){
       alert.className='delay-alert'; alert.innerHTML='';
     }
   }
+  verificarAlertaAduanaCoord(aduanaExcedida);
+}
+
+// ================= ALERTA SONORO · ADUANA ACIMA DE 7 MIN =================
+let audioCtxCoord = null;
+function desbloquearAudioCoord(){
+  try{ audioCtxCoord = audioCtxCoord || new (window.AudioContext||window.webkitAudioContext)(); if(audioCtxCoord.state==='suspended') audioCtxCoord.resume(); }catch(e){}
+}
+function tocarSireneCoord(){
+  try{
+    if(!audioCtxCoord) audioCtxCoord = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtxCoord.state==='suspended') audioCtxCoord.resume();
+    const ctx=audioCtxCoord, now=ctx.currentTime;
+    const osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.type='sine'; osc.connect(gain); gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.35, now+0.05);
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.linearRampToValueAtTime(1200, now+0.5);
+    osc.frequency.linearRampToValueAtTime(600, now+1.0);
+    osc.frequency.linearRampToValueAtTime(1200, now+1.5);
+    osc.frequency.linearRampToValueAtTime(600, now+2.0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now+2.05);
+    osc.start(now); osc.stop(now+2.1);
+  }catch(e){ console.error('Erro ao tocar sirene:', e); }
+}
+const REPETIR_SIRENE_MS_COORD = 25000;
+let aduanaAlertadasCoord = {};
+function verificarAlertaAduanaCoord(aduanaExcedida){
+  const chavesAtuais=new Set(aduanaExcedida.map(c=>c.vaga));
+  Object.keys(aduanaAlertadasCoord).forEach(v=>{ if(!chavesAtuais.has(Number(v))) delete aduanaAlertadasCoord[v]; });
+  aduanaExcedida.forEach(c=>{
+    const ultimo=aduanaAlertadasCoord[c.vaga]||0;
+    if(Date.now()-ultimo>=REPETIR_SIRENE_MS_COORD){ aduanaAlertadasCoord[c.vaga]=Date.now(); tocarSireneCoord(); }
+  });
+  const banner=document.getElementById('alertaAduanaCoord');
+  if(!banner) return;
+  if(aduanaExcedida.length){
+    banner.style.display='block';
+    banner.innerHTML='🚨 '+aduanaExcedida.map(c=>`Vaga ${c.vaga} · ${escapeHtml(c.rua||'')} · ${escapeHtml(c.nRota||'—')} · Aduana passou de 7 min (${formatarCronometro(tempoEmAduanaMs(c))})`).join('<br>🚨 ');
+  }else{
+    banner.style.display='none'; banner.innerHTML='';
+  }
 }
 
 async function init(){
   initTheme();
   perfil = 'COORD';
+  document.addEventListener('click', desbloquearAudioCoord, {once:true});
   await carregarTudoCompartilhado();
   renderTudo();
   // O poll a cada alguns segundos é só um reforço — quem realmente traz os dados novos
@@ -1781,9 +1847,10 @@ function renderCycleSummaryCompact(){
 
 let areaResumoSelecionada='Rua 1';
 function areaDaRotaPlanejada(r){
-  if(r.tipoOperacao==='SACA') return 'Sacas';
   const vinc=vinculoPorTransportadora(r.transportadora);
-  if(!vinc) return 'Sem rua vinculada';
+  // Saca de uma transportadora vinculada a uma rua entra junto com as rotas dessa mesma
+  // transportadora (mesma área). Só cai na aba "Sacas" separada se não tiver vínculo nenhum.
+  if(!vinc) return r.tipoOperacao==='SACA' ? 'Sacas' : 'Sem rua vinculada';
   return ruaDaSigla(vinc.sigla);
 }
 
@@ -1861,7 +1928,7 @@ function renderResumoPlanejamentoCoord(){
 
         const rows=lista.map(r=>
           '<div class="route-columns-row wave-rows">'+
-            '<div class="rota" title="'+escapeHtml(r.nRota||'—')+'">'+escapeHtml(r.nRota||'—')+'</div>'+
+            '<div class="rota" title="'+escapeHtml(r.nRota||'—')+'">'+escapeHtml(r.nRota||'—')+(r.tipoOperacao==='SACA'?' <span class="saca-mark">SACA</span>':'')+'</div>'+
             '<div class="paradas">'+escapeHtml(r.parada||'—')+'</div>'+
           '</div>'
         ).join('');
