@@ -902,10 +902,6 @@ function renderMapeamentoColunas(){
   </div>`;
 }
 
-function baseDaGaiola(g){
-  const m=String(g||'').trim().match(/^(.*)_(\d+)$/);
-  return m ? m[1] : null;
-}
 async function confirmarImportacaoPlanilha(){
   const statusEl = document.getElementById('statusPlanilha');
   const idx = {};
@@ -917,6 +913,10 @@ async function confirmarImportacaoPlanilha(){
   const pegar = (row, i) => i>=0 ? String(row[i]==null?'':row[i]).trim() : '';
   const novas = [];
   let ignoradas=0;
+  // A saca não segue um padrão de nome fixo (pode ser "A4_AM1_1" ou só "35") — o jeito confiável
+  // de saber de qual rota ela é é pela posição: ela pertence à última linha-mãe (rota real) vista
+  // logo acima dela na planilha, igual ao jeito que a maioria das exportações agrupa em blocos.
+  let ultimaRotaMae = null, ultimaRotaMaeTransp = null;
   planilhaRows.forEach((row,rowIndex)=>{
     const gaiola = pegar(row, idx.nRota);
     const rotaPlanejamento = pegar(row, idx.rotaPlanejamento);
@@ -930,16 +930,15 @@ async function confirmarImportacaoPlanilha(){
       String(gaiola).toUpperCase()==='SACA' || ehTextoSaca || (sacaValor && sacaValor!=='0' && sacaValor!=='0.0')
     );
     let nRota, parada = pegar(row, idx.parada);
-    if(ehSaca && ehTextoSaca){
-      const base = baseDaGaiola(gaiola);
-      // Usa o mesmo código que a rota-mãe usa como nRota (a gaiola-base, ex: AM1_1) —
-      // é esse código que aparece no select/vagas do líder, então é nele que a saca precisa casar.
-      nRota = base || gaiola;
-      // Sem uma "parada" real vinda da planilha, usa o próprio código da saca (ex: AM1_1_3)
+    if(ehSaca){
+      nRota = (ultimaRotaMaeTransp===transportadora && ultimaRotaMae) ? ultimaRotaMae : gaiola;
+      // Sem uma "parada" real vinda da planilha, usa o próprio código da saca (ex: 35)
       // como identificador — assim dá pra saber quais sacas fazem parte dessa rota.
       if(!parada) parada = gaiola;
     } else {
-      nRota = ehSaca ? (rotaPlanejamento || gaiola) : gaiola;
+      nRota = gaiola;
+      ultimaRotaMae = gaiola;
+      ultimaRotaMaeTransp = transportadora;
     }
     if(!nRota || !transportadora || transportadora==='#N/A' || nRota==='#N/A'){ ignoradas++; return; }
     novas.push({
@@ -1818,6 +1817,7 @@ async function processarUploadUnico(){
     const novas=[];
     let ignoradas=0;
     const linhasDados=rows.slice(hi+1);
+    let ultimaRotaMae=null, ultimaRotaMaeTransp=null;
     for(const r of linhasDados){
       const gaiola=get(r,idxG);
       const transp=get(r,idxMlp).toUpperCase();
@@ -1827,14 +1827,14 @@ async function processarUploadUnico(){
       const temCodigoRealDePlanejamento=rotaPlan && !ehTextoSaca;
       const ehSaca=!temCodigoRealDePlanejamento && (gaiola.toUpperCase()==='SACA' || ehTextoSaca || (sv!=='' && sv!=='0' && sv!=='0.0'));
       let nRota, parada=get(r,idxP);
-      if(ehSaca && ehTextoSaca){
-        // Usa o mesmo código que a rota-mãe usa como nRota (a gaiola-base, ex: AM1_1) —
-        // é esse código que aparece no select/vagas do líder, então é nele que a saca precisa casar.
-        const base=baseDaGaiola(gaiola);
-        nRota=base||gaiola;
+      if(ehSaca){
+        // A saca herda a rota da última linha-mãe (rota real) vista logo acima dela na planilha.
+        nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:gaiola;
         if(!parada) parada=gaiola;
       }else{
-        nRota=ehSaca?(rotaPlan||gaiola):gaiola;
+        nRota=gaiola;
+        ultimaRotaMae=gaiola;
+        ultimaRotaMaeTransp=transp;
       }
       if(!nRota || !transp || transp==='#N/A' || nRota==='#N/A'){ignoradas++;continue;}
       novas.push({
