@@ -771,7 +771,11 @@ function detectarColuna(headersNorm, aliases){
 }
 function detectarColunaComPrioridade(headersNorm, campo){
   if(campo.tipo==='mlpAtual'){
-    const i=headersNorm.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
+    // VIA QUERY atual: a transportadora vem na primeira coluna chamada exatamente MLP.
+    // Mantém compatibilidade com versões antigas que usavam "MLP - data/hora".
+    let i=headersNorm.findIndex(h=>h==='mlp');
+    if(i!==-1) return i;
+    i=headersNorm.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
     if(i!==-1) return i;
   }
   if(campo.tipo==='rotaPlanejamento'){
@@ -787,7 +791,7 @@ function detectarColunaComPrioridade(headersNorm, campo){
 function encontrarLinhaCabecalho(rows){
   for(let i=0;i<Math.min(rows.length,15);i++){
     const norm=(rows[i]||[]).map(normalizarHeader);
-    if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas') && norm.some(h=>/^mlp\s*-\s*\d/.test(h))){
+    if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas') && norm.some(h=>h==='mlp' || /^mlp\s*-\s*\d/.test(h))){
       formatoViaQuery=true;
       return i;
     }
@@ -1831,7 +1835,10 @@ async function processarUploadUnico(){
     const idxB=hn.indexOf('bairros');
     const idxCl=hn.indexOf('cluster');
     const idxMo=hn.indexOf('modal');
-    const idxMlp=hn.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
+    // A VIA QUERY de 22/09/2026 usa cabeçalho simples "MLP" (há mais de uma coluna MLP).
+    // Para a transportadora usamos a PRIMEIRA coluna MLP; versões antigas com "MLP - ..." continuam aceitas.
+    let idxMlp=hn.findIndex(h=>h==='mlp');
+    if(idxMlp<0) idxMlp=hn.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
     const idxRota=hn.indexOf('rota');
     if(idxG<0 || idxP<0 || idxMlp<0) throw new Error('Faltam as colunas GAIOLA, PARADAS ou MLP da operação.');
 
