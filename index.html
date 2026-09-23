@@ -556,7 +556,7 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 function hojeISO(){ const d=new Date(); const off=d.getTimezoneOffset(); const local=new Date(d.getTime()-off*60000); return local.toISOString().slice(0,10); }
 function rowPlanejamentoToLocal(r){
   return {
-    nRota:r.rota||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
+    nRota:r.rota||'', gaiola:r.gaiola||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
     transportadora:(r.transportadora||'').toUpperCase(), onda:r.onda||'',
     parada:r.paradas||'', ponto:r.bairros||'', bairros:r.bairros||'',
     cluster:r.cluster||'', modal:r.modal||'', dataExp:r.data_operacao||'',
@@ -913,7 +913,7 @@ async function salvarRotas(cicloOverride){
     rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo).forEach(r=>{
       const item={
         data_operacao:hojeISO(), ciclo,
-        transportadora:r.transportadora||null, rota:r.nRota,
+        transportadora:r.transportadora||null, rota:r.nRota, gaiola:r.gaiola||null,
         onda:r.onda||null, paradas:r.parada||null, bairros:r.bairros||r.ponto||null,
         cluster:r.cluster||null, modal:r.modal||null,
         rua:(typeof areaDaRotaPlanejada==='function'?areaDaRotaPlanejada(r):null),
@@ -1119,7 +1119,7 @@ async function processarPlanilha(ciclo,inputId){
     if(!planilhaRows.length){ statusEl.textContent = 'Não encontramos linhas de dados abaixo do cabeçalho.'; return; }
     renderMapeamentoColunas();
     statusEl.textContent = formatoViaQuery
-      ? `Formato VIA QUERY reconhecido · ${planilhaRows.length} linha(s) lidas. GAIOLA será usada como rota e a coluna MLP com data/hora como transportadora. Confira e confirme.`
+      ? `Formato VIA QUERY reconhecido · ${planilhaRows.length} linha(s) lidas. ROTA será usada no cruzamento com a BASE; GAIOLA será mantida separada e a coluna MLP com data/hora será a transportadora. Confira e confirme.`
       : `Lido "${nomeAba}" · ${planilhaRows.length} linha(s) de dados encontradas. Confira o mapeamento abaixo e confirme a importação.`;
   }catch(e){
     console.error('Erro ao ler planejamento:', e);
@@ -2042,6 +2042,7 @@ function arquivoSelecionadoUnico(){
   const f=document.getElementById('planilhaFile_UNICO')?.files?.[0];
   const hint=document.getElementById('uploadHint');
   if(f && hint) hint.textContent=f.name;
+  const st=document.getElementById('statusUploadUnico'); if(st) st.textContent=f?'Selecionado: '+f.name:'Nenhum planejamento selecionado.';
 }
 async function processarUploadUnico(){
   const ciclo=document.getElementById('cicloUpload').value;
@@ -2091,7 +2092,7 @@ async function processarUploadUnico(){
     const linhasDados=rows.slice(hi+1);
     let ultimaRotaMae=null, ultimaRotaMaeTransp=null, ultimaRotaMaeTeveLista=false;
     for(const r of linhasDados){
-      const gaiola=get(r,idxG); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
+      const gaiola=get(r,idxG); // gaiola operacional; a coluna ROTA é o código usado no cruzamento com a BASE
       const transp=get(r,idxMlp).toUpperCase();
       const rotaPlan=get(r,idxRota); // número sequencial da planilha — não é o identificador usado no app
       const bairrosBruto=get(r,idxB);
@@ -2099,7 +2100,7 @@ async function processarUploadUnico(){
 
       if(ehLinhaDetalheSaca){
         if(ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp){ sacasDetalheIgnoradas++; continue; }
-        const nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:gaiola;
+        const nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:(rotaPlan||gaiola);
         if(!nRota || !transp || transp==='#N/A'){ignoradas++;continue;}
         novas.push({
           idPacote:'', nRota, gaiola, ciclo, tipoOperacao:'SACA',
@@ -2112,9 +2113,11 @@ async function processarUploadUnico(){
 
       if(!gaiola || !transp || transp==='#N/A' || gaiola==='#N/A'){ignoradas++;continue;}
       const infoSacas=extrairSacasDoTexto(bairrosBruto);
-      ultimaRotaMae=gaiola; ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas;
+      ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas;
+      const codigoRota=rotaPlan||gaiola;
+      ultimaRotaMae=codigoRota;
       novas.push({
-        idPacote:'', nRota:gaiola, gaiola, ciclo, tipoOperacao:'ROTA',
+        idPacote:'', nRota:codigoRota, gaiola, ciclo, tipoOperacao:'ROTA',
         transportadora:transp, onda:get(r,idxO), parada:get(r,idxP),
         ponto:infoSacas?'':bairrosBruto, bairros:infoSacas?'':bairrosBruto, cluster:get(r,idxCl), modal:get(r,idxMo),
         dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
@@ -2122,7 +2125,7 @@ async function processarUploadUnico(){
       if(infoSacas){
         infoSacas.lista.forEach((numSaca,i)=>{
           novas.push({
-            idPacote:'', nRota:gaiola, gaiola:gaiola+'_SACA_'+(i+1), ciclo, tipoOperacao:'SACA',
+            idPacote:'', nRota:codigoRota, gaiola:gaiola+'_SACA_'+(i+1), ciclo, tipoOperacao:'SACA',
             transportadora:transp, onda:get(r,idxO), parada:numSaca,
             ponto:'', bairros:'', cluster:get(r,idxCl), modal:get(r,idxMo),
             dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
