@@ -908,7 +908,16 @@ function renderMapeamentoColunas(){
 
 // Nas planilhas exportadas assim, a linha da rota-mãe já traz nos Bairros um texto tipo
 // "ROTA MÃE - 10 SACAS - 85, 87, 90, 92, 94, 98, 100, 101, 102, 103" — é essa lista que manda.
-const REGEX_ROTA_MAE = /ROTA\s*M[ÃA]E\s*-\s*(\d+)\s*SACAS?\s*-\s*(.+)/i;
+// A VIA QUERY de 22/09/2026 passou a vir SEM a quantidade: "ROTA MÃE -  SACAS - 108, 109, ..."
+// por isso o número agora é opcional (se não vier, a quantidade é o tamanho da lista).
+const REGEX_ROTA_MAE = /ROTA\s*M[ÃA]E\s*-\s*(\d*)\s*SACAS?\s*-\s*(.+)/i;
+// Saca que veio escrita diferente: GAIOLA com o código (ex: PM1_103_14) em vez de "SACA".
+// Se o código do planejamento for <rota-mãe>_<número> (ex: PM1_103_14 da mãe PM1_103), é saca dela.
+function ehSacaDaRotaMae(rotaPlan, rotaMaePlan){
+  if(!rotaPlan || !rotaMaePlan) return false;
+  const a=String(rotaPlan).trim().toUpperCase(), m=String(rotaMaePlan).trim().toUpperCase();
+  return a.startsWith(m+'_') && /^\d+$/.test(a.slice(m.length+1));
+}
 function extrairSacasDoTexto(texto){
   const m = String(texto||'').match(REGEX_ROTA_MAE);
   if(!m) return null;
@@ -929,13 +938,14 @@ async function confirmarImportacaoPlanilha(){
   // Enquanto varre as linhas em ordem: se uma linha de GAIOLA="SACA" aparecer sem uma lista de
   // sacas já ter sido extraída da linha-mãe anterior (fallback pra planilha fora do padrão),
   // ela herda a rota da última linha-mãe vista.
-  let ultimaRotaMae = null, ultimaRotaMaeTransp = null, ultimaRotaMaeTeveLista = false;
+  let ultimaRotaMae = null, ultimaRotaMaeTransp = null, ultimaRotaMaeTeveLista = false, ultimaRotaMaePlan = null;
   planilhaRows.forEach((row,rowIndex)=>{
     const gaiola = pegar(row, idx.nRota); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
     const rotaPlanejamento = pegar(row, idx.rotaPlanejamento); // número sequencial da planilha (ex: AM1_1) — não é o identificador usado no app
     const transportadora = pegar(row, idx.transportadora).toUpperCase();
     const bairrosBruto = pegar(row, idx.bairros);
-    const ehLinhaDetalheSaca = String(gaiola).toUpperCase()==='SACA';
+    const ehLinhaDetalheSaca = String(gaiola).toUpperCase()==='SACA' ||
+      (ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transportadora && ehSacaDaRotaMae(rotaPlanejamento, ultimaRotaMaePlan));
 
     if(ehLinhaDetalheSaca){
       // Linha de detalhe (bairro/paradas de UMA saca) — se a rota-mãe já trouxe a lista completa
@@ -956,7 +966,7 @@ async function confirmarImportacaoPlanilha(){
     // Linha de rota normal (a rota-mãe de um lote de sacas também cai aqui).
     if(!gaiola || !transportadora || transportadora==='#N/A' || gaiola==='#N/A'){ ignoradas++; return; }
     const infoSacas = extrairSacasDoTexto(bairrosBruto);
-    ultimaRotaMae = gaiola; ultimaRotaMaeTransp = transportadora; ultimaRotaMaeTeveLista = !!infoSacas;
+    ultimaRotaMae = gaiola; ultimaRotaMaeTransp = transportadora; ultimaRotaMaeTeveLista = !!infoSacas; ultimaRotaMaePlan = rotaPlanejamento;
     novas.push({
       idPacote:'',
       nRota: gaiola,
@@ -1613,7 +1623,7 @@ function renderTudo(){
   renderMonitorRotas();
   renderCiclosPlanejamento();
   renderSacas();
-  renderResumoPlanejamentoCoord();
+  if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord();
 }
 
 async function carregarTudoCompartilhado(){
@@ -1792,10 +1802,33 @@ async function init(){
 init();
 </script>
 <script id="compact-upload-helper">
-function arquivoSelecionadoUnico(){
+// Ao escolher o arquivo: descobre o ciclo sozinho (pelo conteúdo "_PM1", "_AM1"... ou pelo nome)
+// e já importa — antes era preciso trocar o ciclo na seta E clicar em Importar, e se o ciclo
+// ficasse em AM1 com um arquivo de PM1 nada aparecia.
+async function detectarCicloDoArquivo(file){
+  const ciclos=['AM1','PM1','SD','CHP'];
+  const cont={AM1:0,PM1:0,SD:0,CHP:0};
+  try{
+    if(/\.csv$/i.test(file.name)){
+      const txt=new TextDecoder('utf-8').decode(await file.arrayBuffer()).toUpperCase();
+      ciclos.forEach(c=>{ const m=txt.match(new RegExp('_'+c+'(?![A-Z0-9])','g')); cont[c]=m?m.length:0; });
+    }
+  }catch(e){}
+  let melhor=null, max=0;
+  ciclos.forEach(c=>{ if(cont[c]>max){max=cont[c];melhor=c;} });
+  if(melhor) return melhor;
+  const nome=file.name.toUpperCase();
+  return ciclos.find(c=>new RegExp('(^|[^A-Z0-9])'+c+'([^A-Z0-9]|$)').test(nome)) || null;
+}
+async function arquivoSelecionadoUnico(){
   const f=document.getElementById('planilhaFile_UNICO')?.files?.[0];
   const hint=document.getElementById('uploadHint');
-  if(f && hint) hint.textContent=f.name;
+  if(!f) return;
+  if(hint) hint.textContent=f.name;
+  const ciclo=await detectarCicloDoArquivo(f);
+  const sel=document.getElementById('cicloUpload');
+  if(ciclo && sel) sel.value=ciclo;
+  await processarUploadUnico();
 }
 async function processarUploadUnico(){
   const ciclo=document.getElementById('cicloUpload').value;
@@ -1846,13 +1879,14 @@ async function processarUploadUnico(){
     const novas=[];
     let ignoradas=0, sacasDetalheIgnoradas=0;
     const linhasDados=rows.slice(hi+1);
-    let ultimaRotaMae=null, ultimaRotaMaeTransp=null, ultimaRotaMaeTeveLista=false;
+    let ultimaRotaMae=null, ultimaRotaMaeTransp=null, ultimaRotaMaeTeveLista=false, ultimaRotaMaePlan=null;
     for(const r of linhasDados){
       const gaiola=get(r,idxG); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
       const transp=get(r,idxMlp).toUpperCase();
       const rotaPlan=get(r,idxRota); // número sequencial da planilha — não é o identificador usado no app
       const bairrosBruto=get(r,idxB);
-      const ehLinhaDetalheSaca=gaiola.toUpperCase()==='SACA';
+      const ehLinhaDetalheSaca=gaiola.toUpperCase()==='SACA' ||
+        (ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp && ehSacaDaRotaMae(rotaPlan, ultimaRotaMaePlan));
 
       if(ehLinhaDetalheSaca){
         if(ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp){ sacasDetalheIgnoradas++; continue; }
@@ -1869,7 +1903,7 @@ async function processarUploadUnico(){
 
       if(!gaiola || !transp || transp==='#N/A' || gaiola==='#N/A'){ignoradas++;continue;}
       const infoSacas=extrairSacasDoTexto(bairrosBruto);
-      ultimaRotaMae=gaiola; ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas;
+      ultimaRotaMae=gaiola; ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas; ultimaRotaMaePlan=rotaPlan;
       novas.push({
         idPacote:'', nRota:gaiola, gaiola, ciclo, tipoOperacao:'ROTA',
         transportadora:transp, onda:get(r,idxO), parada:get(r,idxP),
@@ -1895,8 +1929,18 @@ async function processarUploadUnico(){
     renderCycleSummaryCompact();
     renderResumoPlanejamentoCoord();
     const rotasU=new Set(novas.filter(r=>r.tipoOperacao!=='SACA').map(r=>r.nRota)).size;
-    const sacasU=new Set(novas.filter(r=>r.tipoOperacao==='SACA').map(r=>r.nRota)).size;
-    if(status) status.textContent='✓ '+ciclo+' importado: '+rotasU+' rotas · '+sacasU+' sacas · '+ignoradas+' linhas ignoradas.';
+    const sacasU=novas.filter(r=>r.tipoOperacao==='SACA').length;
+    // Confere no Supabase se as rotas realmente ficaram gravadas pra hoje (é de lá que o app do líder lê).
+    let gravadas=null;
+    try{
+      const {count,error}=await db.from('planejamento').select('*',{count:'exact',head:true}).eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
+      if(!error) gravadas=count;
+    }catch(e){}
+    const sel=document.getElementById('cicloResumo'); if(sel){ sel.value=ciclo; if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord(); }
+    if(status){
+      if(gravadas===0) status.textContent='⚠ '+ciclo+': o arquivo foi lido ('+rotasU+' rotas), mas o Supabase não devolveu nada gravado para hoje ('+hojeISO()+'). Verifique a permissão (RLS) de INSERT/SELECT na tabela planejamento.';
+      else status.textContent='✓ '+ciclo+' importado: '+rotasU+' rotas · '+sacasU+' sacas · '+ignoradas+' linhas ignoradas'+(gravadas!=null?' · '+gravadas+' linhas no Supabase':'')+'.';
+    }
   }catch(e){
     console.error('IMPORTAÇÃO:',e);
     if(status) status.textContent='Erro: '+(e?.message||'não foi possível importar o planejamento.');
