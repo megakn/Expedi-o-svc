@@ -2,504 +2,250 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SVC · Painel de Acompanhamento da Coordenação</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Líder de Rua · SVC-SD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#EEF2F7; --surface:#FFFFFF; --surface-alt:#F6F8FB; --border:#D9E0EA;
     --navy-900:#0E2A47; --navy-700:#1E3A5F; --muted:#65748A; --teal-600:#0E7C86;
-    --amber-500:#F5A524; --red-600:#DC2626; --slate-400:#94A3B8; --blue-600:#2563EB;
-    --radius:10px; --hatch: repeating-linear-gradient(135deg, rgba(14,42,71,.06) 0 6px, transparent 6px 12px);
+    --amber-500:#F5A524; --red-600:#DC2626; --purple-600:#a855f7; --slate-400:#94A3B8;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--navy-900);font-family:'Inter',Segoe UI,Arial,sans-serif;padding:20px 16px 60px;}
-  .wrap{max-width:1300px;margin:0 auto;}
+  body{margin:0;background:var(--bg);color:var(--navy-900);font-family:'Inter',Segoe UI,Arial,sans-serif;padding-bottom:40px;}
+  .wrap{max-width:520px;margin:0 auto;padding:16px 14px 60px;}
 
-  /* Seletor de perfil */
-  #seletor{position:fixed;inset:0;background:rgba(14,42,71,.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;}
-  #seletor .box{background:#fff;border-radius:14px;padding:28px;max-width:480px;width:100%;text-align:center;}
-  #seletor h2{margin:0 0 6px;font-size:18px;}
-  #seletor p{color:var(--muted);font-size:13px;margin:0 0 18px;}
-  .rua-btn{display:block;width:100%;background:var(--surface-alt);border:1.5px solid var(--border);color:var(--navy-900);border-radius:9px;padding:12px;margin-bottom:8px;font-weight:700;font-size:14px;text-align:left;cursor:pointer;}
-  .rua-btn:hover{border-color:var(--teal-600);background:#F0FBFC;}
-  .rua-btn.coord{background:var(--navy-900);color:#fff;text-align:center;}
+  /* ===== Tela de entrada ===== */
+  #entrada{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .box{background:#fff;border-radius:16px;padding:26px 22px;max-width:420px;width:100%;box-shadow:0 4px 24px rgba(14,42,71,.10);}
+  .box h1{font-size:19px;margin:0 0 4px;letter-spacing:.02em;}
+  .box p.hint{color:var(--muted);font-size:13px;margin:0 0 20px;}
+  .campo{margin-bottom:16px;}
+  .campo label{display:block;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--navy-700);margin-bottom:6px;}
+  .campo input{width:100%;padding:13px 14px;font-size:15px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-alt);font-family:inherit;}
+  .rua-opcoes{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;}
+  .rua-opt{display:block;width:100%;text-align:left;padding:13px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-alt);font-weight:700;font-size:14.5px;color:var(--navy-900);cursor:pointer;}
+  .rua-opt.selecionada{border-color:var(--teal-600);background:#F0FBFC;color:var(--teal-600);}
+  #btnEntrar{width:100%;padding:14px;font-size:15px;font-weight:800;border:none;border-radius:10px;background:var(--navy-900);color:#fff;margin-top:8px;cursor:pointer;}
+  #btnEntrar:disabled{background:var(--slate-400);cursor:not-allowed;}
+  #erroEntrada{color:var(--red-600);font-size:12.5px;margin-top:8px;min-height:16px;}
 
-  header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
-  header h1{font-size:20px;letter-spacing:.06em;margin:0;text-transform:uppercase;font-weight:800;}
-  header p{color:var(--muted);margin:2px 0 0;font-size:12.5px;}
-  .perfil-badge{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:10px;}
-  .perfil-badge button{padding:4px 10px;font-size:11px;}
+  /* ===== Header app ===== */
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;position:sticky;top:0;background:var(--bg);padding:10px 0 6px;z-index:5;}
+  header .titulo{font-size:16px;font-weight:800;letter-spacing:.01em;}
+  header .sub{font-size:11.5px;color:var(--muted);margin-top:1px;}
+  header button.trocar{background:var(--surface);border:1px solid var(--border);color:var(--navy-700);font-size:11.5px;font-weight:700;padding:7px 12px;border-radius:20px;}
 
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
-  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;border-left:4px solid var(--navy-700);}
-  .kpi .n{font-family:'Roboto Mono',monospace;font-size:24px;font-weight:700;line-height:1;}
-  .kpi .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
-  .kpi.ocupado{border-left-color:var(--blue-600);} .kpi.livre{border-left-color:var(--slate-400);}
-  .kpi.separacao{border-left-color:var(--amber-500);} .kpi.pendente{border-left-color:var(--red-600);}
-  .kpi.chamados{border-left-color:#DC2626;}
+  .kpis-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;}
+  .kpi-mini{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 6px;text-align:center;}
+  .kpi-mini .n{font-family:'Roboto Mono',monospace;font-size:17px;font-weight:700;}
+  .kpi-mini .l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:1px;}
 
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
-  .card h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--navy-700);margin:0 0 4px;font-weight:800;}
-  .card .hint{color:var(--muted);font-size:12px;margin:0 0 12px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 14px 16px;margin-bottom:14px;}
+  .card h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--navy-700);margin:0 0 10px;font-weight:800;}
+  .empty{color:var(--muted);font-size:13px;}
 
-  .search-row{display:flex;gap:8px;flex-wrap:wrap;}
-  input, select, textarea{background:var(--surface-alt);border:1px solid var(--border);color:var(--navy-900);border-radius:8px;padding:9px 12px;font-size:13.5px;font-family:inherit;}
-  #q{flex:1;min-width:200px;font-family:'Roboto Mono',monospace;}
-  button{background:var(--navy-900);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:700;font-size:13px;cursor:pointer;}
-  button:hover{background:var(--navy-700);}
-  button.secondary{background:var(--surface);color:var(--navy-900);border:1px solid var(--border);font-weight:600;}
-  button.secondary:hover{background:var(--surface-alt);}
-  button.danger{background:var(--red-600);color:#fff;padding:5px 10px;font-size:11.5px;}
-  button.status-btn{padding:6px 11px;font-size:11.5px;font-weight:700;border-radius:20px;border:1.5px solid transparent;}
-  button.ok{background:var(--teal-600);}
+  /* ===== Vagas grid ===== */
+  .vagas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:7px;}
+  .vaga-chip{position:relative;border-radius:9px;padding:8px 4px 7px;text-align:center;font-family:'Roboto Mono',monospace;border:1.5px solid rgba(0,0,0,.08);cursor:pointer;transition:opacity .15s;}
+  .vaga-chip.selecionada{outline:3px solid var(--navy-900);outline-offset:1px;}
+  .vaga-chip.match-busca{outline:3px solid var(--teal-600);outline-offset:1px;}
+  .vaga-chip.dim-busca{opacity:.22;}
+  .vaga-chip .num{font-size:14px;font-weight:800;line-height:1;}
+  .vaga-chip .sigla{font-size:8px;font-weight:700;opacity:.9;margin-top:2px;display:block;}
+  .busca-rota-wrap{margin-bottom:10px;}
+  .busca-rota-wrap input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-alt);font:700 14px 'Roboto Mono',monospace;color:var(--navy-900);}
+  .busca-rota-hint{font-size:11px;color:var(--muted);margin-top:5px;min-height:14px;}
+  .vaga-dot{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 1.5px #fff;}
 
-  #detalhe .empty{color:var(--muted);font-size:13px;}
-  .det-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  .det-badge{font-family:'Roboto Mono',monospace;font-weight:800;font-size:15px;padding:8px 12px;border-radius:8px;min-width:48px;text-align:center;}
-  .det-info b{font-size:16px;}
-  .det-info span{display:block;color:var(--muted);font-size:12px;margin-top:2px;}
-  .status-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px;}
-  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);}
-  th{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:10.5px;letter-spacing:.05em;}
-  .mini-vaga-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-  .mini-vaga{font-family:'Roboto Mono',monospace;font-size:11.5px;font-weight:700;padding:5px 8px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;border:1px solid rgba(0,0,0,.08);}
-  .mini-dot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 0 1.5px #fff;}
+  .painel-acao{margin-top:14px;padding-top:14px;border-top:1.5px dashed var(--border);}
+  .painel-acao .titulo-vaga{font-weight:800;font-size:15px;margin-bottom:2px;}
+  .painel-acao .info-vaga{color:var(--muted);font-size:12.5px;margin-bottom:12px;}
+  .acoes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .btn-acao{padding:13px 8px;border-radius:10px;border:none;font-weight:800;font-size:12.5px;color:#fff;cursor:pointer;text-align:center;line-height:1.25;}
+  .btn-acao.chegou{background:var(--navy-900);}
+  .btn-acao.aduana{background:var(--purple-600);}
+  .btn-acao.problema{background:var(--red-600);}
+  .btn-acao.separacao{background:var(--amber-500);color:#2b2400;}
+  .btn-acao.finalizar{background:var(--teal-600);grid-column:1 / -1;}
+  .status-atual{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin-top:2px;}
+  .status-atual .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 1.5px #fff;}
+  #statusAcao{font-size:12px;color:var(--muted);margin-top:10px;min-height:16px;}
+  .rota-select-wrap{margin:12px 0 10px;}
+  .rota-select-wrap label{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--navy-700);margin-bottom:6px;}
+  .rota-select{width:100%;padding:12px 13px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-alt);font:700 13px 'Roboto Mono',monospace;color:var(--navy-900);}
+  .rota-ativa-box{margin:12px 0 10px;padding:12px;border-radius:10px;background:#F0FDF4;border:1px solid #BBF7D0;}
+  .rota-ativa-box.aduana{background:#FAF5FF;border-color:#E9D5FF;}
+  .rota-ativa-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .rota-ativa-top b{font:800 15px 'Roboto Mono',monospace;}
+  .cronometro{font:800 18px 'Roboto Mono',monospace;color:#166534;}
+  .rota-ativa-box.aduana .cronometro{color:#7E22CE;}
+  .aduana-sub-cron{margin-top:8px;padding:7px 9px;border-radius:7px;background:#F3E8FF;color:#7E22CE;font:800 12px 'Roboto Mono',monospace;}
+  .aduana-sub-cron.excedido{background:#FEE2E2;color:#991B1B;}
+  .meta-processo{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45;}
+  .limite-note{font-size:11px;color:var(--muted);margin-top:6px;}
+  .btn-acao.rota{background:#16A34A;grid-column:1 / -1;}
+  .btn-acao:disabled{opacity:.45;cursor:not-allowed;}
 
-  .pendente{background:#FDF1E3;border:1px solid #F0C589;border-left:4px solid var(--amber-500);border-radius:8px;padding:12px 14px;margin-bottom:8px;font-size:13px;}
-  .pendente .row{margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-
-  .chamado-card{background:#FEF2F2;border:1px solid #FCA5A5;border-left:4px solid var(--red-600);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
-  .chamado-card .info{font-size:13px;}
-  .chamado-card .info b{font-size:14px;}
-  .chamado-card .info span{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;}
-  .chamado-alerta{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;}
-
-  .floorplan-outer{overflow-x:auto;padding-bottom:10px;}
-  .floorplan{display:flex;gap:12px;align-items:stretch;min-width:1080px;}
-  .fp-col{display:flex;flex-direction:column;gap:8px;}
-  .fp-col.stretch{justify-content:space-between;}
-  .infra-box{background:var(--surface);background-image:var(--hatch);border:1.5px dashed var(--navy-700);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--navy-700);font-weight:800;font-size:11px;letter-spacing:.05em;text-transform:uppercase;text-align:center;padding:8px;}
-  .rampa{writing-mode:vertical-rl;text-orientation:mixed;min-width:46px;flex:1;min-height:70px;}
-  .esteira{height:38px;} .mezanino{height:56px;}
-  .facility-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
-  .rua-group{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:8px;position:relative;}
-  .rua-group.bloqueada{opacity:.45;filter:grayscale(.6);}
-  .rua-group .facility-label{margin-bottom:6px;color:var(--navy-700);}
-  .lock-tag{position:absolute;top:6px;right:8px;font-size:10px;font-weight:800;color:var(--muted);}
-  .vaga-grid{display:flex;flex-wrap:wrap;gap:4px;}
-  .col-narrow .vaga-grid{flex-direction:column;}
-
-  .pos-box{position:relative;width:50px;height:56px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(0,0,0,.10);font-family:'Roboto Mono',monospace;transition:transform .12s,box-shadow .12s;box-shadow:0 1px 2px rgba(14,42,71,.10);}
-  .pos-box:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(14,42,71,.22);}
-  .pos-box.selected{outline:3px solid var(--navy-900);outline-offset:1px;}
-  .pos-box.match{outline:3px solid var(--teal-600);outline-offset:1px;}
-  .pos-box .num{font-size:14px;font-weight:800;line-height:1;}
-  .pos-box .sigla{font-size:8.5px;font-weight:700;letter-spacing:.04em;opacity:.9;margin-top:3px;}
-  .status-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 1.5px #fff;}
-  .pos-box.chamado-ativo{animation:pulseChamado 1.3s infinite;border:2px solid #DC2626;}
-  .chamado-flag{position:absolute;top:-6px;left:-6px;background:#DC2626;color:#fff;font-size:8px;font-weight:800;padding:2px 4px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.3);}
-  @keyframes pulseChamado{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55);}70%{box-shadow:0 0 0 9px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
-
-  .arrows-row{display:flex;gap:26px;justify-content:space-around;padding:2px 6px;}
-  .arrows-row svg{width:22px;height:22px;fill:var(--navy-700);}
-  .vuc-label{writing-mode:vertical-rl;text-orientation:mixed;font-weight:800;font-size:11px;color:var(--navy-700);text-align:center;letter-spacing:.06em;}
-
-  .legend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;}
-  .legend-item{display:flex;align-items:center;gap:8px;font-size:12.5px;}
-  .legend-swatch{width:16px;height:16px;border-radius:4px;flex-shrink:0;border:1px solid rgba(0,0,0,.1);}
-  .legend-status{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-  .legend-status .legend-item .legend-swatch{border-radius:50%;}
-
-  .status{font-size:12px;color:var(--muted);margin-top:6px;min-height:16px;}
-  textarea#rotasInput{width:100%;min-height:110px;resize:vertical;font-family:'Roboto Mono',monospace;font-size:12px;}
-  .rotas-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
-  .upload-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-  input[type="file"]{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px;max-width:100%;}
-  .map-box{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;}
-  .map-box h3{margin:0 0 4px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--navy-700);}
-  .map-row{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
-  .map-row label{min-width:150px;font-size:12.5px;font-weight:700;color:var(--navy-900);}
-  .map-row select{flex:1;min-width:180px;}
-  .map-preview{font-size:11.5px;color:var(--muted);margin-top:10px;overflow-x:auto;}
-  .map-preview table{min-width:520px;}
-  details.manual-import summary{cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:700;margin-top:12px;}
-  details.manual-import[open] summary{margin-bottom:8px;}
-
-  .resumo-rua{background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
-  .resumo-rua-title{font-weight:800;font-size:13.5px;color:var(--navy-700);cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px;}
-  .resumo-rua-title:hover{color:var(--teal-600);}
-  .resumo-rua-title .qtd{color:var(--teal-600);font-weight:700;font-size:11.5px;}
-  .toggle-arrow{display:inline-block;font-size:11px;width:12px;color:var(--muted);}
-  .resumo-rua-body{margin-top:10px;}
-  .resumo-transp-block{padding:10px 0;border-top:1px dashed var(--border);}
-  .resumo-transp-block:first-of-type{border-top:none;padding-top:0;}
-  .resumo-transp-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .onda-colunas{display:flex;flex-wrap:nowrap;align-items:flex-start;overflow-x:auto;margin-top:8px;padding-bottom:4px;}
-  .onda-col{flex:0 0 auto;padding:0 18px;}
+  /* ===== Resumo por onda (reaproveitado, mesma lógica do painel principal) ===== */
+  .onda-colunas{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:0;padding-bottom:4px;}
+  .onda-col{flex:0 0 auto;padding:0 14px;}
   .onda-col:first-of-type{padding-left:0;}
   .onda-col:not(:first-of-type){border-left:1.5px dashed var(--border);}
-  .onda-title{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--navy-900);background:#fff;display:inline-block;padding:3px 9px;border-radius:20px;border:1px solid var(--border);margin-bottom:8px;}
-  .onda-title .qtd{color:var(--teal-600);font-weight:700;font-size:11px;text-transform:none;letter-spacing:0;}
-  .sigla-badge-sm{font-family:'Roboto Mono',monospace;font-weight:800;font-size:10.5px;padding:3px 7px;border-radius:5px;}
-  .resumo-table{width:auto;font-size:12px;margin-top:6px;border-collapse:collapse;}
-  .resumo-table th,.resumo-table td{padding:4px 16px 4px 0;white-space:nowrap;}
+  .onda-title{font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--navy-900);background:#fff;display:inline-block;padding:3px 8px;border-radius:20px;border:1px solid var(--border);margin-bottom:6px;}
+  .onda-title .qtd{color:var(--teal-600);font-weight:700;font-size:10px;text-transform:none;letter-spacing:0;}
+  .resumo-transp-block{padding:9px 0;border-top:1px dashed var(--border);}
+  .resumo-transp-block:first-of-type{border-top:none;padding-top:0;}
+  .resumo-transp-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:13px;}
+  .sigla-badge-sm{font-family:'Roboto Mono',monospace;font-weight:800;font-size:10px;padding:3px 6px;border-radius:5px;}
+  .resumo-transp-head .qtd{color:var(--muted);font-size:11px;}
+  .resumo-table{width:auto;font-size:11.5px;margin-top:5px;border-collapse:collapse;}
+  .resumo-table th,.resumo-table td{padding:3px 12px 3px 0;white-space:nowrap;text-align:left;}
+  .resumo-table th{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:9.5px;letter-spacing:.05em;}
   .resumo-table td.rota{font-family:'Roboto Mono',monospace;font-weight:700;}
   .resumo-table td.parada{color:var(--teal-600);font-weight:700;}
+  .saca-mark{display:inline-block;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;background:#FFF7ED;color:#9A3412;border:1px solid #FED7AA;margin-left:4px;letter-spacing:.03em;}
+  .saca-lista{margin-top:4px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:7px;padding:6px 8px;}
+  .saca-lista-head{font-size:9px;font-weight:900;letter-spacing:.05em;color:#9A3412;text-transform:uppercase;margin-bottom:3px;}
+  .saca-lista-item{font-size:12px;font-weight:800;color:#9A3412;font-family:'Roboto Mono',monospace;line-height:1.6;}
+  .aviso-saca-rota{margin-top:8px;padding:9px 11px;border-radius:8px;background:#FFF7ED;border:1.5px solid #FED7AA;color:#9A3412;font-size:12.5px;font-weight:700;}
+  .alerta-aduana-sirene{margin-bottom:14px;padding:12px 14px;border-radius:10px;background:#FEF2F2;border:1.5px solid #FCA5A5;color:#991B1B;font-size:13px;font-weight:800;line-height:1.5;animation:pulseAlertaAduana 1.1s infinite;}
+  @keyframes pulseAlertaAduana{0%{box-shadow:0 0 0 0 rgba(220,38,38,.45);}70%{box-shadow:0 0 0 10px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
 
-  @media (max-width:720px){ .pos-box{width:44px;height:50px;} .kpis{grid-template-columns:repeat(2,1fr);} }
-
-  .folha-a4-wrap{display:flex;justify-content:center;}
-  .folha-a4{
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:6px;
-    box-shadow:0 2px 16px rgba(14,42,71,.10);
-    width:100%;
-    max-width:1123px;
-    aspect-ratio:297/210;
-    position:relative;
-    overflow:hidden;
-  }
-  .folha-a4::after{content:'A4 · 297×210mm';position:absolute;bottom:6px;right:10px;font-size:9.5px;color:var(--slate-400);font-weight:700;letter-spacing:.04em;}
-  .folha-a4 .floorplan-outer{position:absolute;inset:0;padding:14px;box-sizing:border-box;overflow:hidden;}
-  .folha-a4 .floorplan{transform-origin:top left;}
+  .ciclo-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:12px;}
+  .ciclo-bar label{font-size:10px;text-transform:uppercase;font-weight:800;color:var(--muted);letter-spacing:.05em;}
+  .ciclo-bar select{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-weight:800;color:var(--navy-900);background:var(--surface-alt);}
 
 
-  /* =============== PAINEL COORDENACAO · VIEW ONLY =============== */
-  :root{
-    --accent:#0E7C86; --success:#16A34A; --warning:#F59E0B; --danger:#DC2626;
-    --cyan:#06B6D4; --blue:#2563EB; --violet:#7C3AED; --shadow:0 8px 24px rgba(15,23,42,.07);
-  }
-  html{scroll-behavior:smooth}
-  body{padding:16px 18px 28px;min-height:100vh;background:#E9EEF5}
-  .wrap{max-width:1500px;margin:0 auto}
-  .svc-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow)}
-  .svc-topbar-left{display:flex;align-items:center;gap:12px}.svc-topbar-left::before{content:'SVC';width:38px;height:38px;border-radius:9px;background:#0E2A47;color:#fff;display:grid;place-items:center;font-weight:900;font-size:12px;letter-spacing:.04em}
-  .svc-topbar-left small{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.13em}.svc-topbar-left strong{display:block;font-size:15px;margin-top:2px}
-  .svc-top-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.sys-chip{border:1px solid var(--border);background:#F8FAFC;border-radius:999px;padding:6px 9px;font-size:9.5px;font-weight:800}.online-dot{display:inline-block;width:7px;height:7px;background:#22C55E;border-radius:50%;box-shadow:0 0 0 3px rgba(34,197,94,.12);margin-right:5px}
-  #themeToggle{padding:6px 9px;border-radius:999px;background:#fff;color:var(--navy-900);border:1px solid var(--border);font-size:10px}
-  header{background:#0E2A47;color:#fff;border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-  header h1{font-size:18px;letter-spacing:.035em}header p{color:#C7D5E4;font-size:10.5px;margin-top:3px}.perfil-badge{display:none!important}
-  .coord-badge{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);padding:7px 10px;border-radius:9px;font-size:10px;font-weight:800;white-space:nowrap}
-  .kpis{grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}.kpi{border:1px solid var(--border);border-left:none!important;border-radius:10px;padding:9px 11px;box-shadow:none;position:relative}.kpi .n{font-size:20px}.kpi .l{font-size:9px;font-weight:800;letter-spacing:.065em}.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#64748B;border-radius:10px 0 0 10px}.kpi.chamados::before{background:var(--violet)}.kpi.ocupado::before{background:var(--blue)}.kpi.livre::before{background:#94A3B8}.kpi.pendente::before{background:var(--warning)}
-  .coord-main{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:10px;align-items:start}
-  .card{border:1px solid var(--border);border-radius:11px;padding:12px 14px;box-shadow:none;margin-bottom:10px}.card h2{font-size:10.5px;letter-spacing:.09em}.card .hint{font-size:10px;margin-bottom:8px}
-  #cardLayout{padding:10px 12px;margin-bottom:10px}.layout-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}.layout-head h2{margin:0}.layout-live{font-size:9px;font-weight:900;color:#166534;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:999px;padding:4px 7px}
-  .folha-a4-wrap{display:flex;justify-content:center;width:100%}.folha-a4{background:#fff;border:1px solid #CBD5E1;border-radius:8px;box-shadow:0 3px 14px rgba(15,23,42,.08);width:100%;max-width:1123px;aspect-ratio:297/210;position:relative;overflow:hidden}.folha-a4::after{content:'VISÃO GERAL · COORDENAÇÃO';position:absolute;bottom:5px;right:8px;font-size:8px;color:#94A3B8;font-weight:800;letter-spacing:.05em}.folha-a4 .floorplan-outer{position:absolute;inset:0;padding:10px;overflow:hidden}.folha-a4 .floorplan{transform-origin:top left}
-  .pos-box{border-radius:6px;box-shadow:0 1px 3px rgba(15,23,42,.12);transition:.12s}.pos-box:hover{transform:translateY(-1px);box-shadow:0 4px 9px rgba(15,23,42,.15)}
-  .pos-box.status-rota{outline:3px solid #16A34A;outline-offset:1px}.pos-box.status-atencao{outline:3px solid #F59E0B;outline-offset:1px}.pos-box.status-excedido{outline:3px solid #DC2626;outline-offset:1px}.pos-box.status-aduana{outline:3px solid #7C3AED;outline-offset:1px}.pos-box.status-aduana-excedida{outline:3px solid #DC2626;outline-offset:1px;animation:pulseChamado 1s infinite}
-  .pos-box.chamado-ativo{animation:pulseChamado 1.15s infinite}.chamado-flag{font-size:7px;top:-5px;left:-5px}
-  .coord-rail{display:grid;gap:10px}.rail-card{background:#fff;border:1px solid var(--border);border-radius:11px;padding:11px 12px}.rail-card h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 9px;color:var(--navy-700)}
-  .status-legend{display:grid;gap:7px}.status-line{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px}.status-name{display:flex;align-items:center;gap:7px}.status-light{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(15,23,42,.05)}
-  .route-live-list{display:grid;gap:7px;max-height:260px;overflow:auto}.route-live{border:1px solid var(--border);border-radius:8px;padding:8px;background:#F8FAFC}.route-live-top{display:flex;justify-content:space-between;gap:5px;align-items:center}.route-live b{font-size:10.5px}.route-live small{display:block;color:var(--muted);font-size:9px;margin-top:3px}.route-status{font-size:8px;font-weight:900;padding:3px 5px;border-radius:999px;white-space:nowrap}
-  .readonly-note{font-size:9px;line-height:1.45;color:var(--muted);background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:8px}
-  .coordinator-detail{margin-top:10px}.coordinator-detail .card{margin:0}
-  #importacao,#resumo,#dispositivos,.led-console,#cardChamar{display:none!important}
-  .search-row{gap:6px}.search-row input{padding:7px 9px;font-size:11px}.search-row button{padding:7px 10px;font-size:10px}
-  .status-view{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:5px 8px;font-size:9.5px;font-weight:800;background:#F8FAFC}
-  .lideres-panel{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-  .lider-chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;flex:1;min-width:170px}
-  .lider-chip .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-  .lider-chip .dot.online{background:#16A34A;box-shadow:0 0 0 3px rgba(22,163,74,.15)}
-  .lider-chip .dot.offline{background:#94A3B8}
-  .lider-chip .txt{min-width:0}
-  .lider-chip .rua{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-  .lider-chip .nome{font-size:12.5px;font-weight:700;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .lider-chip .nome.vazio{color:var(--slate-400);font-weight:600;font-style:italic}
-  .lider-chip .desde{font-size:9px;color:var(--muted);margin-left:auto;white-space:nowrap}
-  .dark .lider-chip{background:var(--surface)}
-  @media(max-width:650px){.lideres-panel{flex-direction:column}.lider-chip{min-width:0}}
-  body.dark{--bg:#08121F;--surface:#0E1B2A;--surface-alt:#132235;--border:#26394E;--navy-900:#EAF3FC;--navy-700:#B7CCE0;--muted:#8FA5B8;color:#EAF3FC;background:#07111D}.dark .svc-topbar,.dark .rail-card,.dark .card,.dark .kpi{background:var(--surface)}.dark header{background:#0B223A}.dark .sys-chip,.dark #themeToggle,.dark .route-live,.dark .readonly-note,.dark .status-view{background:var(--surface-alt);color:#EAF3FC}.dark .folha-a4{background:#F8FAFC}
-  @media(max-width:1180px){body{padding:10px}.coord-main{grid-template-columns:1fr 230px}.kpis{grid-template-columns:repeat(5,1fr)}.folha-a4 .floorplan-outer{padding:7px}}
-  @media(max-width:900px){.coord-main{grid-template-columns:1fr}.coord-rail{grid-template-columns:repeat(3,1fr)}.route-live-list{max-height:160px}.kpis{grid-template-columns:repeat(3,1fr)}}
-  @media(max-width:650px){.svc-topbar{align-items:flex-start;flex-direction:column}.kpis{grid-template-columns:repeat(2,1fr)}.coord-rail{grid-template-columns:1fr}.folha-a4{min-width:620px}.folha-a4-wrap{overflow-x:auto;justify-content:flex-start}}
+  /* ===== Abas ===== */
+  .abas{display:flex;gap:6px;margin-bottom:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:5px;}
+  .aba{flex:1;padding:10px 6px;border:none;border-radius:9px;background:transparent;font:800 12.5px 'Inter',sans-serif;color:var(--muted);cursor:pointer;}
+  .aba.ativa{background:var(--navy-900);color:#fff;}
+  #btnExped{width:100%;padding:13px;font-size:14px;font-weight:800;border:none;border-radius:10px;background:var(--teal-600);color:#fff;margin-top:8px;cursor:pointer;}
+  #btnGuia{width:100%;padding:13px;font-size:14px;font-weight:800;border:1.5px solid var(--navy-900);border-radius:10px;background:#fff;color:var(--navy-900);margin-top:10px;cursor:pointer;}
+  .ou{text-align:center;color:var(--muted);font-size:11.5px;margin-top:12px;}
 
-  /* MONITORAMENTO GERAL DAS ROTAS */
-  .monitor-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-bottom:10px}
-  .monitor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-  .monitor-head h2{margin:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--navy-700)}
-  .monitor-summary{display:flex;gap:6px;flex-wrap:wrap}.monitor-pill{font-size:8.5px;font-weight:900;padding:4px 7px;border-radius:999px;border:1px solid var(--border);background:var(--surface-alt)}
-  .route-table-wrap{overflow:auto;max-height:275px;border:1px solid var(--border);border-radius:8px}
-  .route-table{width:100%;margin:0;border-collapse:separate;border-spacing:0;font-size:10px}
-  .route-table th{position:sticky;top:0;z-index:2;background:var(--surface-alt);font-size:8.5px;letter-spacing:.07em;color:var(--muted);padding:7px 8px;border-bottom:1px solid var(--border)}
-  .route-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
-  .route-table tr:last-child td{border-bottom:none}.route-table tbody tr:hover{background:rgba(37,99,235,.035)}
-  .route-table .rota-cell{font-family:'Roboto Mono',monospace;font-weight:900}.route-table .vaga-cell{font-family:'Roboto Mono',monospace;font-weight:900;text-align:center}
-  .tempo-cell{font-family:'Roboto Mono',monospace;font-weight:900}.process-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 6px;font-size:8px;font-weight:900;border:1px solid currentColor}
-  .process-dot{width:6px;height:6px;border-radius:50%;background:currentColor}.row-excedido{background:#FEF2F2}.row-aduana{background:#F5F3FF}.row-atencao{background:#FFFBEB}.row-aduana-excedida{background:#FEE2E2}
-  .delay-alert{display:none;align-items:center;justify-content:space-between;gap:10px;border:1px solid #FCA5A5;background:#FEF2F2;border-radius:9px;padding:7px 9px;margin-bottom:8px;color:#991B1B}
-  .delay-alert.show{display:flex}.delay-alert strong{font-size:9.5px}.delay-alert span{font-size:8.5px}
-  .dark .monitor-card{background:var(--surface)}.dark .monitor-pill,.dark .route-table th{background:var(--surface-alt)}.dark .row-excedido{background:rgba(220,38,38,.10)}.dark .row-aduana{background:rgba(124,58,237,.10)}.dark .row-atencao{background:rgba(245,158,11,.10)}.dark .row-aduana-excedida{background:rgba(220,38,38,.18)}
+  /* ===== Guia (só consulta) ===== */
+  .guia-aviso{font-size:12px;color:var(--muted);margin:-4px 0 10px;}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;}
+  .chip{flex:0 0 auto;padding:8px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface-alt);font-weight:800;font-size:12px;color:var(--navy-700);cursor:pointer;white-space:nowrap;}
+  .chip.ativa{border-color:var(--teal-600);background:#F0FBFC;color:var(--teal-600);}
+  .chip .c{font-weight:700;opacity:.75;margin-left:3px;}
+  .guia-busca{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface-alt);font:600 14px 'Inter',sans-serif;color:var(--navy-900);margin-bottom:10px;}
+  .guia-onda{margin-top:12px;}
+  .guia-onda-head{display:flex;align-items:center;justify-content:space-between;background:var(--navy-900);color:#fff;border-radius:8px;padding:7px 10px;font-weight:800;font-size:12px;letter-spacing:.04em;text-transform:uppercase;}
+  .guia-onda-head span{font-weight:700;font-size:11px;opacity:.8;text-transform:none;letter-spacing:0;}
+  .guia-row{display:grid;grid-template-columns:auto 1fr auto;gap:4px 9px;align-items:center;padding:9px 4px;border-bottom:1px dashed var(--border);}
+  .guia-row:last-child{border-bottom:none;}
+  .guia-rota{font:800 14px 'Roboto Mono',monospace;}
+  .guia-transp{font-size:12px;font-weight:700;color:var(--navy-700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .guia-transp small{color:var(--muted);font-weight:600;}
+  .guia-st{font-size:10.5px;font-weight:800;padding:4px 7px;border-radius:6px;white-space:nowrap;}
+  .guia-st.aguardando{background:#F1F5F9;color:#475569;}
+  .guia-st.navaga{background:#DBEAFE;color:#1E40AF;}
+  .guia-st.aduana{background:#F3E8FF;color:#7E22CE;}
+  .guia-det{grid-column:1 / -1;font-size:11.5px;color:var(--muted);line-height:1.45;}
+  .guia-det b{color:var(--navy-700);}
+  .tag-mini{display:inline-block;font-size:9.5px;font-weight:900;padding:2px 6px;border-radius:5px;margin-right:4px;}
+  .tag-saca{background:#FFF7ED;color:#9A3412;border:1px solid #FED7AA;}
+  .tag-pac{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0;}
+  .tag-vuc{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;}
 
-  /* ===== Planejamento do dia / importação ===== */
-  .planning-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(14,42,71,.04)}
-  .planning-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
-  .planning-head h2{margin:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--navy-700)}
-  .planning-head p{margin:3px 0 0;font-size:9px;color:var(--muted);line-height:1.35}
-  .planning-badge{font-size:8px;font-weight:900;padding:4px 7px;border-radius:999px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;white-space:nowrap}
-  .planning-upload{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:7px;align-items:center}
-  .planning-upload input[type=file]{width:100%;min-width:0;font-size:9px;padding:6px 7px}
-  .planning-upload button{padding:7px 10px;font-size:9px;border-radius:7px}
-  .planning-status{font-size:9px;color:var(--muted);margin-top:7px;min-height:13px}
-  .planning-card .map-box{padding:10px;margin-top:9px}
-  .planning-card .map-box h3{font-size:9.5px}
-  .planning-card .map-row{margin-bottom:5px;gap:7px}
-  .planning-card .map-row label{min-width:115px;font-size:9px}
-  .planning-card .map-row select{padding:6px 8px;font-size:9px;min-width:140px}
-  .planning-card .pendente{font-size:9px;padding:8px 9px;margin-top:8px}
-  .planning-card .pendente .row{gap:5px}.planning-card .pendente select,.planning-card .pendente button{font-size:8.5px;padding:5px 7px}
-  .dark .planning-badge{background:rgba(37,99,235,.14);border-color:rgba(96,165,250,.35);color:#93C5FD}
-  @media(max-width:760px){.planning-upload{grid-template-columns:1fr 1fr}.planning-upload input[type=file]{grid-column:1/-1}}
-
-
-  .cycle-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px;}
-  .cycle-card{border:1px solid var(--border);background:var(--surface-alt);border-radius:10px;padding:12px;}
-  .cycle-card h3{margin:0 0 4px;font-size:15px;color:var(--navy-900);}
-  .cycle-card p{margin:0 0 9px;font-size:11px;color:var(--muted);}
-  .cycle-card input{width:100%;font-size:11px;margin-bottom:7px;}
-  .cycle-actions{display:flex;gap:6px;flex-wrap:wrap;}
-  .cycle-actions button{padding:7px 9px;font-size:11px;}
-  .cycle-state{font-size:10.5px;color:var(--muted);margin-top:7px;min-height:28px;}
-  .cycle-summary{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-  .cycle-pill{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;}
-  .sacas-table-wrap{overflow:auto;max-height:260px;}
-  .sacas-table{width:100%;border-collapse:collapse;font-size:11px;}
-  .sacas-table th,.sacas-table td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
-  .sacas-table th{font-size:9px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;}
-  @media(max-width:900px){.cycle-grid{grid-template-columns:repeat(2,1fr);}}
-
-
-  /* ===== Upload discreto de planejamento ===== */
-  .planning-compact{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:10px;display:grid;grid-template-columns:minmax(260px,1.25fr) auto;gap:8px 12px;align-items:center}
-  .upload-drop{min-height:48px;border:1px dashed #38a3ff;border-radius:8px;display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;background:rgba(56,163,255,.035);transition:.15s}
-  .upload-drop:hover{background:rgba(56,163,255,.08);border-color:#0e7c86}
-  .upload-icon{width:34px;height:34px;border-radius:8px;border:1px solid rgba(56,163,255,.35);display:grid;place-items:center;font-size:20px;font-weight:800;color:#258be3;background:rgba(56,163,255,.07)}
-  .upload-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
-  .upload-copy b{font-size:11.5px;color:var(--navy-900)}
-  .upload-copy span{font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
-  .cycle-picker{display:flex;align-items:center;gap:6px;white-space:nowrap}
-  .cycle-picker label{font-size:9.5px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.05em}
-  .cycle-picker select{height:34px;border:1px solid var(--border);border-radius:7px;background:var(--surface-alt);color:var(--navy-900);font-weight:800;padding:0 28px 0 9px}
-  .cycle-picker button{height:34px;border-radius:7px;padding:0 11px;font-size:10.5px;font-weight:800;cursor:pointer}
-  .upload-go{border:0;background:var(--navy-900);color:#fff}
-  .upload-clear{border:1px solid var(--border);background:var(--surface);color:var(--muted)}
-  .cycle-summary{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
-  .cycle-pill{font-size:9.5px;border:1px solid var(--border);border-radius:20px;padding:3px 8px;color:var(--muted);background:var(--surface-alt)}
-  .cycle-pill strong{color:var(--navy-900)}
-  .compact-state{grid-column:1/-1;font-size:9.5px;color:var(--muted);min-height:12px}
-  @media(max-width:760px){.planning-compact{grid-template-columns:1fr}.cycle-picker{flex-wrap:wrap}.upload-copy span{max-width:240px}}
-
-  /* ===== Resumo de planejamento por rua/transportadora ===== */
-  .planning-detail-card{padding:10px 12px!important}
-  .planning-sub{font-size:9.5px;color:var(--muted);margin-top:2px}
-  .planning-cycle-filter{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:800;text-transform:uppercase;color:var(--muted)}
-  .planning-cycle-filter select{height:29px;border:1px solid var(--border);background:var(--surface-alt);color:var(--navy-900);border-radius:7px;font-weight:800;padding:0 25px 0 8px}
-  .planning-area-tabs{display:flex;gap:5px;flex-wrap:wrap;margin:9px 0 8px}
-  .area-tab{border:1px solid var(--border);background:var(--surface-alt);color:var(--navy-700);border-radius:999px;padding:5px 9px;font-size:9.5px;font-weight:800;cursor:pointer}
-  .area-tab.active{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
-  .transp-plan-block{border:1px solid var(--border);border-radius:8px;margin-bottom:7px;overflow:hidden;background:var(--surface)}
-  .transp-plan-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;background:var(--surface-alt);border-bottom:1px solid var(--border)}
-  .transp-plan-name{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:900}
-  .transp-plan-count{font-size:9px;color:var(--muted);font-weight:800}
-  .transp-plan-table{width:100%;border-collapse:collapse;font-size:10px}
-  .transp-plan-table th{font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)}
-  .transp-plan-table td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top}
-  .transp-plan-table tr:last-child td{border-bottom:0}
-  .transp-plan-table .rota{font-family:'Roboto Mono',monospace;font-weight:800}
-  .transp-plan-table .parada{font-weight:800;color:var(--teal-600)}
-  .onda-chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 6px;background:var(--surface-alt);font-size:8.5px;font-weight:800}
-  .saca-mark{font-size:8px;font-weight:900;padding:2px 5px;border-radius:4px;background:#FFF7ED;color:#9A3412;border:1px solid #FED7AA}
-  .saca-lista{margin-top:4px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:7px;padding:6px 8px}
-  .saca-lista-head{font-size:8px;font-weight:900;letter-spacing:.05em;color:#9A3412;text-transform:uppercase;margin-bottom:3px}
-  .saca-lista-item{font-size:11px;font-weight:800;color:#9A3412;line-height:1.6}
-
-  /* ===== Planejamento na lateral direita ===== */
-  .coord-main{grid-template-columns:minmax(0,1fr) 390px;gap:10px}
-  .coord-rail{display:flex;flex-direction:column;gap:10px;min-width:0}
-  .rail-top-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:8px}
-  .rail-top-grid .rail-card{min-width:0}
-  .transportadoras-rail{padding:10px}
-  .transportadoras-rail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
-  .transportadoras-rail-head h3{margin:0 0 2px}
-  .rail-sub{font-size:9px;color:var(--muted)}
-  .transportadoras-rail-head select{height:30px;border:1px solid var(--border);border-radius:7px;background:var(--surface-alt);color:var(--navy-900);font-size:10.5px;font-weight:800;padding:0 24px 0 7px}
-  .rail-area-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:5px}
-  .rail-area-tabs .area-tab{flex:0 0 auto;padding:5px 7px;font-size:9px;border-radius:6px}
-  .transportadoras-stack{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow-y:auto;padding-right:2px}
-  .transportadoras-stack .transp-plan-block{border:2px solid #1F2937;border-radius:8px;background:var(--surface-alt);overflow:hidden;margin:0}
-  .transportadoras-stack .transp-plan-head{padding:8px 9px;background:var(--surface);border-bottom:1px solid var(--border)}
-  .transportadoras-stack .transp-plan-name{font-size:12.5px;font-weight:800}
-  .transportadoras-stack .transp-plan-count{font-size:9px}
-  .transportadoras-stack .transp-plan-table{width:100%;font-size:10px;margin:0}
-  .transportadoras-stack .transp-plan-table th,.transportadoras-stack .transp-plan-table td{padding:5px 7px;white-space:normal;vertical-align:top}
-  .transportadoras-stack .transp-plan-table th{font-size:8px}
-  .transportadoras-stack .transp-plan-table td.rota{font-size:10.5px}
-  .transportadoras-stack .onda-chip{font-size:8px;padding:2px 5px}
-  @media(max-width:1180px){.coord-main{grid-template-columns:minmax(0,1fr) 340px}.rail-top-grid{grid-template-columns:1fr}.transportadoras-stack{max-height:440px}}
-  @media(max-width:900px){.coord-main{grid-template-columns:1fr}.coord-rail{display:grid;grid-template-columns:1fr}.transportadoras-stack{max-height:none}.rail-top-grid{grid-template-columns:1fr 1fr}}
-
-  /* ===== Planejamento lateral em acordeão compacto ===== */
-  .transportadoras-stack{display:block;max-height:520px;overflow-y:auto;padding-right:5px}
-  .transp-accordion{border-bottom:1px solid var(--border)}
-  .transp-accordion:last-child{border-bottom:0}
-  .transp-accordion-head{
-    width:100%;display:grid;grid-template-columns:18px 28px minmax(0,1fr) auto;
-    align-items:center;gap:7px;padding:8px 3px;background:transparent;border:0;
-    color:var(--navy-900);cursor:pointer;text-align:left
-  }
-  .transp-accordion-head:hover{background:var(--surface-alt)}
-  .transp-arrow{font-size:12px;color:var(--muted);transition:transform .16s ease;text-align:center}
-  .transp-accordion.open .transp-arrow{transform:rotate(90deg)}
-  .transp-accordion .sigla-badge-sm{display:inline-grid;place-items:center;min-width:27px;height:20px;padding:0 4px}
-  .transp-accordion-name{font-size:11.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .transp-accordion-count{font-size:9px;color:var(--muted);font-weight:800;white-space:nowrap}
-  .transp-accordion-body{display:none;padding:0 2px 8px 53px}
-  .transp-accordion.open .transp-accordion-body{display:block}
-  .route-columns-head,.route-columns-row{
-    display:grid;grid-template-columns:minmax(0,1.25fr) minmax(62px,.85fr) minmax(52px,.6fr);
-    gap:8px;align-items:center
-  }
-  .route-columns-head{padding:4px 0;border-bottom:1px solid var(--border);font-size:7.5px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-  .route-columns-row{padding:5px 0;border-bottom:1px dashed var(--border);font-size:9.5px}
-  .route-columns-row:last-child{border-bottom:0}
-  .route-columns-row .rota{font-family:'Roboto Mono',monospace;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .route-columns-row .onda{font-weight:700;color:var(--navy-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .route-columns-row .paradas{font-weight:900;color:var(--teal-600);text-align:left}
-  .transportadoras-stack .transp-plan-block{display:none!important}
-
-
-  /* ===== Agrupamento por onda ===== */
-  .onda-section{margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:7px}
-  .onda-section:last-child{border-bottom:0;margin-bottom:0}
-  .onda-section-title{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:6px 4px 7px;font-size:10px;font-weight:900;
-    color:var(--navy-900);text-transform:uppercase;letter-spacing:.07em
-  }
-  .onda-section-title .qtd{font-size:8.5px;color:var(--muted);font-weight:800;text-transform:none;letter-spacing:0}
-  .route-columns-head.wave-rows,.route-columns-row.wave-rows{
-    grid-template-columns:minmax(0,1.5fr) minmax(55px,.65fr);
-  }
-  .route-columns-row.wave-rows .paradas{text-align:left}
-
+  .aviso-tabela{padding:10px 12px;border-radius:9px;background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:12px;font-weight:700;margin-bottom:10px;line-height:1.45;}
+  .guia-vaga{display:inline-block;font:800 9px 'Inter',sans-serif;padding:2px 5px;border-radius:5px;margin-left:4px;vertical-align:1px;}
+  .guia-vaga.navaga{background:#DBEAFE;color:#1E40AF;}
+  .guia-vaga.aduana{background:#F3E8FF;color:#7E22CE;}
+  .pac-mark{display:inline-block;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0;margin-left:4px;}
+  .guia-legenda{font-size:11px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<div class="wrap" id="topo">
-  <div class="svc-topbar">
-    <div class="svc-topbar-left"><div><small>Painel de acompanhamento</small><strong>SVC · Coordenação Operacional</strong></div></div>
-    <div class="svc-top-actions"><span class="sys-chip"><i class="online-dot"></i>APP CONECTADO</span><span class="sys-chip"><i class="online-dot"></i>PAINEL SINCRONIZADO</span><button id="themeToggle" onclick="toggleTheme()">◐ Tema escuro</button></div>
-  </div>
-  <header>
-    <div><h1>Visão Geral SVC · SD</h1><p>Acompanhamento em tempo real das rotas nas vagas, cronômetro de 30 min e ocorrências de Aduana</p></div>
-    <div class="coord-badge"><i class="online-dot"></i> VISÃO COORDENAÇÃO · TODAS AS RUAS</div>
-  </header>
-
-  <div class="kpis" id="kpis"></div>
-
-  <div class="lideres-panel" id="lideresPanel"></div>
-
-  <div class="planning-compact">
-    <div class="upload-drop" onclick="document.getElementById('planilhaFile_UNICO').click()">
-      <div class="upload-icon">⇧</div>
-      <div class="upload-copy"><b>Planilha de planejamento</b><span id="uploadHint">Clique ou arraste o arquivo CSV/XLSX aqui</span></div>
-      <input type="file" id="planilhaFile_UNICO" accept=".xlsx,.xls,.csv" hidden onchange="arquivoSelecionadoUnico()">
+<div id="entrada">
+  <div class="box">
+    <h1>Líder de Rua · SVC-SD</h1>
+    <p class="hint">Escolha sua rua e coloque seu nome pra começar. Isso aparece na visão geral da coordenação.</p>
+    <div class="campo">
+      <label>Sua rua</label>
+      <div class="rua-opcoes" id="ruaOpcoes"></div>
     </div>
-    <div class="cycle-picker">
-      <label for="cicloUpload">Ciclo</label>
-      <select id="cicloUpload">
-        <option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option>
-      </select>
-      <button class="upload-go" onclick="processarUploadUnico()">Importar</button>
-      <button class="upload-clear" onclick="limparCicloSelecionado()">Limpar ciclo</button>
+    <div class="campo">
+      <label>Seu nome</label>
+      <input id="nomeInput" placeholder="Ex: Ana Paula" autocomplete="off">
     </div>
-    <div class="cycle-summary" id="cycleSummary"></div>
-    <div class="cycle-state compact-state" id="statusUploadUnico">Selecione o ciclo na seta e envie o planejamento correspondente.</div>
-  </div>
-  <div style="display:none"><div id="statusPlanilha"></div><div id="mapeamentoColunas"></div></div>
-
-  <div class="coord-main">
-    <main>
-      <div class="card" id="cardLayout">
-        <div class="layout-head"><div><h2>Layout operacional</h2><p class="hint" style="margin:3px 0 0">Mapa completo em proporção A4 para caber na tela do notebook sem cortar posições.</p></div><span class="layout-live">● TEMPO REAL</span></div>
-        <div class="folha-a4-wrap"><div class="folha-a4" id="folhaA4"><div class="floorplan-outer"><div class="floorplan" id="floorplan"></div></div></div></div>
-      </div>
-      <div class="monitor-card">
-        <div class="monitor-head">
-          <h2>Monitoramento geral das rotas</h2>
-          <div class="monitor-summary" id="monitorSummary"></div>
-        </div>
-        <div class="delay-alert" id="delayAlert"></div>
-        <div class="delay-alert aduana-alert" id="alertaAduanaCoord" style="display:none"></div>
-        <div class="route-table-wrap">
-          <table class="route-table">
-            <thead><tr><th>Rua</th><th>Transportadora</th><th>Rota</th><th>Vaga</th><th>Processo</th><th>Tempo</th></tr></thead>
-            <tbody id="routeMonitorBody"><tr><td colspan="6" class="empty">Nenhuma rota em processo.</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="monitor-card">
-        <div class="monitor-head"><h2>Sacas · área separada das ruas</h2><div class="monitor-summary" id="sacasSummary"></div></div>
-        <div class="sacas-table-wrap"><table class="sacas-table"><thead><tr><th>Ciclo</th><th>Transportadora</th><th>Rota/Saca</th><th>Onda</th><th>Paradas</th><th>Status</th></tr></thead><tbody id="sacasBody"><tr><td colspan="6" class="empty">Nenhuma saca carregada.</td></tr></tbody></table></div>
-      </div>
-      <div class="coordinator-detail">
-        <div class="card">
-          <h2>Consulta rápida</h2>
-          <div class="search-row"><input id="q" placeholder="Buscar rota, pacote, vaga ou transportadora..." autocomplete="off"><button onclick="buscar()">Buscar</button><button class="secondary" onclick="limpar()">Limpar</button></div>
-          <div id="detalhe" style="margin-top:10px"><div class="empty">Clique em uma vaga no mapa para consultar seus dados.</div></div>
-        </div>
-      </div>
-    </main>
-
-    <aside class="coord-rail">
-      <div class="rail-top-grid">
-        <div class="rail-card"><h3>Status das luzes</h3><div class="status-legend" id="statusLegendCoord"></div></div>
-        <div class="rail-card"><h3>Rotas em acompanhamento</h3><div class="route-live-list" id="routeLiveList"><div class="empty">Nenhuma rota ativa.</div></div></div>
-      </div>
-
-      <div class="rail-card transportadoras-rail">
-        <div class="transportadoras-rail-head">
-          <div><h3>Planejamento por transportadora</h3><div class="rail-sub">Rotas, ondas, paradas e sacas</div></div>
-          <select id="cicloResumo" onchange="renderResumoPlanejamentoCoord()">
-            <option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option>
-          </select>
-        </div>
-        <div class="planning-area-tabs rail-area-tabs" id="planningAreaTabs"></div>
-        <div id="resumoPlanejamentoCoord" class="transportadoras-stack"><div class="empty">Importe um planejamento para visualizar as transportadoras.</div></div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- elementos mantidos ocultos para compatibilidade com a lógica original -->
-  <div style="display:none">
-    <div id="perfilBadge"></div><div id="chamadosList"></div><div id="resumoRuas"></div><div id="legendaTransp"></div><div id="legendaStatus"></div><div id="botoesRua"></div><select id="chamarVaga"></select><input id="chamarRota"><div id="statusChamar"></div><div id="statusRotas"></div><div id="pendentes"></div><textarea id="rotasInput"></textarea><select id="linkSigla"></select><input id="linkNome"><div id="statusVinculo"></div><table><tbody id="tabelaVinculos"></tbody></table>
+    <button id="btnEntrar" onclick="entrar()" disabled>Entrar</button>
+    <div id="erroEntrada"></div>
+    <div class="ou">— ou —</div>
+    <button id="btnGuia" type="button" onclick="entrarGuia()">📖 Só consultar o guia de rotas</button>
+    <p class="hint" style="margin:6px 0 0;text-align:center">Mostra rotas e ondas por rua. Não comanda nada no painel.</p>
   </div>
 </div>
 
-<script>
+<div class="wrap" id="app" style="display:none;">
+  <header>
+    <div>
+      <div class="titulo" id="tituloRua"></div>
+      <div class="sub" id="subNome"></div>
+    </div>
+    <button class="trocar" onclick="trocar()">Trocar</button>
+  </header>
 
+  <div class="ciclo-bar"><label>Ciclo em operação</label><select id="cicloAtivoSelect" onchange="trocarCicloAtivo(this.value)"><option value="AUTO">Automático</option><option>AM1</option><option>PM1</option><option>SD</option><option>CHP</option></select></div>
+
+  <div class="abas" id="abas"></div>
+
+  <div id="abaOperacao">
+  <div id="alertaAduana" class="alerta-aduana-sirene" style="display:none;"></div>
+
+  <div class="kpis-mini" id="kpisMini"></div>
+
+  <div class="card">
+    <h2>Operação da vaga</h2>
+    <div class="busca-rota-wrap">
+      <input id="buscaRotaVaga" placeholder="Buscar rota que já está numa vaga (ex: B5, A2)..." oninput="buscarRotaVaga(this.value)" autocomplete="off">
+      <div class="busca-rota-hint" id="buscaRotaHint"></div>
+    </div>
+    <div class="vagas-grid" id="vagasGrid"></div>
+    <div class="painel-acao" id="painelAcao" style="display:none;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Rotas da sua rua, por onda</h2>
+    <div id="resumoLider"><div class="empty">Nenhuma rota importada ainda.</div></div>
+  </div>
+  </div><!-- /abaOperacao -->
+
+  <!-- ===== GUIA: só consulta, não grava nada ===== -->
+  <div id="abaGuia" style="display:none;">
+    <div class="card">
+      <h2>Guia de rotas · onde fica cada uma</h2>
+      <p class="guia-aviso">Só consulta — aqui nada é enviado pro painel.</p>
+      <div class="chips" id="guiaRuas"></div>
+      <input class="guia-busca" id="guiaBusca" placeholder="Buscar rota, bairro, transportadora ou pacote..." oninput="renderGuia()" autocomplete="off">
+      <div id="guiaConteudo"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
 // ================= SUPABASE =================
 const SUPABASE_URL = 'https://cnpcsovjomonctbggbac.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1lqP4jYYMR96Aq8DX-DSHA_JKcGESRt';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 function hojeISO(){ const d=new Date(); const off=d.getTimezoneOffset(); const local=new Date(d.getTime()-off*60000); return local.toISOString().slice(0,10); }
-function rowPlanejamentoToLocal(r){
+function planDbLocal(r){
   return {
     nRota:r.rota||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
     transportadora:(r.transportadora||'').toUpperCase(), onda:r.onda||'',
     parada:r.paradas||'', ponto:r.bairros||'', bairros:r.bairros||'',
     cluster:r.cluster||'', modal:r.modal||'', dataExp:r.data_operacao||'',
-    origem:'SUPABASE'
+    origem:'SUPABASE', criadoEm:r.created_at||r.criado_em||r.inserted_at||null
   };
 }
-function rowOperacaoToLocal(r){
+function opDbLocal(r){
   return {
     id:r.id, rua:r.rua, vaga:r.vaga, transportadora:r.transportadora,
     nRota:r.rota, ciclo:r.ciclo, status:r.status==='ADUANA'?'aduana':'rota_na_vaga',
@@ -507,29 +253,8 @@ function rowOperacaoToLocal(r){
     lider:r.lider||'', aduanaEm:r.aduana_em?new Date(r.aduana_em).getTime():null
   };
 }
-async function carregarSupabaseCoord(){
-  try{
-    const [p,o]=await Promise.all([
-      db.from('planejamento').select('*').eq('data_operacao',hojeISO()),
-      db.from('operacoes_vagas').select('*').eq('data_operacao',hojeISO()).neq('status','FINALIZADA')
-    ]);
-    if(p.error) throw p.error; if(o.error) throw o.error;
-    rotasData=(p.data||[]).map(rowPlanejamentoToLocal);
-    chamadosData=(o.data||[]).map(rowOperacaoToLocal);
-    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));localStorage.setItem(CHAMADOS_KEY,JSON.stringify(chamadosData));}catch(e){}
-    await carregarLideres();
-    renderTudo(); if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord();
-  }catch(e){ console.error('Supabase coord:',e); }
-}
-function iniciarRealtimeCoord(){
-  db.channel('svc-coordenacao')
-    .on('postgres_changes',{event:'*',schema:'public',table:'planejamento'},()=>carregarSupabaseCoord())
-    .on('postgres_changes',{event:'*',schema:'public',table:'operacoes_vagas'},()=>carregarSupabaseCoord())
-    .on('postgres_changes',{event:'*',schema:'public',table:'lideres_rua'},()=>carregarSupabaseCoord())
-    .subscribe();
-}
 
-// ================= DADOS BASE =================
+// ================= DADOS BASE (espelha o app principal) =================
 const CORES = {
   DC:{bg:'#22d3ee',fg:'#04222a'}, CM:{bg:'#22c55e',fg:'#052e12'}, OT:{bg:'#fde047',fg:'#2b2400'},
   EC:{bg:'#f3d9b1',fg:'#3a2a10'}, AL:{bg:'#0E2A47',fg:'#ffffff'}, HW:{bg:'#1e3a8a',fg:'#ffffff'},
@@ -539,7 +264,8 @@ const CORES = {
 };
 const STATUS_INFO = {
   livre:{label:'Livre', hex:'#94A3B8'}, ocupado:{label:'Ocupado', hex:'#2563EB'},
-  separacao:{label:'Em separação', hex:'#F5A524'}, problema:{label:'Problema', hex:'#DC2626'}
+  separacao:{label:'Em separação', hex:'#F5A524'}, problema:{label:'Problema', hex:'#DC2626'},
+  aduana:{label:'Aduana (recontagem)', hex:'#a855f7'}
 };
 function range(a,b){const r=[];for(let i=a;i<=b;i++)r.push(i);return r;}
 const vagasData = [];
@@ -557,1205 +283,563 @@ addVagas('Rua 3', [35,36,37,38,39,40,41], 'HW');
 addVagas('Rua 3', [42,43,44], 'KG');
 addVagas('Rua 3', range(45,65), 'ME');
 addVagas('Rua 4 - Expedição VUC', range(66,88), 'VUC');
-addVagas('Área VUC', range(89,97), 'VUC');
-const SIGLAS = Object.keys(CORES);
-const RUAS_ORDEM = ['Rua 1','Rua 2','Rua 3','Rua 4 - Expedição VUC','Área VUC'];
+const RUAS_LIDER = ['Rua 1','Rua 2','Rua 3','Rua 4 - Expedição VUC'];
+const RUA_SEM_VAGA = 'Direto no veículo (sem vaga)';
 
-// ================= PERFIL (quem está acessando) =================
-let perfil = 'COORD';
-const PERFIL_KEY = 'meu-perfil';
-function permitida(rua){ return perfil==='COORD' || perfil===rua; }
-async function carregarPerfil(){ perfil = 'COORD'; }
-async function definirPerfil(valor){ perfil = 'COORD'; renderTudo(); }
-function trocarPerfil(){}
-function popularBotoesRua(){
-  document.getElementById('botoesRua').innerHTML = RUAS_ORDEM.map(r=>`<button class="rua-btn" onclick="definirPerfil('${r}')">${r}</button>`).join('');
-}
-function renderPerfilBadge(){
-  const label = perfil==='COORD' ? 'Coordenação (todas as ruas)' : perfil;
-  document.getElementById('perfilBadge').innerHTML = `Você está em: <b>${escapeHtml(label)}</b> <button class="secondary" onclick="trocarPerfil()">Trocar</button>`;
-}
-
-// ================= VÍNCULOS (compartilhado) =================
-let vinculos = [];
-const VINC_KEY = 'vinculos-transportadoras';
 const DEFAULTS_VINCULOS = [
   {nome:'DECARGO', sigla:'DC'}, {nome:'COOPMETRO', sigla:'CM'}, {nome:'ECO EXPRESS', sigla:'EC'},
   {nome:'ALC', sigla:'AL'}, {nome:'HAWK', sigla:'HW'}, {nome:'KANGU', sigla:'KG'},
   {nome:'MELI EXTRA', sigla:'ME'}, {nome:'PARCEIRO', sigla:'PC'}, {nome:'ONTIME', sigla:'OT'},
   {nome:'DELUNA', sigla:'DL'}, {nome:'M.J SIMÕES', sigla:'MS'}, {nome:'PRALOG', sigla:'PL'}
 ];
-async function carregarVinculos(){
-  try{
-    if(window.storage && typeof window.storage.get==='function'){
-      const r=await window.storage.get(VINC_KEY,true); vinculos=r&&r.value?JSON.parse(r.value):[];
-    }else vinculos=JSON.parse(localStorage.getItem(VINC_KEY)||'[]');
-  }catch(e){ try{vinculos=JSON.parse(localStorage.getItem(VINC_KEY)||'[]')}catch(_){vinculos=[];} }
-  let mudou=false;
-  const antesLen = vinculos.length;
-  vinculos = vinculos.filter(v=>!(v.nome.toUpperCase()==='PRALOG' && v.sigla==='DC'));
-  if(vinculos.length !== antesLen) mudou = true;
-  DEFAULTS_VINCULOS.forEach(d=>{ if(!vinculos.some(v=>v.nome.toUpperCase()===d.nome.toUpperCase())){ vinculos.push(d); mudou=true; } });
-  if(mudou) await salvarVinculos();
-}
-async function salvarVinculos(){
-  const valor=JSON.stringify(vinculos);
-  try{ if(window.storage&&typeof window.storage.set==='function') await window.storage.set(VINC_KEY,valor,true); }catch(e){}
-  try{ localStorage.setItem(VINC_KEY,valor); }catch(e){}
-}
-function popularSelectSiglas(){ const el = document.getElementById('linkSigla'); if(el) el.innerHTML = SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join(''); }
-async function adicionarVinculo(){
-  const nomeEl = document.getElementById('linkNome');
-  const nome = nomeEl.value.trim();
-  const sigla = document.getElementById('linkSigla').value;
-  const statusEl = document.getElementById('statusVinculo');
-  if(!nome){ statusEl.textContent = 'Digite o nome da transportadora.'; return; }
-  await carregarVinculos();
-  vinculos = vinculos.filter(v=>v.nome.toUpperCase()!==nome.toUpperCase());
-  vinculos.push({nome, sigla});
-  await salvarVinculos();
-  nomeEl.value='';
-  statusEl.textContent = `"${nome}" vinculado à sigla ${sigla}.`;
-  renderTudo();
-}
-async function removerVinculo(nome){
-  await carregarVinculos();
-  vinculos = vinculos.filter(v=>v.nome!==nome);
-  await salvarVinculos();
-  renderTudo();
-}
-function renderVinculos(){
-  const tbody = document.getElementById('tabelaVinculos');
-  if(!tbody) return;
-  if(!vinculos.length){ tbody.innerHTML = `<tr><td colspan="4" class="empty">Nenhum vínculo cadastrado.</td></tr>`; return; }
-  tbody.innerHTML = vinculos.map(v=>`<tr>
-      <td>${escapeHtml(v.nome)}</td><td>${v.sigla}</td><td>${ruaDaSigla(v.sigla)}</td>
-      <td><button class="danger" onclick="removerVinculo('${escapeHtml(v.nome).replace(/'/g,"\\'")}')">Remover</button></td>
-    </tr>`).join('');
-}
-const RUA_SEM_VAGA = 'Direto no veículo (sem vaga)';
-function ruaDaSigla(sigla){ const item = vagasData.find(v=>v.sigla===sigla); return item ? item.rua : RUA_SEM_VAGA; }
+
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function vinculoPorTransportadora(nome){ const up=(nome||'').toUpperCase().trim(); return vinculos.find(v=>v.nome.toUpperCase()===up); }
-
-// ================= ROTAS DO DIA (compartilhado) =================
-let rotasData = [];
-const ROTAS_KEY = 'rotas-importadas';
-async function carregarRotas(){
-  try{
-    const {data,error}=await db.from('planejamento').select('*').eq('data_operacao',hojeISO());
-    if(error) throw error;
-    rotasData=(data||[]).map(rowPlanejamentoToLocal);
-    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
-  }catch(e){
-    console.error('Erro ao carregar planejamento do Supabase:',e);
-  }
-}
-async function salvarRotas(cicloOverride){
-  try{
-    const ciclo=String(cicloOverride||cicloImportacao||'').toUpperCase();
-    if(!ciclo) return;
-    const {error:delErr}=await db.from('planejamento').delete().eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
-    if(delErr) throw delErr;
-
-    const vistos=new Set();
-    const itens=[];
-    rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo).forEach(r=>{
-      const item={
-        data_operacao:hojeISO(), ciclo,
-        transportadora:r.transportadora||null, rota:r.nRota,
-        onda:r.onda||null, paradas:r.parada||null, bairros:r.bairros||r.ponto||null,
-        cluster:r.cluster||null, modal:r.modal||null,
-        rua:(typeof areaDaRotaPlanejada==='function'?areaDaRotaPlanejada(r):null),
-        is_saca:String(r.tipoOperacao||'').toUpperCase()==='SACA',
-        origem_arquivo:'VIA_QUERY'
-      };
-      const k=[item.data_operacao,item.ciclo,item.transportadora||'',item.rota,item.onda||'',item.paradas||'',item.is_saca].join('|');
-      if(!vistos.has(k)){vistos.add(k);itens.push(item);}
-    });
-
-    // insere em lotes menores para facilitar planilhas grandes
-    for(let i=0;i<itens.length;i+=300){
-      const {error}=await db.from('planejamento').insert(itens.slice(i,i+300));
-      if(error) throw error;
-    }
-    rotasData=itens.map(rowPlanejamentoToLocal);
-    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
-  }catch(e){
-    console.error(e);
-    const el=document.getElementById('statusPlanilha')||document.getElementById('statusRotas')||document.getElementById('statusUploadUnico');
-    if(el) el.textContent='Erro ao salvar no Supabase: '+(e.message||e);
-    throw e;
-  }
-}
-
-function atualizarStatusRotas(){
-  document.getElementById('statusRotas').textContent = rotasData.length ? `${rotasData.length} linha(s) carregada(s).` : 'Nenhuma tabela importada ainda.';
-}
-function parseLinha(linha){
-  let cols;
-  if(linha.includes('|')) cols = linha.split('|');
-  else if(linha.includes('\t')) cols = linha.split('\t');
-  else return null;
-  cols = cols.map(c=>c.trim()).filter((c,i,arr)=> !(c==='' && (i===0 || i===arr.length-1)));
-  if(cols.length < 5) return null;
-  const [idPacote, nRota, parada, ponto, transportadora, onda] = cols;
-  if(!nRota) return null;
-  if((idPacote||'').toUpperCase().includes('ID DO PACOTE') || nRota.toUpperCase().includes('ROTA')) return null;
-  return { idPacote, nRota, parada: parada||'', ponto: ponto||'', transportadora:(transportadora||'').toUpperCase(), onda: onda||'' };
-}
-async function importarRotas(){
-  const raw = document.getElementById('rotasInput').value;
-  const linhas = raw.split('\n').map(l=>l.trim()).filter(Boolean);
-  const novas = [];
-  linhas.forEach(l=>{ const item = parseLinha(l); if(item) novas.push(item); });
-  if(!novas.length){ document.getElementById('statusRotas').textContent = 'Nenhuma linha válida encontrada.'; return; }
-  rotasData = rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==String(cicloImportacao||'').toUpperCase()).concat(novas);
-  await salvarRotas();
-  document.getElementById('rotasInput').value='';
-  renderTudo();
-  document.getElementById('statusRotas').textContent = `${novas.length} linha(s) importada(s) com sucesso.`;
-}
-async function limparRotas(){
-  rotasData = [];
-  try{
-    const {error}=await db.from('planejamento').delete().eq('data_operacao',hojeISO());
-    if(error) throw error;
-    try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
-  }catch(e){
-    console.error(e);
-    const el=document.getElementById('statusPlanilha')||document.getElementById('statusRotas')||document.getElementById('statusUploadUnico');
-    if(el) el.textContent='Erro ao limpar no Supabase: '+(e.message||e);
-    return;
-  }
-  document.getElementById('mapeamentoColunas').innerHTML='';
-  const sp=document.getElementById('statusPlanilha'); if(sp) sp.textContent='Planejamento removido. Nenhuma rota carregada.';
-  renderTudo();
-}
-
-// ================= IMPORTAÇÃO DE PLANILHA (.xlsx / .xls / .csv) =================
-const CAMPOS_ALVO = [
-  {key:'transportadora', label:'Transportadora', opcional:false, tipo:'mlpAtual',
-    aliases:['transportadora','carrier','operador','operadora','mlp']},
-  {key:'nRota', label:'Rota operacional (GAIOLA)', opcional:false, preferido:'gaiola',
-    aliases:['gaiola','n gaiola','nº gaiola','numero da gaiola','numero de gaiola','id da gaiola','id gaiola','cage','cage id','rota']},
-  {key:'onda', label:'Onda', opcional:true, preferido:'onda cadastrada',
-    aliases:['onda cadastrada','onda','ondas','wave','turno','tipo de onda']},
-  {key:'parada', label:'Paradas', opcional:true, preferido:'paradas',
-    aliases:['paradas','parada','nº parada','n parada','numero da parada','numero parada','stop']},
-  {key:'dataExp', label:'Data expedição', opcional:true, preferido:'data exp',
-    aliases:['data exp','data expedicao','data de expedicao','data']},
-  {key:'bairros', label:'Bairros', opcional:true, preferido:'bairros',
-    aliases:['bairros','bairro']},
-  {key:'cluster', label:'Cluster', opcional:true, preferido:'cluster',
-    aliases:['cluster']},
-  {key:'modal', label:'Modal', opcional:true, preferido:'modal',
-    aliases:['modal','veiculo','veículo']},
-  {key:'saca', label:'Saca', opcional:true, preferido:'saca', aliases:['saca']},
-  {key:'rotaPlanejamento', label:'Código do planejamento', opcional:true, tipo:'rotaPlanejamento',
-    aliases:['rota']}
-];
-let planilhaHeaders = [];
-let planilhaRows = [];
-let formatoViaQuery = false;
-let cicloImportacao = null;
-let inputImportacaoId = null;
-
-function normalizarHeader(h){
-  return String(h==null?'':h).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-}
-function detectarColuna(headersNorm, aliases){
-  for(let i=0;i<headersNorm.length;i++){ if(aliases.includes(headersNorm[i])) return i; }
-  for(let i=0;i<headersNorm.length;i++){ if(aliases.some(a=>headersNorm[i].includes(a))) return i; }
-  return -1;
-}
-function detectarColunaComPrioridade(headersNorm, campo){
-  if(campo.tipo==='mlpAtual'){
-    // VIA QUERY atual: a transportadora vem na primeira coluna chamada exatamente MLP.
-    // Mantém compatibilidade com versões antigas que usavam "MLP - data/hora".
-    let i=headersNorm.findIndex(h=>h==='mlp');
-    if(i!==-1) return i;
-    i=headersNorm.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
-    if(i!==-1) return i;
-  }
-  if(campo.tipo==='rotaPlanejamento'){
-    const indices=headersNorm.map((h,i)=>h==='rota'?i:-1).filter(i=>i>=0);
-    if(indices.length) return indices[0];
-  }
-  if(campo.preferido){
-    const i=headersNorm.findIndex(h=>h===campo.preferido);
-    if(i!==-1) return i;
-  }
-  return detectarColuna(headersNorm, campo.aliases);
-}
-function encontrarLinhaCabecalho(rows){
-  for(let i=0;i<Math.min(rows.length,15);i++){
-    const norm=(rows[i]||[]).map(normalizarHeader);
-    if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas') && norm.some(h=>h==='mlp' || /^mlp\s*-\s*\d/.test(h))){
-      formatoViaQuery=true;
-      return i;
-    }
-  }
-  formatoViaQuery=false;
-  let melhorIdx = 0, melhorScore = -1;
-  for(let i=0;i<Math.min(rows.length,15);i++){
-    const norm = (rows[i]||[]).map(normalizarHeader);
-    let score = 0;
-    CAMPOS_ALVO.forEach(c=>{ if(detectarColunaComPrioridade(norm,c) !== -1) score++; });
-    if(score>melhorScore){ melhorScore=score; melhorIdx=i; }
-  }
-  return melhorIdx;
-}
-
-
-function parseCSVNativo(texto){
-  texto = String(texto || '').replace(/^\uFEFF/, '');
-  const rows = [];
-  let row = [], field = '', inQuotes = false;
-  for(let i=0;i<texto.length;i++){
-    const ch = texto[i];
-    if(inQuotes){
-      if(ch === '"'){
-        if(texto[i+1] === '"'){ field += '"'; i++; }
-        else inQuotes = false;
-      }else{
-        field += ch;
-      }
-    }else{
-      if(ch === '"') inQuotes = true;
-      else if(ch === ','){ row.push(field); field = ''; }
-      else if(ch === '\n'){
-        row.push(field); field = '';
-        if(row.some(v=>String(v).trim()!=='')) rows.push(row);
-        row = [];
-      }else if(ch !== '\r'){
-        field += ch;
-      }
-    }
-  }
-  row.push(field);
-  if(row.some(v=>String(v).trim()!=='')) rows.push(row);
-  return rows;
-}
-
-async function processarPlanilha(ciclo,inputId){
-  cicloImportacao = ciclo; inputImportacaoId = inputId;
-  const fileInput = document.getElementById(inputId);
-  const statusEl = document.getElementById('statusPlanilha');
-  document.getElementById('mapeamentoColunas').innerHTML = '';
-  if(!fileInput || !fileInput.files.length){ statusEl.textContent = `Selecione o arquivo do ciclo ${ciclo||''}.`; return; }
-  const file = fileInput.files[0];
-  statusEl.textContent = `Lendo planejamento ${ciclo||''}…`;
-  try{
-    const ehCsv = /\.csv$/i.test(file.name);
-    let wb;
-    let rows = [];
-    let nomeAba = 'CSV';
-    if(ehCsv){
-      // CSV VIA QUERY: leitura nativa, sem depender da biblioteca XLSX/CDN.
-      const buf = await file.arrayBuffer();
-      const texto = new TextDecoder('utf-8').decode(buf);
-      rows = parseCSVNativo(texto);
-    }else{
-      if(typeof XLSX === 'undefined'){
-        throw new Error('Biblioteca XLSX indisponível. Para .xlsx/.xls é necessário acesso à biblioteca externa.');
-      }
-      const buf = await file.arrayBuffer();
-      wb = XLSX.read(buf, {type:'array'});
-      nomeAba = wb.SheetNames[0];
-      const sheet = wb.Sheets[nomeAba];
-      rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
-    }
-    if(!rows.length){ statusEl.textContent = 'A planilha parece estar vazia.'; return; }
-    const headerIdx = encontrarLinhaCabecalho(rows);
-    planilhaHeaders = (rows[headerIdx]||[]).map(h=>String(h==null?'':h).trim());
-    planilhaRows = rows.slice(headerIdx+1).filter(r=>r.some(c=>String(c==null?'':c).trim()!==''));
-    if(!planilhaRows.length){ statusEl.textContent = 'Não encontramos linhas de dados abaixo do cabeçalho.'; return; }
-    renderMapeamentoColunas();
-    statusEl.textContent = formatoViaQuery
-      ? `Formato VIA QUERY reconhecido · ${planilhaRows.length} linha(s) lidas. GAIOLA será usada como rota e a coluna MLP com data/hora como transportadora. Confira e confirme.`
-      : `Lido "${nomeAba}" · ${planilhaRows.length} linha(s) de dados encontradas. Confira o mapeamento abaixo e confirme a importação.`;
-  }catch(e){
-    console.error('Erro ao ler planejamento:', e);
-    statusEl.textContent = 'Erro ao ler o arquivo: ' + (e && e.message ? e.message : 'formato não reconhecido.');
-  }
-}
-
-function renderMapeamentoColunas(){
-  const el = document.getElementById('mapeamentoColunas');
-  const headersNorm = planilhaHeaders.map(normalizarHeader);
-  const opcoes = planilhaHeaders.map((h,i)=>({idx:i, label: h ? h : `Coluna ${i+1} (sem nome)`}));
-  el.innerHTML = `<div class="map-box">
-    <h3>Confirme as colunas</h3>
-    <p class="hint">A planilha original não é alterada — só lemos os valores dessas colunas para dentro do painel.</p>
-    ${formatoViaQuery?`<div style="padding:9px 11px;margin:8px 0 12px;border:1px solid #A7F3D0;background:#ECFDF5;border-radius:8px;font-size:12px;color:#065F46;font-weight:700">✓ Formato VIA QUERY reconhecido: GAIOLA = rota operacional · MLP com data/hora = transportadora · ONDA CADASTRADA = onda · PARADAS = total de paradas.</div>`:''}
-    ${CAMPOS_ALVO.map(c=>{
-      const detectado = detectarColunaComPrioridade(headersNorm, c);
-      return `<div class="map-row">
-        <label>${c.label}${c.opcional?' (opcional)':''}</label>
-        <select id="map-${c.key}">
-          <option value="-1" ${detectado===-1?'selected':''}>— não usar —</option>
-          ${opcoes.map(o=>`<option value="${o.idx}" ${o.idx===detectado?'selected':''}>${escapeHtml(o.label)}</option>`).join('')}
-        </select>
-      </div>`;
-    }).join('')}
-    <div class="rotas-actions">
-      <button onclick="confirmarImportacaoPlanilha()">Confirmar e importar</button>
-      <button class="secondary" onclick="document.getElementById('mapeamentoColunas').innerHTML=''">Cancelar</button>
-    </div>
-  </div>`;
-}
-
-// Nas planilhas exportadas assim, a linha da rota-mãe já traz nos Bairros um texto tipo
-// "ROTA MÃE - 10 SACAS - 85, 87, 90, 92, 94, 98, 100, 101, 102, 103" — é essa lista que manda.
-// A VIA QUERY de 22/09/2026 passou a vir SEM a quantidade: "ROTA MÃE -  SACAS - 108, 109, ..."
-// por isso o número agora é opcional (se não vier, a quantidade é o tamanho da lista).
-const REGEX_ROTA_MAE = /ROTA\s*M[ÃA]E\s*-\s*(\d*)\s*SACAS?\s*-\s*(.+)/i;
-// Saca que veio escrita diferente: GAIOLA com o código (ex: PM1_103_14) em vez de "SACA".
-// Se o código do planejamento for <rota-mãe>_<número> (ex: PM1_103_14 da mãe PM1_103), é saca dela.
-function ehSacaDaRotaMae(rotaPlan, rotaMaePlan){
-  if(!rotaPlan || !rotaMaePlan) return false;
-  const a=String(rotaPlan).trim().toUpperCase(), m=String(rotaMaePlan).trim().toUpperCase();
-  return a.startsWith(m+'_') && /^\d+$/.test(a.slice(m.length+1));
-}
-function extrairSacasDoTexto(texto){
-  const m = String(texto||'').match(REGEX_ROTA_MAE);
-  if(!m) return null;
-  const lista = m[2].split(',').map(s=>s.trim()).filter(Boolean);
-  return {qtd: parseInt(m[1],10)||lista.length, lista};
-}
-async function confirmarImportacaoPlanilha(){
-  const statusEl = document.getElementById('statusPlanilha');
-  const idx = {};
-  CAMPOS_ALVO.forEach(c=>{ idx[c.key] = parseInt(document.getElementById(`map-${c.key}`).value, 10); });
-  if(idx.nRota < 0 || idx.transportadora < 0){
-    statusEl.textContent = 'É necessário indicar Transportadora e Rota operacional (GAIOLA).';
-    return;
-  }
-  const pegar = (row, i) => i>=0 ? String(row[i]==null?'':row[i]).trim() : '';
-  const novas = [];
-  let ignoradas=0, sacasDetalheIgnoradas=0;
-  // Enquanto varre as linhas em ordem: se uma linha de GAIOLA="SACA" aparecer sem uma lista de
-  // sacas já ter sido extraída da linha-mãe anterior (fallback pra planilha fora do padrão),
-  // ela herda a rota da última linha-mãe vista.
-  let ultimaRotaMae = null, ultimaRotaMaeTransp = null, ultimaRotaMaeTeveLista = false, ultimaRotaMaePlan = null;
-  planilhaRows.forEach((row,rowIndex)=>{
-    const gaiola = pegar(row, idx.nRota); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
-    const rotaPlanejamento = pegar(row, idx.rotaPlanejamento); // número sequencial da planilha (ex: AM1_1) — não é o identificador usado no app
-    const transportadora = pegar(row, idx.transportadora).toUpperCase();
-    const bairrosBruto = pegar(row, idx.bairros);
-    const ehLinhaDetalheSaca = String(gaiola).toUpperCase()==='SACA' ||
-      (ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transportadora && ehSacaDaRotaMae(rotaPlanejamento, ultimaRotaMaePlan));
-
-    if(ehLinhaDetalheSaca){
-      // Linha de detalhe (bairro/paradas de UMA saca) — se a rota-mãe já trouxe a lista completa
-      // no texto "ROTA MÃE...", essa linha de detalhe é redundante e não vira item separado.
-      if(ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transportadora){ sacasDetalheIgnoradas++; return; }
-      // Fallback: planilha sem o texto "ROTA MÃE" — usa a rota da última linha-mãe vista.
-      const nRota = (ultimaRotaMaeTransp===transportadora && ultimaRotaMae) ? ultimaRotaMae : gaiola;
-      if(!nRota || !transportadora || transportadora==='#N/A'){ ignoradas++; return; }
-      novas.push({
-        idPacote:'', nRota, gaiola, ciclo:cicloImportacao||'', tipoOperacao:'SACA',
-        transportadora, onda: pegar(row, idx.onda), parada: rotaPlanejamento||gaiola,
-        ponto:'', bairros:'', cluster: pegar(row, idx.cluster), modal: pegar(row, idx.modal),
-        dataExp: pegar(row, idx.dataExp), rotaPlanejamento, origem:'VIA_QUERY', linhaOrigem:rowIndex+1
-      });
-      return;
-    }
-
-    // Linha de rota normal (a rota-mãe de um lote de sacas também cai aqui).
-    if(!gaiola || !transportadora || transportadora==='#N/A' || gaiola==='#N/A'){ ignoradas++; return; }
-    const infoSacas = extrairSacasDoTexto(bairrosBruto);
-    ultimaRotaMae = gaiola; ultimaRotaMaeTransp = transportadora; ultimaRotaMaeTeveLista = !!infoSacas; ultimaRotaMaePlan = rotaPlanejamento;
-    novas.push({
-      idPacote:'',
-      nRota: gaiola,
-      gaiola,
-      ciclo:cicloImportacao||'',
-      tipoOperacao:'ROTA',
-      transportadora,
-      onda: pegar(row, idx.onda),
-      parada: pegar(row, idx.parada),
-      ponto: infoSacas ? '' : bairrosBruto,
-      bairros: infoSacas ? '' : bairrosBruto,
-      cluster: pegar(row, idx.cluster),
-      modal: pegar(row, idx.modal),
-      dataExp: pegar(row, idx.dataExp),
-      rotaPlanejamento,
-      origem:'VIA_QUERY',
-      linhaOrigem:rowIndex+1
-    });
-    if(infoSacas){
-      infoSacas.lista.forEach((numSaca,i)=>{
-        novas.push({
-          idPacote:'', nRota: gaiola, gaiola: gaiola+'_SACA_'+(i+1), ciclo:cicloImportacao||'', tipoOperacao:'SACA',
-          transportadora, onda: pegar(row, idx.onda), parada: numSaca,
-          ponto:'', bairros:'', cluster: pegar(row, idx.cluster), modal: pegar(row, idx.modal),
-          dataExp: pegar(row, idx.dataExp), rotaPlanejamento, origem:'VIA_QUERY', linhaOrigem:rowIndex+1
-        });
-      });
-    }
-  });
-  if(!novas.length){
-    statusEl.textContent = 'Nenhuma rota válida com GAIOLA e transportadora preenchidas foi encontrada.';
-    return;
-  }
-  rotasData = rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==String(cicloImportacao||'').toUpperCase()).concat(novas);
-  await salvarRotas();
-  document.getElementById('mapeamentoColunas').innerHTML = '';
-  if(inputImportacaoId && document.getElementById(inputImportacaoId)) document.getElementById(inputImportacaoId).value = '';
-  renderTudo();
-  const unicas=new Set(novas.map(r=>r.nRota)).size;
-  const sacas=novas.filter(r=>r.tipoOperacao==='SACA').length;
-  statusEl.textContent = `Ciclo ${cicloImportacao}: ${novas.length} linha(s) válidas · ${unicas} rota(s)/saca(s) · ${sacas} saca(s) · ${ignoradas} ignorada(s)${sacasDetalheIgnoradas?` · ${sacasDetalheIgnoradas} linha(s) de detalhe de saca já cobertas pela lista da rota-mãe`:''}.`;
-  const ce=document.getElementById('statusCiclo_'+cicloImportacao); if(ce) ce.textContent=`${unicas} itens · ${sacas} sacas · carregado agora`;
-  renderPendentes();
-}
-async function limparCiclo(ciclo){
-  rotasData=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==String(ciclo).toUpperCase());
-  await salvarRotas(ciclo);
-  const el=document.getElementById('statusCiclo_'+ciclo); if(el) el.textContent='Planejamento removido.';
-  const sp=document.getElementById('statusPlanilha'); if(sp) sp.textContent=`Planejamento ${ciclo} removido sem alterar os outros ciclos.`;
-  renderTudo();
-}
-function renderCiclosPlanejamento(){
-  ['AM1','PM1','SD','CHP'].forEach(c=>{
-    const itens=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===c);
-    const unicos=new Set(itens.map(r=>r.nRota));
-    const sacas=itens.filter(r=>r.tipoOperacao==='SACA').length;
-    const el=document.getElementById('statusCiclo_'+c);
-    if(el && itens.length) el.textContent=`${unicos.size} itens · ${sacas} sacas`;
-  });
-}
-function renderSacas(){
-  const body=document.getElementById('sacasBody'); const sum=document.getElementById('sacasSummary'); if(!body) return;
-  const sacas=rotasData.filter(r=>r.tipoOperacao==='SACA');
-  if(sum) sum.innerHTML=['AM1','PM1','SD','CHP'].map(c=>`<span class="cycle-pill">${c}: ${sacas.filter(r=>r.ciclo===c).length}</span>`).join('');
-  if(!sacas.length){body.innerHTML='<tr><td colspan="6" class="empty">Nenhuma saca carregada.</td></tr>';return;}
-  function ordemOndaSaca(label){
-    const l=String(label||'').trim();
-    if(!l) return 9999;
-    const m=l.match(/(\d+)/);
-    return m ? parseInt(m[1],10) : 9998;
-  }
-  body.innerHTML=sacas.slice().sort((a,b)=>
-    String(a.ciclo).localeCompare(String(b.ciclo))
-    || (ordemOndaSaca(a.onda)-ordemOndaSaca(b.onda))
-    || String(a.onda||'').localeCompare(String(b.onda||''),'pt-BR',{numeric:true})
-    || String(a.transportadora).localeCompare(String(b.transportadora))
-    || String(a.nRota||'').localeCompare(String(b.nRota||''),'pt-BR',{numeric:true})
-  ).map(r=>`<tr><td><b>${escapeHtml(r.ciclo||'—')}</b></td><td>${escapeHtml(r.transportadora||'—')}</td><td><b>${escapeHtml(r.nRota||'—')}</b></td><td>${escapeHtml(r.onda||'—')}</td><td>${escapeHtml(r.parada||'—')}</td><td>Planejada</td></tr>`).join('');
-}
-
-function renderPendentes(){
-  const el = document.getElementById('pendentes');
-  if(!rotasData.length){ el.innerHTML=''; return; }
-  const transps = [...new Set(rotasData.map(r=>r.transportadora).filter(Boolean))];
-  const sem = transps.filter(t=>!vinculoPorTransportadora(t));
-  if(!sem.length){ el.innerHTML=''; return; }
-  el.innerHTML = `<div class="pendente"><b>${sem.length} transportadora(s) sem sigla vinculada:</b>
-    ${sem.map(t=>`<div class="row">${escapeHtml(t)}
-        <select id="sel-${escapeHtml(t)}">${SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
-        <button onclick="vincularPendente('${escapeHtml(t).replace(/'/g,"\\'")}')">Vincular</button>
-      </div>`).join('')}</div>`;
-}
-async function vincularPendente(nome){
-  const sigla = document.getElementById(`sel-${nome}`).value;
-  await carregarVinculos();
-  vinculos = vinculos.filter(v=>v.nome.toUpperCase()!==nome.toUpperCase());
-  vinculos.push({nome, sigla});
-  await salvarVinculos();
-  renderTudo();
-}
-
-// ================= STATUS MANUAL (compartilhado) =================
-let statusOverrides = {};
-const STATUS_KEY = 'status-vagas';
-async function carregarStatusData(){
-  try{ const r = await window.storage.get(STATUS_KEY, true); statusOverrides = r && r.value ? JSON.parse(r.value) : {}; }
-  catch(e){ statusOverrides = {}; }
-}
-async function salvarStatusData(){ try{ await window.storage.set(STATUS_KEY, JSON.stringify(statusOverrides), true); }catch(e){} }
-function getStatus(num){
-  if(statusOverrides[num]) return statusOverrides[num];
-  const vaga = vagasData.find(v=>v.num===num);
-  if(!vaga || vaga.sigla==='VUC') return 'livre';
-  const temRota = rotasData.some(r=> (vinculoPorTransportadora(r.transportadora)||{}).sigla === vaga.sigla );
-  return temRota ? 'ocupado' : 'livre';
-}
-async function setStatus(num, status){
-  await carregarStatusData();
-  statusOverrides[num] = status;
-  await salvarStatusData();
-  renderTudo();
-}
-async function limparOverride(num){
-  await carregarStatusData();
-  delete statusOverrides[num];
-  await salvarStatusData();
-  renderTudo();
-}
-
-// ================= CHAMADOS (compartilhado) =================
-let chamadosData = [];
-const CHAMADOS_KEY = 'chamados-ativos';
-async function carregarChamados(){
-  try{
-    const {data,error}=await db.from('operacoes_vagas').select('*').eq('data_operacao',hojeISO()).neq('status','FINALIZADA');
-    if(error) throw error;
-    chamadosData=(data||[]).map(rowOperacaoToLocal);
-    try{localStorage.setItem(CHAMADOS_KEY,JSON.stringify(chamadosData));}catch(e){}
-  }catch(e){
-    console.error('Erro ao carregar operações do Supabase:',e);
-  }
-}
-async function salvarChamados(){
-  const v=JSON.stringify(chamadosData);
-  try{if(window.storage&&typeof window.storage.set==='function')await window.storage.set(CHAMADOS_KEY,v,true)}catch(e){}
-  try{localStorage.setItem(CHAMADOS_KEY,v)}catch(e){}
-}
-
-function popularChamarVaga(){
-  const sel = document.getElementById('chamarVaga');
-  if(!perfil || perfil==='COORD'){ sel.innerHTML=''; return; }
-  const vagas = vagasData.filter(v=>v.rua===perfil);
-  sel.innerHTML = vagas.map(v=>{
-    const vinc = vinculos.find(x=>x.sigla===v.sigla);
-    return `<option value="${v.num}">Vaga ${v.num} · ${v.sigla}${vinc?' · '+vinc.nome:''}</option>`;
-  }).join('');
-}
-
-async function chamarGaiola(){
-  const statusEl = document.getElementById('statusChamar');
-  if(!perfil || perfil==='COORD'){ statusEl.textContent='Chamados são feitos pela rua específica, não pela coordenação.'; return; }
-  const numVaga = parseInt(document.getElementById('chamarVaga').value,10);
-  const nRota = document.getElementById('chamarRota').value.trim();
-  if(!numVaga){ statusEl.textContent='Selecione a vaga.'; return; }
-  if(!nRota){ statusEl.textContent='Digite o número da rota.'; return; }
-  const vaga = vagasData.find(v=>v.num===numVaga);
-  const vinc = vinculos.find(v=>v.sigla===vaga.sigla);
-  await carregarChamados();
-  chamadosData = chamadosData.filter(c=>c.vaga!==numVaga);
-  chamadosData.push({
-    id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
-    rua: perfil, vaga: numVaga, sigla: vaga.sigla,
-    transportadora: vinc ? vinc.nome : '', nRota, criadoEm: Date.now(), status:'chamado'
-  });
-  await salvarChamados();
-  document.getElementById('chamarRota').value='';
-  statusEl.textContent = `Chamado enviado: Vaga ${numVaga} · rota ${nRota}.`;
-  renderTudo();
-}
-
-async function marcarRecebido(id){
-  await carregarChamados();
-  chamadosData = chamadosData.filter(c=>c.id!==id);
-  await salvarChamados();
-  renderTudo();
-}
-
-function tempoDesde(ts){
-  const min = Math.max(0, Math.round((Date.now()-ts)/60000));
-  if(min<1) return 'agora mesmo';
-  if(min===1) return '1 min atrás';
-  return `${min} min atrás`;
-}
-
-function chamadosVisiveis(){
-  if(perfil==='COORD') return chamadosData;
-  return chamadosData.filter(c=>c.rua===perfil);
-}
-
-function renderChamados(){
-  const el = document.getElementById('chamadosList');
-  const lista = chamadosVisiveis().sort((a,b)=>a.criadoEm-b.criadoEm);
-  if(!lista.length){ el.innerHTML = '<div class="empty">Nenhum chamado ativo no momento.</div>'; return; }
-  el.innerHTML = lista.map(c=>{
-    const cor = CORES[c.sigla] || {bg:'#ccc',fg:'#000'};
-    return `<div class="chamado-card">
-      <div class="info">
-        <b style="background:${cor.bg};color:${cor.fg};padding:2px 7px;border-radius:5px;">${c.sigla}</b>
-        &nbsp;<b>Vaga ${c.vaga}</b> · ${escapeHtml(c.rua)}
-        <span>${escapeHtml(c.transportadora||'')} · rota ${escapeHtml(c.nRota)} · chamado ${tempoDesde(c.criadoEm)}</span>
-      </div>
-      
-    </div>`;
-  }).join('');
-}
-
-// ================= RESUMO POR RUA =================
-let resumoRuasAbertas = new Set();
-function toggleResumoRua(idSeguro){
-  if(resumoRuasAbertas.has(idSeguro)) resumoRuasAbertas.delete(idSeguro);
-  else resumoRuasAbertas.add(idSeguro);
-  renderResumo();
-}
 function ondaOrdem(label){
   if(/sem onda/i.test(label)) return 9999;
   const m = label.match(/(\d+)/);
   return m ? parseInt(m[1],10) : 9998;
 }
-function computeResumo(){
-  // map: rua -> sigla -> {transportadora, ondas: { ondaLabel: { nRota: Set(parada) } }}
-  const map = {};
-  rotasData.forEach(r=>{
-    const vinc = vinculoPorTransportadora(r.transportadora);
-    if(!vinc) return;
-    const rua = ruaDaSigla(vinc.sigla);
-    if(!permitida(rua)) return;
-    const ondaLabel = (r.onda && r.onda.trim()) ? r.onda.trim() : 'Sem onda (saca)';
-    if(!map[rua]) map[rua] = {};
-    if(!map[rua][vinc.sigla]) map[rua][vinc.sigla] = {transportadora:r.transportadora, ondas:{}};
-    const grupo = map[rua][vinc.sigla];
-    if(!grupo.ondas[ondaLabel]) grupo.ondas[ondaLabel] = {};
-    if(!grupo.ondas[ondaLabel][r.nRota]) grupo.ondas[ondaLabel][r.nRota] = new Set();
-    if(r.parada) grupo.ondas[ondaLabel][r.nRota].add(r.parada);
+
+// ================= SESSÃO LOCAL (só deste celular) =================
+let sessao = null; // {rua, nome}
+const SESSAO_KEY = 'sessao-lider-rua';
+let ruaEscolhida = null;
+
+function lsGet(key, fallback){
+  try{ const v = localStorage.getItem(key); return v!==null ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
+}
+function lsSet(key, value){ try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){} }
+function temWindowStorage(){ return typeof window.storage!=='undefined' && window.storage && typeof window.storage.get==='function'; }
+
+async function carregarSessao(){
+  try{
+    if(temWindowStorage()){ const r = await window.storage.get(SESSAO_KEY, false); sessao = r && r.value ? JSON.parse(r.value) : null; }
+    else sessao = lsGet(SESSAO_KEY, null);
+  }catch(e){ sessao = lsGet(SESSAO_KEY, null); }
+}
+async function salvarSessao(){
+  try{ if(temWindowStorage()) await window.storage.set(SESSAO_KEY, JSON.stringify(sessao), false); }catch(e){}
+  lsSet(SESSAO_KEY, sessao);
+}
+async function limparSessao(){
+  sessao = null;
+  try{ if(temWindowStorage()) await window.storage.delete(SESSAO_KEY, false); }catch(e){}
+  try{ localStorage.removeItem(SESSAO_KEY); }catch(e){}
+}
+
+function popularRuaOpcoes(){
+  document.getElementById('ruaOpcoes').innerHTML = RUAS_LIDER.map(r=>
+    `<button type="button" class="rua-opt" onclick="escolherRua('${r}')" id="opt-${r.replace(/[^a-zA-Z0-9]/g,'_')}">${r}</button>`
+  ).join('');
+}
+function escolherRua(r){
+  ruaEscolhida = r;
+  RUAS_LIDER.forEach(x=>{
+    document.getElementById('opt-'+x.replace(/[^a-zA-Z0-9]/g,'_')).classList.toggle('selecionada', x===r);
   });
-  return map;
+  validarEntrada();
 }
-function renderResumo(){
-  const el = document.getElementById('resumoRuas');
-  if(!rotasData.length){ el.innerHTML = '<div class="empty">Importe a tabela do dia para ver o resumo.</div>'; return; }
-  const map = computeResumo();
-  const ruasComDados = RUAS_ORDEM.filter(r=>map[r]);
-  if(map[RUA_SEM_VAGA]) ruasComDados.push(RUA_SEM_VAGA);
-  if(!ruasComDados.length){ el.innerHTML = '<div class="empty">Nenhuma rota vinculada na sua área ainda.</div>'; return; }
-  el.innerHTML = ruasComDados.map(rua=>{
-    const siglas = map[rua];
-    let totalRotasRua = 0;
-    const blocosTransp = Object.keys(siglas).map(sigla=>{
-      const d = siglas[sigla];
-      const ondaLabels = Object.keys(d.ondas).sort((a,b)=>ondaOrdem(a)-ondaOrdem(b));
-      let totalRotasTransp = 0;
-      const colunasOnda = ondaLabels.map(ondaLabel=>{
-        const rotasObj = d.ondas[ondaLabel];
-        const rotasList = Object.keys(rotasObj).sort((a,b)=>a.localeCompare(b, 'pt-BR', {numeric:true}));
-        totalRotasTransp += rotasList.length;
-        const linhas = rotasList.map(nRota=>{
-          const paradas = rotasObj[nRota];
-          const paradaTxt = paradas.size ? [...paradas].join(', ') : '—';
-          return `<tr><td class="rota">${escapeHtml(nRota || '—')}</td><td class="parada">${escapeHtml(paradaTxt)}</td></tr>`;
-        }).join('');
-        return `<div class="onda-col">
-          <div class="onda-title">${escapeHtml(ondaLabel)} <span class="qtd">— ${rotasList.length} rota(s)</span></div>
-          <table class="resumo-table"><thead><tr><th>Rota</th><th>Parada</th></tr></thead><tbody>${linhas}</tbody></table>
-        </div>`;
-      }).join('');
-      totalRotasRua += totalRotasTransp;
-      const cor = CORES[sigla];
-      return `<div class="resumo-transp-block">
-        <div class="resumo-transp-head">
-          <span class="sigla-badge-sm" style="background:${cor.bg};color:${cor.fg}">${sigla}</span>
-          <b>${escapeHtml(d.transportadora)}</b>
-          <span class="qtd">${totalRotasTransp} rota(s)</span>
-        </div>
-        <div class="onda-colunas">${colunasOnda}</div>
-      </div>`;
-    }).join('');
-    const idSeguro = rua.replace(/[^a-zA-Z0-9]/g,'_');
-    const aberta = resumoRuasAbertas.has(idSeguro);
-    return `<div class="resumo-rua">
-      <div class="resumo-rua-title" onclick="toggleResumoRua('${idSeguro}')">
-        <span class="toggle-arrow">${aberta?'▾':'▸'}</span> ${escapeHtml(rua)} <span class="qtd">— ${totalRotasRua} rota(s)</span>
-      </div>
-      <div class="resumo-rua-body" style="display:${aberta?'block':'none'};">${blocosTransp}</div>
-    </div>`;
-  }).join('');
+function validarEntrada(){
+  const nome = document.getElementById('nomeInput').value.trim();
+  document.getElementById('btnEntrar').disabled = !(ruaEscolhida && nome);
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('nomeInput').addEventListener('input', validarEntrada);
+});
+
+async function entrar(){
+  const nome = document.getElementById('nomeInput').value.trim();
+  if(!ruaEscolhida || !nome) return;
+  sessao = { rua: ruaEscolhida, nome };
+  await salvarSessao();
+  await registrarLider();
+  await carregarTudoCompartilhado();
+  mostrarApp();
+  renderApp();
+}
+async function trocar(){
+  if(ehModoGuia() || ehModoExpedicao()){ sessao=null; abaAtiva='operacao'; document.getElementById('app').style.display='none'; document.getElementById('entrada').style.display='flex'; await carregarSessao(); if(sessao && sessao.rua){ escolherRua(sessao.rua); document.getElementById('nomeInput').value=sessao.nome||''; validarEntrada(); } sessao=null; return; }
+  abaAtiva='operacao';
+  if(sessao && sessao.rua){ await removerLiderDaRua(sessao.rua); }
+  await limparSessao();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('entrada').style.display = 'flex';
+  document.getElementById('nomeInput').value = '';
+  ruaEscolhida = null;
+  vagaSelecionada = null;
+  filtroRotaVaga = '';
+  const bi=document.getElementById('buscaRotaVaga'); if(bi) bi.value='';
+  const bh=document.getElementById('buscaRotaHint'); if(bh) bh.textContent='';
+  RUAS_LIDER.forEach(x=>document.getElementById('opt-'+x.replace(/[^a-zA-Z0-9]/g,'_'))?.classList.remove('selecionada'));
+  validarEntrada();
 }
 
-// ================= KPIs =================
-function renderKPIs(){
-  const el = document.getElementById('kpis');
-  const vagasVisiveis = vagasData.filter(v=>permitida(v.rua));
-  const counts = {livre:0, ocupado:0, separacao:0, problema:0};
-  vagasVisiveis.forEach(v=>{ counts[getStatus(v.num)]++; });
-  const transps = [...new Set(rotasData.map(r=>r.transportadora).filter(Boolean))];
-  const pendentes = transps.filter(t=>!vinculoPorTransportadora(t)).length;
-  const chamAtivos = chamadosVisiveis().length;
-  el.innerHTML = `
-    <div class="kpi"><div class="n">${vagasVisiveis.length}</div><div class="l">Posições visíveis</div></div>
-    <div class="kpi chamados"><div class="n">${chamAtivos}</div><div class="l">Chamados ativos</div></div>
-    <div class="kpi ocupado"><div class="n">${counts.ocupado}</div><div class="l">Ocupadas</div></div>
-    <div class="kpi livre"><div class="n">${counts.livre}</div><div class="l">Livres</div></div>
-    <div class="kpi pendente"><div class="n">${pendentes}</div><div class="l">Transportadoras pendentes</div></div>
-  `;
+// ================= LÍDERES POR RUA (compartilhado com o painel principal) =================
+async function registrarLider(){
+  try{
+    await db.from('lideres_rua').upsert({ rua: sessao.rua, nome: sessao.nome, atualizado_em: new Date().toISOString() }, { onConflict: 'rua' });
+  }catch(e){ console.error('Erro ao registrar líder:', e); }
+}
+async function removerLiderDaRua(rua){
+  try{ await db.from('lideres_rua').delete().eq('rua', rua); }catch(e){ console.error('Erro ao remover líder da rua:', e); }
 }
 
-// ================= DETALHE / SELEÇÃO =================
-function statusButtons(num, ativo){
-  const info = STATUS_INFO[ativo] || STATUS_INFO.livre;
-  return `<span class="status-view"><span class="status-light" style="background:${info.hex}"></span>${info.label}</span>`;
+// ================= VÍNCULOS / ROTAS / OPERAÇÃO (compartilhado com a coordenação) =================
+let vinculos = [];
+const VINC_KEY = 'vinculos-transportadoras';
+async function carregarVinculos(){
+  try{
+    if(temWindowStorage()){ const r = await window.storage.get(VINC_KEY, true); vinculos = r && r.value ? JSON.parse(r.value) : []; }
+    else vinculos = lsGet(VINC_KEY, []);
+  }catch(e){ vinculos = lsGet(VINC_KEY, []); }
+  // Se não veio nada de nenhuma fonte, usa os vínculos padrão pra nunca ficar sem mapear as siglas.
+  if(!vinculos || !vinculos.length) vinculos = DEFAULTS_VINCULOS.slice();
 }
+function vinculoPorTransportadora(nome){ const up=(nome||'').toUpperCase().trim(); return vinculos.find(v=>v.nome.toUpperCase()===up); }
+function ruaDaSigla(sigla){ const item = vagasData.find(v=>v.sigla===sigla); return item ? item.rua : RUA_SEM_VAGA; }
 
-function renderDetalheVaga(vaga){
-  const el = document.getElementById('detalhe');
-  if(!permitida(vaga.rua)){ el.innerHTML = `<div class="empty">Vaga ${vaga.num} pertence à ${vaga.rua} — fora da sua área de acesso.</div>`; return; }
-  const cor = CORES[vaga.sigla];
-  const vinc = vinculos.find(v=>v.sigla===vaga.sigla);
-  const transp = vinc ? vinc.nome : (vaga.sigla==='VUC' ? 'Expedição / VUC — sem transportadora fixa' : 'Sem transportadora vinculada');
-  const status = getStatus(vaga.num);
-  const rotas = vaga.sigla==='VUC' ? [] : rotasData.filter(r=> (vinculoPorTransportadora(r.transportadora)||{}).sigla === vaga.sigla);
-  const chamado = chamadoAtivoNaVaga(vaga.num);
-  el.innerHTML = `
-    <div class="det-head">
-      <div class="det-badge" style="background:${cor.bg};color:${cor.fg}">${vaga.sigla}</div>
-      <div class="det-info"><b>Vaga ${vaga.num} · ${vaga.rua}</b><span>${escapeHtml(transp)}</span></div>
-    </div>
-    <div class="status-row">${statusButtons(vaga.num, status)}</div>
-    ${chamado ? `<div class="chamado-alerta"><b>Chamado ativo:</b> rota ${escapeHtml(chamado.nRota)} · ${tempoDesde(chamado.criadoEm)}</div>` : ''}
-    ${rotas.length ? `<table><thead><tr><th>ID Pacote</th><th>Rota</th><th>Parada</th><th>Ponto</th><th>Onda</th></tr></thead>
-      <tbody>${rotas.map(r=>`<tr><td>${escapeHtml(r.idPacote)}</td><td>${escapeHtml(r.nRota)}</td><td>${escapeHtml(r.parada)}</td><td>${escapeHtml(r.ponto)}</td><td>${escapeHtml(r.onda)}</td></tr>`).join('')}</tbody></table>`
-      : `<div class="empty" style="margin-top:10px;">Nenhuma rota importada para essa transportadora ainda.</div>`}
-  `;
-}
+let rotasData = [];
+const ROTAS_KEY = 'rotas-importadas';
 
-function renderDetalheGrupo(sigla, origem, rotasFiltradas){
-  const el = document.getElementById('detalhe');
-  const vagas = vagasData.filter(v=>v.sigla===sigla);
-  if(!vagas.length){ el.innerHTML = `<div class="empty">Sigla "${sigla}" não encontrada.</div>`; return; }
-  if(!permitida(vagas[0].rua)){ el.innerHTML = `<div class="empty">Essa posição pertence à ${vagas[0].rua} — fora da sua área de acesso.</div>`; return; }
-  const cor = CORES[sigla];
-  const vinc = vinculos.find(v=>v.sigla===sigla);
-  el.innerHTML = `
-    <div class="det-head">
-      <div class="det-badge" style="background:${cor.bg};color:${cor.fg}">${sigla}</div>
-      <div class="det-info"><b>${vagas[0].rua}</b><span>Encontrado por: ${origem}${vinc?` · ${vinc.nome}`:''}</span></div>
-    </div>
-    <div class="mini-vaga-list">${vagas.map(v=>{
-      const st = getStatus(v.num); const info = STATUS_INFO[st];
-      return `<div class="mini-vaga" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${v.num})"><span class="mini-dot" style="background:${info.hex}"></span>${v.num}</div>`;
-    }).join('')}</div>
-    ${rotasFiltradas && rotasFiltradas.length ? `<table><thead><tr><th>ID Pacote</th><th>Rota</th><th>Parada</th><th>Ponto</th><th>Onda</th></tr></thead>
-      <tbody>${rotasFiltradas.map(r=>`<tr><td>${escapeHtml(r.idPacote)}</td><td>${escapeHtml(r.nRota)}</td><td>${escapeHtml(r.parada)}</td><td>${escapeHtml(r.ponto)}</td><td>${escapeHtml(r.onda)}</td></tr>`).join('')}</tbody></table>` : ''}
-  `;
+// Descobre o ciclo pelo planejamento importado hoje: se só um ciclo tem rotas, é ele;
+// se tiver mais de um, fica o importado por último (ou, sem essa informação, o que tem mais rotas).
+function detectarCicloPlanejamento(rows){
+  const info={};
+  (rows||[]).forEach(r=>{
+    if(String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA') return;
+    const c=String(r.ciclo||'').toUpperCase(); if(!c) return;
+    const t=r.criadoEm?new Date(r.criadoEm).getTime():0;
+    info[c]=info[c]||{n:0,t:0}; info[c].n++; if(t>info[c].t) info[c].t=t;
+  });
+  const cs=Object.keys(info); if(!cs.length) return null;
+  cs.sort((a,b)=>(info[b].t-info[a].t)||(info[b].n-info[a].n)); return cs[0];
 }
-
-function renderDetalhePendente(transportadora, origem){
-  document.getElementById('detalhe').innerHTML = `<div class="pendente"><b>"${escapeHtml(transportadora)}"</b> (via ${origem}) ainda não está vinculada a nenhuma sigla.
-    <div class="row"><select id="selPendenteDetalhe">${SIGLAS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
-      <button onclick="vincularEBuscarNovamente('${escapeHtml(transportadora).replace(/'/g,"\\'")}')">Vincular e buscar</button></div></div>`;
-}
-async function vincularEBuscarNovamente(nome){
-  const sigla = document.getElementById('selPendenteDetalhe').value;
-  await carregarVinculos();
-  vinculos = vinculos.filter(v=>v.nome.toUpperCase()!==nome.toUpperCase());
-  vinculos.push({nome, sigla});
-  await salvarVinculos();
-  renderTudo();
-  const rotasFiltradas = rotasData.filter(r=>r.transportadora===nome.toUpperCase());
-  renderDetalheGrupo(sigla, `transportadora "${nome}"`, rotasFiltradas);
-  destacar(vagasData.filter(v=>v.sigla===sigla).map(v=>v.num));
-}
-
-function selecionarVaga(num){
-  const vaga = vagasData.find(v=>v.num===num);
-  if(!vaga) return;
-  renderDetalheVaga(vaga);
-  destacarSelecionada(num);
-}
-function limpar(){ document.getElementById('q').value=''; document.getElementById('detalhe').innerHTML = '<div class="empty">Clique em uma posição no layout abaixo ou use a busca.</div>'; destacar([]); destacarSelecionada(null); }
-
-function buscar(){
-  const raw = document.getElementById('q').value.trim();
-  if(!raw) return;
-  const upper = raw.toUpperCase();
-  const porRota = rotasData.filter(r=>r.nRota.toUpperCase()===upper);
-  if(porRota.length){
-    const transportadora = porRota[0].transportadora;
-    const vinc = vinculoPorTransportadora(transportadora);
-    if(vinc){ renderDetalheGrupo(vinc.sigla, `rota ${porRota[0].nRota} (${transportadora})`, porRota); destacar(vagasData.filter(v=>v.sigla===vinc.sigla).map(v=>v.num)); }
-    else{ renderDetalhePendente(transportadora, `rota ${porRota[0].nRota}`); }
-    return;
+const CICLO_ATIVO_KEY='ciclo-modo-lider';   // 'AUTO' (padrão) ou um ciclo fixo escolhido na mão
+let cicloModo=(()=>{ try{return localStorage.getItem(CICLO_ATIVO_KEY)||'AUTO';}catch(e){return 'AUTO';} })();
+let cicloAtivo=cicloModo==='AUTO'?'AM1':cicloModo;
+function aplicarCicloAuto(){ if(cicloModo!=='AUTO') return; const d=detectarCicloPlanejamento(rotasData); if(d) cicloAtivo=d; }
+function trocarCicloAtivo(c){ cicloModo=c; try{localStorage.setItem(CICLO_ATIVO_KEY,c);}catch(e){} cicloAtivo = c==='AUTO' ? (detectarCicloPlanejamento(rotasData)||cicloAtivo) : c; vagaSelecionada=null; filtroRotaVaga=''; const bi=document.getElementById('buscaRotaVaga'); if(bi) bi.value=''; const bh=document.getElementById('buscaRotaHint'); if(bh) bh.textContent=''; renderApp(); }
+async function carregarRotas(){
+  try{
+    const {data,error}=await db.from('planejamento').select('*').eq('data_operacao',hojeISO());
+    if(error) throw error;
+    rotasData=(data||[]).map(planDbLocal);
+  }catch(e){
+    console.error('Erro ao carregar planejamento do Supabase:',e);
+    rotasData=[];
   }
-  const porPacote = rotasData.find(r=>r.idPacote===raw);
-  if(porPacote){
-    const transportadora = porPacote.transportadora;
-    const vinc = vinculoPorTransportadora(transportadora);
-    if(vinc){ renderDetalheGrupo(vinc.sigla, `pacote ${porPacote.idPacote} (rota ${porPacote.nRota})`, [porPacote]); destacar(vagasData.filter(v=>v.sigla===vinc.sigla).map(v=>v.num)); }
-    else{ renderDetalhePendente(transportadora, `pacote ${porPacote.idPacote}`); }
-    return;
-  }
-  if(/^\d{1,2}$/.test(raw)){
-    const n = parseInt(raw,10);
-    const item = vagasData.find(v=>v.num===n);
-    if(item){ selecionarVaga(n); return; }
-  }
-  if(SIGLAS.includes(upper)){ renderDetalheGrupo(upper, `sigla ${upper}`, null); destacar(vagasData.filter(v=>v.sigla===upper).map(v=>v.num)); return; }
-  const vinc = vinculos.find(v=>v.nome.toUpperCase()===upper) || vinculos.find(v=>v.nome.toUpperCase().includes(upper) || upper.includes(v.nome.toUpperCase()));
-  if(vinc){ renderDetalheGrupo(vinc.sigla, `transportadora "${vinc.nome}"`, rotasData.filter(r=>r.transportadora===vinc.nome.toUpperCase())); destacar(vagasData.filter(v=>v.sigla===vinc.sigla).map(v=>v.num)); return; }
-  const transpNaTabela = [...new Set(rotasData.map(r=>r.transportadora))].find(t=>t===upper || t.includes(upper) || upper.includes(t));
-  if(transpNaTabela){ renderDetalhePendente(transpNaTabela, 'nome digitado'); return; }
-  document.getElementById('detalhe').innerHTML = `<div class="empty">Nada encontrado para "${escapeHtml(raw)}".</div>`;
-  destacar([]);
 }
-document.getElementById('q').addEventListener('keydown', e=>{ if(e.key==='Enter') buscar(); });
-function destacar(nums){ document.querySelectorAll('.pos-box').forEach(b=>{ b.classList.toggle('match', nums.includes(parseInt(b.dataset.num,10))); }); }
-function destacarSelecionada(num){ document.querySelectorAll('.pos-box').forEach(b=>{ b.classList.toggle('selected', num!==null && parseInt(b.dataset.num,10)===num); b.classList.remove('match'); }); }
 
-// ================= STATUS OPERACIONAL RECEBIDO DO APP =================
-// O app precisa enviar principalmente: rota_na_vaga, aduana ou finalizada.
-// inicioVaga deve ser o horário em que o motorista ocupou a vaga; se não vier, usamos criadoEm.
-const LIMITE_VAGA_MS = 30 * 60 * 1000;
-const ALERTA_VAGA_MS = 25 * 60 * 1000;
-const LIMITE_ADUANA_MS = 7 * 60 * 1000;
-const STATUS_APP = {
-  rota_na_vaga:{label:'Rota na vaga', cor:'#16A34A', classe:'status-rota'},
-  aduana:{label:'Aduana', cor:'#7C3AED', classe:'status-aduana'},
-  aduana_excedida:{label:'Aduana acima de 7 min', cor:'#DC2626', classe:'status-aduana-excedida'},
-  finalizada:{label:'Finalizada', cor:'#64748B', classe:''}
-};
-function inicioDaVaga(chamado){
-  return Number(chamado && (chamado.inicioVaga || chamado.chegouEm || chamado.criadoEm)) || Date.now();
+// A coordenação lê exatamente esta mesma chave.
+let chamadosData = [];
+const CHAMADOS_KEY = 'chamados-ativos';
+const HISTORICO_KEY = 'historico-rotas-vagas';
+async function carregarChamados(){
+  try{
+    const {data,error}=await db.from('operacoes_vagas').select('*').eq('data_operacao',hojeISO()).neq('status','FINALIZADA');
+    if(error) throw error;
+    chamadosData=(data||[]).map(opDbLocal);
+  }catch(e){
+    console.error('Erro ao carregar operações do Supabase:',e);
+    chamadosData=[];
+  }
 }
-function tempoNaVagaMs(chamado){ return Math.max(0, Date.now() - inicioDaVaga(chamado)); }
-function tempoEmAduanaMs(chamado){
-  if(!chamado || !chamado.aduanaEm) return 0;
-  return Math.max(0, Date.now() - Number(chamado.aduanaEm));
-}
-function formatarCronometro(ms){
-  const total = Math.floor(ms/1000), min = Math.floor(total/60), seg = total%60;
-  return `${String(min).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
-}
-function statusDoChamado(chamado){
-  if(!chamado) return null;
-  const key=String(chamado.status||'rota_na_vaga').toLowerCase().trim().replace(/\s+/g,'_');
-  if(key==='finalizada') return STATUS_APP.finalizada;
-  if(key==='aduana') return tempoEmAduanaMs(chamado)>=LIMITE_ADUANA_MS ? STATUS_APP.aduana_excedida : STATUS_APP.aduana;
-  const ms=tempoNaVagaMs(chamado);
-  if(ms>=LIMITE_VAGA_MS) return {label:'Prazo excedido', cor:'#DC2626', classe:'status-excedido'};
-  if(ms>=ALERTA_VAGA_MS) return {label:'Próximo de 30 min', cor:'#F59E0B', classe:'status-atencao'};
-  return STATUS_APP.rota_na_vaga;
+async function salvarChamados(){
+  // Compatibilidade: as alterações agora são gravadas diretamente no Supabase.
+  return true;
 }
 function chamadoAtivoNaVaga(num){
-  return chamadosData.find(c=>c.vaga===num && String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada');
+  return chamadosData.find(c=>Number(c.vaga)===Number(num) && String(c.status||'rota_na_vaga').toLowerCase()!=='finalizada');
 }
-function renderStatusCoord(){
-  const leg=document.getElementById('statusLegendCoord');
-  if(leg) leg.innerHTML=[
-    {label:'Rota na vaga · 0–24 min',cor:'#16A34A'},
-    {label:'Atenção · 25–29 min',cor:'#F59E0B'},
-    {label:'30 min ou mais',cor:'#DC2626'},
-    {label:'Aduana · até 7 min',cor:'#7C3AED'},
-    {label:'Aduana acima de 7 min',cor:'#DC2626'},
-    {label:'Livre',cor:'#94A3B8'}
-  ].map(s=>`<div class="status-line"><span class="status-name"><span class="status-light" style="background:${s.cor}"></span>${s.label}</span></div>`).join('');
-  const list=document.getElementById('routeLiveList'); if(!list) return;
-  const ativos=chamadosData.filter(c=>String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada').slice().sort((a,b)=>inicioDaVaga(a)-inicioDaVaga(b));
-  if(!ativos.length){list.innerHTML='<div class="empty">Todas as vagas estão livres no momento.</div>';return;}
-  list.innerHTML=ativos.map(c=>{
-    const s=statusDoChamado(c), tempo=formatarCronometro(tempoNaVagaMs(c));
-    return `<div class="route-live" data-live-vaga="${c.vaga}"><div class="route-live-top"><b>${escapeHtml(c.nRota||'Rota')}</b><span class="route-status" style="background:${s.cor}18;color:${s.cor};border:1px solid ${s.cor}55">${s.label}</span></div><small>Vaga ${c.vaga} · ${escapeHtml(c.rua||'')} ${c.transportadora?'· '+escapeHtml(c.transportadora):''}</small><small class="live-tempo" style="font-weight:900;color:${s.cor}">Tempo na vaga ${tempo}</small></div>`;
-  }).join('');
+function chamadoAtivoDaRota(nRota){
+  return chamadosData.find(c=>String(c.nRota||'')===String(nRota||'') && String(c.status||'rota_na_vaga').toLowerCase()!=='finalizada');
 }
-
-
-function transportadoraDaVaga(num){
-  const vaga=vagasData.find(v=>v.num===Number(num));
-  if(!vaga) return '—';
+function getStatus(num){
+  const c=chamadoAtivoNaVaga(num);
+  if(!c) return 'livre';
+  return String(c.status||'rota_na_vaga').toLowerCase()==='aduana' ? 'aduana' : 'ocupado';
+}
+function inicioDaVaga(c){ return Number(c && (c.inicioVaga||c.chegouEm||c.criadoEm)) || Date.now(); }
+function tempoNaVagaMs(c){ return Math.max(0, Date.now()-inicioDaVaga(c)); }
+const LIMITE_ADUANA_MS = 7*60*1000;
+function tempoEmAduanaMs(c){
+  if(!c || !c.aduanaEm) return 0;
+  return Math.max(0, Date.now()-Number(c.aduanaEm));
+}
+function formatarTempo(ms){
+  const total=Math.floor(ms/1000), min=Math.floor(total/60), seg=total%60;
+  return `${String(min).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
+}
+function transportadoraDaVaga(vaga){
+  if(!vaga) return '';
   if(vaga.sigla==='VUC') return 'EXPEDIÇÃO / VUC';
   const vinc=vinculos.find(v=>v.sigla===vaga.sigla);
   return vinc ? vinc.nome : vaga.sigla;
 }
-function prioridadeStatus(s){
-  if(!s) return 9;
-  if(s.classe==='status-aduana-excedida') return 0;
-  if(s.classe==='status-excedido') return 1;
-  if(s.classe==='status-aduana') return 2;
-  if(s.classe==='status-atencao') return 3;
-  return 4;
+function sacasDaRota(nRota, transportadora){
+  if(!nRota) return [];
+  const chave=String(transportadora||'').toUpperCase().trim()+'|'+String(nRota||'').trim();
+  return rotasData.filter(r=>
+    String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA' &&
+    String(r.ciclo||'').toUpperCase()===String(cicloAtivo).toUpperCase() &&
+    (String(r.transportadora||'').toUpperCase().trim()+'|'+String(r.nRota||'').trim())===chave
+  ).map(r=>r.parada||r.gaiola||r.nRota);
 }
-function renderMonitorRotas(){
-  const body=document.getElementById('routeMonitorBody');
-  const summary=document.getElementById('monitorSummary');
-  const alert=document.getElementById('delayAlert');
-  if(!body) return;
-  const ativos=chamadosData
-    .filter(c=>String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada')
-    .map(c=>({c,s:statusDoChamado(c),ms:tempoNaVagaMs(c)}))
-    .sort((a,b)=>prioridadeStatus(a.s)-prioridadeStatus(b.s) || b.ms-a.ms);
-  const atrasadas=ativos.filter(x=>x.s && x.s.classe==='status-excedido');
-  const aduana=ativos.filter(x=>x.s && x.s.classe==='status-aduana');
-  const atencao=ativos.filter(x=>x.s && x.s.classe==='status-atencao');
-  if(summary){
-    summary.innerHTML=`<span class="monitor-pill">${ativos.length} em processo</span><span class="monitor-pill" style="color:#DC2626">${atrasadas.length} acima de 30 min</span><span class="monitor-pill" style="color:#7C3AED">${aduana.length} em Aduana</span>`;
+function rotasDisponiveisParaVaga(vaga){
+  if(!vaga) return [];
+  const vinc=vinculos.find(v=>v.sigla===vaga.sigla);
+  if(!vinc) return [];
+  const nome=vinc.nome.toUpperCase().trim();
+  const unicas=new Map();
+  rotasData
+    .filter(r=>String(r.transportadora||'').toUpperCase().trim()===nome && String(r.ciclo||'').toUpperCase()===String(cicloAtivo).toUpperCase() && String(r.tipoOperacao||'ROTA').toUpperCase()!=='SACA')
+    .forEach(r=>{
+      const chave=String(r.nRota||'').trim();
+      if(!chave) return;
+      if(!unicas.has(chave)) unicas.set(chave,r);
+    });
+  return [...unicas.values()]
+    .filter(r=>!chamadoAtivoDaRota(r.nRota))
+    .sort((a,b)=>String(a.onda||'').localeCompare(String(b.onda||''),'pt-BR',{numeric:true}) || String(a.nRota).localeCompare(String(b.nRota),'pt-BR',{numeric:true}));
+}
+function verificarSacaSelecionada(nRota){
+  const aviso=document.getElementById('avisoSacaRota');
+  if(!aviso) return;
+  if(!nRota){ aviso.innerHTML=''; aviso.className=''; return; }
+  const vaga=vagasData.find(v=>v.num===vagaSelecionada);
+  const vinc=vaga?vinculos.find(v=>v.sigla===vaga.sigla):null;
+  const sacasR = vinc ? sacasDaRota(nRota, vinc.nome) : [];
+  if(sacasR.length){
+    aviso.className='aviso-saca-rota';
+    aviso.innerHTML=`🧺 <b>Essa rota tem ${sacasR.length} saca(s)</b> — avise quem for buscar pra trazer junto:<div class="saca-lista">${sacasR.map(s=>`<div class="saca-lista-item">${escapeHtml(s)}</div>`).join('')}</div>`;
+  }else{
+    aviso.className=''; aviso.innerHTML='';
   }
-  if(alert){
-    if(atrasadas.length){
-      const top=atrasadas[0].c;
-      alert.className='delay-alert show';
-      alert.innerHTML=`<strong>⚠ ROTA DEMORANDO: ${escapeHtml(top.nRota||'—')} · VAGA ${top.vaga} · ${escapeHtml(top.rua||'')}</strong><span>${escapeHtml(transportadoraDaVaga(top.vaga))} · ${formatarCronometro(tempoNaVagaMs(top))}</span>`;
-    }else{
-      alert.className='delay-alert'; alert.innerHTML='';
-    }
-  }
-  if(!ativos.length){body.innerHTML='<tr><td colspan="6" class="empty">Todas as vagas estão livres no momento.</td></tr>';return;}
-  body.innerHTML=ativos.map(({c,s,ms})=>{
-    const rowClass=s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana-excedida'?'row-aduana-excedida':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
-    const transp=transportadoraDaVaga(c.vaga);
-    return `<tr class="${rowClass}" data-vaga-row="${c.vaga}" onclick="selecionarVaga(${Number(c.vaga)})" style="cursor:pointer"><td><b>${escapeHtml(c.rua||'—')}</b></td><td>${escapeHtml(transp)}</td><td class="rota-cell">${escapeHtml(c.nRota||'—')}${c.onda||c.parada?`<small style="display:block;color:var(--muted);font-weight:600;margin-top:2px">${c.onda?escapeHtml(c.onda):''}${c.onda&&c.parada?' · ':''}${c.parada?escapeHtml(c.parada)+' paradas':''}</small>`:''}</td><td class="vaga-cell">${c.vaga??'—'}</td><td><span class="process-badge" style="color:${s.cor}"><span class="process-dot"></span>${escapeHtml(s.label)}</span></td><td class="tempo-cell" style="color:${s.cor}">${formatarCronometro(ms)}</td></tr>`;
-  }).join('');
 }
-
-// ================= FLOORPLAN =================
-function arrowSVG(){ return `<svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
-function posBox(vaga){
-  const cor = CORES[vaga.sigla];
-  const st = getStatus(vaga.num);
-  const info = STATUS_INFO[st];
-  const chamado = chamadoAtivoNaVaga(vaga.num);
-  const appSt = statusDoChamado(chamado);
-  const statusCor = appSt ? appSt.cor : '#94A3B8';
-  const classe = appSt ? appSt.classe : '';
-  const rota = chamado && chamado.nRota ? chamado.nRota : '';
-  const cron = chamado ? formatarCronometro(tempoNaVagaMs(chamado)) : '';
-  return `<div class="pos-box ${chamado?'chamado-ativo':''} ${classe}" data-num="${vaga.num}" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${vaga.num})">
-    ${chamado?`<span class="chamado-flag" style="background:${statusCor}">${escapeHtml(rota||'ATIVA')}</span>`:''}
-    <span class="status-dot" style="background:${statusCor}"></span>
-    <span class="num">${vaga.num}</span><span class="sigla">${rota?escapeHtml(rota):vaga.sigla}</span>
-    ${chamado?`<span class="pos-cron" style="font-size:7px;font-weight:900;margin-top:2px">${cron}</span>`:''}
-  </div>`;
+async function iniciarRotaNaVaga(num){
+  const vaga=vagasData.find(v=>v.num===Number(num));
+  const sel=document.getElementById('rotaSelecionada');
+  const nRota=sel?sel.value:'';
+  const st=document.getElementById('statusAcao');
+  if(!vaga||!nRota){if(st)st.textContent='Escolha a rota antes de confirmar a vaga.';return;}
+  const rota=rotasData.find(r=>r.nRota===nRota&&String(r.ciclo).toUpperCase()===String(cicloAtivo).toUpperCase())||{};
+  const {error}=await db.from('operacoes_vagas').insert({
+    data_operacao:hojeISO(),ciclo:rota.ciclo||cicloAtivo,rua:vaga.rua,
+    transportadora:transportadoraDaVaga(vaga),rota:nRota,vaga:vaga.num,
+    lider:sessao?sessao.nome:'',status:'NA_VAGA',entrada_em:new Date().toISOString()
+  });
+  if(error){if(st)st.textContent='Não foi possível colocar a rota na vaga: '+error.message;return;}
+  await carregarSupabaseLider();
+  if(st)st.textContent=`Rota ${nRota} confirmada na vaga ${num}. Cronômetro iniciado.`;
 }
-function ruaBlock(rua, label){
-  const vagas = vagasData.filter(v=>v.rua===rua);
-  const bloqueada = !permitida(rua);
-  return `<div class="rua-group ${bloqueada?'bloqueada':''}">
-    <div class="facility-label">${label}</div>
-    ${bloqueada?'<div class="lock-tag">🔒</div>':''}
-    <div class="vaga-grid">${bloqueada ? vagas.map(v=>`<div class="pos-box" style="background:#ccc;color:#666;pointer-events:none;"><span class="num">${v.num}</span></div>`).join('') : vagas.map(posBox).join('')}</div>
-  </div>`;
+async function marcarAduana(num){
+  const c=chamadoAtivoNaVaga(num),st=document.getElementById('statusAcao');
+  if(!c){if(st)st.textContent='Primeiro confirme a rota nesta vaga.';return;}
+  const {error}=await db.from('operacoes_vagas').update({status:'ADUANA',aduana_em:new Date().toISOString()}).eq('id',c.id);
+  if(error){if(st)st.textContent='Erro ao marcar Aduana: '+error.message;return;}
+  await carregarSupabaseLider();
 }
-function renderFloorplan(){
-  const cont = document.getElementById('floorplan');
-  const vuc = vagasData.filter(v=>v.rua==='Área VUC');
-  cont.innerHTML = `
-    <div class="fp-col stretch"><div class="infra-box rampa">RAMPA SAÍDA</div></div>
-    <div class="fp-col col-narrow">${ruaBlock('Rua 1','Rua 1')}</div>
-    <div class="fp-col col-narrow">${ruaBlock('Rua 2','Rua 2')}</div>
-    <div class="fp-col" style="flex:1;min-width:420px;">
-      <div class="arrows-row">${arrowSVG()}${arrowSVG()}${arrowSVG()}${arrowSVG()}</div>
-      ${ruaBlock('Rua 3','Rua 3')}
-      <div class="infra-box esteira"><span class="facility-label" style="margin:0;color:var(--navy-700);">Esteira</span></div>
-      <div class="infra-box esteira"><span class="facility-label" style="margin:0;color:var(--navy-700);">Esteira</span></div>
-      <div class="infra-box mezanino"><span class="facility-label" style="margin:0;color:var(--navy-700);">Mezanino</span></div>
-      ${ruaBlock('Rua 4 - Expedição VUC','Expedição VUC — Rua 4')}
-      <div class="arrows-row">${arrowSVG()}${arrowSVG()}</div>
-    </div>
-    <div class="fp-col col-narrow" style="align-items:center;">
-      <div class="vuc-label">ÁREA VUC</div>
-      <div class="vaga-grid">${permitida('Área VUC') ? vuc.map(posBox).join('') : vuc.map(v=>`<div class="pos-box" style="background:#ccc;color:#666;pointer-events:none;"><span class="num">${v.num}</span></div>`).join('')}</div>
-    </div>
-    <div class="fp-col stretch"><div class="infra-box rampa">RAMPA SUBIDA</div><div class="infra-box rampa">RAMPA SUBIDA · 1</div></div>
-  `;
-  requestAnimationFrame(ajustarEscalaA4);
+async function finalizarVaga(num){
+  const c=chamadoAtivoNaVaga(num),st=document.getElementById('statusAcao');
+  if(!c){if(st)st.textContent='Esta vaga já está livre.';return;}
+  const {error}=await db.from('operacoes_vagas').update({status:'FINALIZADA',finalizada_em:new Date().toISOString()}).eq('id',c.id);
+  if(error){if(st)st.textContent='Erro ao finalizar: '+error.message;return;}
+  vagaSelecionada=null; await carregarSupabaseLider();
 }
-
-// ================= LEGENDA =================
-function renderLegenda(){
-  if(!document.getElementById('legendaTransp')) return;
-  document.getElementById('legendaTransp').innerHTML = SIGLAS.map(s=>{
-    const cor = CORES[s]; const vinc = vinculos.find(v=>v.sigla===s);
-    const nome = vinc ? vinc.nome : (s==='VUC' ? 'Expedição / VUC' : 'Sem vínculo');
-    return `<div class="legend-item"><span class="legend-swatch" style="background:${cor.bg}"></span>${s} — ${escapeHtml(nome)}</div>`;
-  }).join('');
-  document.getElementById('legendaStatus').innerHTML = Object.keys(STATUS_INFO).map(k=>{
-    const info = STATUS_INFO[k];
-    return `<div class="legend-item"><span class="legend-swatch" style="background:${info.hex}"></span>${info.label}</div>`;
-  }).join('');
-}
-
-
-
-// ================= CONTROL CENTER 2.0 / IOT DEMO =================
-const DEVICES = [
-  {id:'ESP-RUA-01', area:'Rua 1', luzes:16, sinal:'Excelente'},
-  {id:'ESP-RUA-02', area:'Rua 2', luzes:17, sinal:'Excelente'},
-  {id:'ESP-RUA-03', area:'Rua 3', luzes:31, sinal:'Bom'},
-  {id:'ESP-VUC-01', area:'VUC / Expedição', luzes:33, sinal:'Excelente'}
-];
-let ledDemo = {vaga:null, modo:null};
-function renderDevices(){
-  const el=document.getElementById('deviceGrid'); if(!el) return;
-  el.innerHTML=DEVICES.map(d=>`<div class="device"><div class="device-top"><div><div class="device-name">${d.id}</div><div class="device-area">${d.area}</div></div><span class="device-badge">● ONLINE</span></div><div class="device-meta"><span>${d.luzes} luzes</span><span>Sinal: ${d.sinal}</span></div><button class="device-test" onclick="testarDevice('${d.id}','${d.area}')">Testar controlador</button></div>`).join('');
-}
-function testarDevice(id,area){
-  const st=document.getElementById('ledState'); if(st) st.innerHTML=`<b>Teste enviado:</b> ${id} · ${area} · pulso de diagnóstico simulado com sucesso.`;
-}
-function popularLedVagas(){
-  const sel=document.getElementById('ledVaga'); if(!sel) return;
-  const atuais=[...vagasData].filter(v=>perfil==='COORD'||!perfil||permitida(v.rua));
-  sel.innerHTML=atuais.map(v=>`<option value="${v.num}">Vaga ${v.num} · ${v.rua} · ${v.sigla}</option>`).join('');
-}
-function acionarLuzDemo(){
-  const vaga=Number(document.getElementById('ledVaga').value); const modo=document.getElementById('ledModo').value;
-  ledDemo={vaga,modo}; const st=document.getElementById('ledState');
-  if(st) st.innerHTML=`<b style="color:#7C3AED">● LUZ ATIVA</b> · Vaga ${vaga} · modo ${modo}. <span style="color:var(--muted)">Simulação visual pronta para ser ligada ao gateway/ESP32.</span>`;
-  const box=document.querySelector(`.pos-box[data-num="${vaga}"]`); if(box){box.classList.add('chamado-ativo');box.scrollIntoView({behavior:'smooth',block:'center'});}
-}
-function apagarLuzDemo(){
-  if(ledDemo.vaga){const box=document.querySelector(`.pos-box[data-num="${ledDemo.vaga}"]`); if(box && !chamadosData.some(c=>c.vaga===ledDemo.vaga)) box.classList.remove('chamado-ativo');}
-  ledDemo={vaga:null,modo:null}; const st=document.getElementById('ledState'); if(st) st.textContent='Luz manual desligada. Chamados ativos continuam sinalizados automaticamente.';
-}
-function renderActivity(){
-  const el=document.getElementById('activityList'); if(!el) return;
-  const ativos=chamadosVisiveis().slice().sort((a,b)=>b.criadoEm-a.criadoEm).slice(0,3);
-  const itens=ativos.map(c=>`<div class="activity-item"><span class="activity-pulse"></span><div><b>Vaga ${c.vaga} · ${escapeHtml(c.nRota)}</b>Chamado ${tempoDesde(c.criadoEm)} · ${escapeHtml(c.rua)}</div></div>`);
-  if(!itens.length) itens.push(`<div class="activity-item"><span class="activity-pulse"></span><div><b>Sistema sincronizado</b>Nenhum chamado ativo neste momento.</div></div>`);
-  itens.push(`<div class="activity-item"><span class="activity-pulse"></span><div><b>Gateway IoT em modo demonstração</b>Interface pronta para integração física.</div></div>`);
-  el.innerHTML=itens.join('');
-}
-function toggleTheme(){
-  document.body.classList.toggle('dark');
-  const dark=document.body.classList.contains('dark'); localStorage.setItem('svc-theme',dark?'dark':'light');
-  const b=document.getElementById('themeToggle'); if(b) b.textContent=dark?'☀ Tema claro':'◐ Tema escuro';
-}
-function initTheme(){
-  const dark=localStorage.getItem('svc-theme')==='dark'; document.body.classList.toggle('dark',dark);
-  const b=document.getElementById('themeToggle'); if(b) b.textContent=dark?'☀ Tema claro':'◐ Tema escuro';
-}
-
-// ================= RENDER GERAL / INIT =================
-function renderTudo(){
-  perfil = 'COORD';
-  renderLideresPanel();
-  renderKPIs();
-  renderFloorplan();
-  renderStatusCoord();
-  renderMonitorRotas();
-  renderCiclosPlanejamento();
-  renderSacas();
-  if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord();
-}
-
 async function carregarTudoCompartilhado(){
   await carregarVinculos();
+  DEFAULTS_VINCULOS.forEach(d=>{
+    if(!vinculos.some(v=>v.nome.toUpperCase()===d.nome.toUpperCase())) vinculos.push(d);
+  });
   await carregarRotas();
-  await carregarStatusData();
+  aplicarCicloAuto();
   await carregarChamados();
-  await carregarLideres();
+  await carregarPacotes();
 }
 
-// ================= LÍDERES DE RUA (quem está logado em cada rua) =================
-let lideresPorRua = {};
-async function carregarLideres(){
-  try{
-    const {data,error} = await db.from('lideres_rua').select('*');
-    if(error) throw error;
-    lideresPorRua = {};
-    (data||[]).forEach(row=>{
-      lideresPorRua[row.rua] = { nome: row.nome, atualizadoEm: new Date(row.atualizado_em).getTime() };
-    });
-  }catch(e){ console.error('Erro ao carregar líderes:', e); }
+// ================= UI: VAGAS DA RUA =================
+let vagaSelecionada = null;
+let filtroRotaVaga = '';
+function buscarRotaVaga(valor){
+  filtroRotaVaga = (valor||'').trim().toUpperCase();
+  const hint = document.getElementById('buscaRotaHint');
+  if(!filtroRotaVaga){ if(hint) hint.textContent=''; renderVagasGrid(); return; }
+  const vagas = vagasData.filter(v=>v.rua===sessao.rua);
+  const bate = v=>{ const c=chamadoAtivoNaVaga(v.num); return c && String(c.nRota||'').toUpperCase().startsWith(filtroRotaVaga); };
+  const encontradas = vagas.filter(bate);
+  if(hint) hint.textContent = encontradas.length
+    ? `${encontradas.length} vaga(s) com rota "${filtroRotaVaga}...": ${encontradas.map(v=>v.num).join(', ')}`
+    : `Nenhuma vaga da sua rua está com uma rota "${filtroRotaVaga}..." agora.`;
+  // Se sobrou só uma vaga com essa rota, já abre o painel de ação dela (Aduana/Finalizar prontos pra usar).
+  if(encontradas.length===1){ vagaSelecionada = encontradas[0].num; renderPainelAcao(); }
+  renderVagasGrid();
 }
-function tempoDesdeMin(ts){
-  if(!ts) return '';
-  const min = Math.floor((Date.now()-ts)/60000);
-  if(min < 1) return 'agora';
-  if(min < 60) return `há ${min} min`;
-  const h = Math.floor(min/60);
-  return `há ${h}h${min%60?String(min%60).padStart(2,'0'):''}`;
+function selecionarVaga(num){
+  vagaSelecionada = (vagaSelecionada===num) ? null : num;
+  renderVagasGrid();
+  renderPainelAcao();
 }
-function renderLideresPanel(){
-  const el = document.getElementById('lideresPanel');
-  if(!el) return;
-  el.innerHTML = RUAS_ORDEM.filter(r=>r!=='Área VUC').map(rua=>{
-    const info = lideresPorRua[rua];
-    // considera "online" se registrou presença nos últimos 20 minutos
-    const online = info && info.atualizadoEm && (Date.now()-info.atualizadoEm) < 20*60*1000;
-    const nome = info ? escapeHtml(info.nome) : 'Ninguém logado';
-    return `<div class="lider-chip">
-      <span class="dot ${online?'online':'offline'}"></span>
-      <div class="txt">
-        <div class="rua">${escapeHtml(rua)}</div>
-        <div class="nome ${info?'':'vazio'}">${nome}</div>
-      </div>
-      ${info ? `<span class="desde">${tempoDesdeMin(info.atualizadoEm)}</span>` : ''}
+function renderVagasGrid(){
+  const vagas = vagasData.filter(v=>v.rua===sessao.rua);
+  const el = document.getElementById('vagasGrid');
+  el.innerHTML = vagas.map(v=>{
+    const cor = CORES[v.sigla];
+    const st = getStatus(v.num);
+    const info = STATUS_INFO[st];
+    const sel = v.num===vagaSelecionada ? 'selecionada' : '';
+    const ativo=chamadoAtivoNaVaga(v.num);
+    let filtroClasse='';
+    if(filtroRotaVaga){
+      const bate = ativo && String(ativo.nRota||'').toUpperCase().startsWith(filtroRotaVaga);
+      filtroClasse = bate ? 'match-busca' : 'dim-busca';
+    }
+    const extra=ativo ? `<span style="display:block;font-size:7px;font-weight:800;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(ativo.nRota||'')}</span><span class="chip-cron" data-cron-chip="${v.num}" style="display:block;font-size:8px;font-weight:800;margin-top:1px">${formatarTempo(tempoNaVagaMs(ativo))}</span>` : '';
+    return `<div class="vaga-chip ${sel} ${filtroClasse}" style="background:${cor.bg};color:${cor.fg}" onclick="selecionarVaga(${v.num})">
+      <span class="vaga-dot" style="background:${info.hex}"></span>
+      <span class="num">${v.num}</span><span class="sigla">${v.sigla}</span>${extra}
     </div>`;
   }).join('');
 }
-
-// ================= LAYOUT NAS PROPORÇÕES A4 =================
-function ajustarEscalaA4(){
-  const folha = document.getElementById('folhaA4');
-  const fp = document.getElementById('floorplan');
-  if(!folha || !fp) return;
-  const outer = folha.querySelector('.floorplan-outer');
-  fp.style.transform = 'none';
-  const espacoW = outer.clientWidth;
-  const espacoH = outer.clientHeight;
-  const conteudoW = fp.scrollWidth;
-  const conteudoH = fp.scrollHeight;
-  if(!conteudoW || !conteudoH) return;
-  const escala = Math.min(espacoW / conteudoW, espacoH / conteudoH, 1);
-  fp.style.transform = `scale(${escala})`;
+function renderPainelAcao(){
+  const el = document.getElementById('painelAcao');
+  if(vagaSelecionada===null){ el.style.display='none'; el.innerHTML=''; return; }
+  // Se o líder estiver com o campo de rota focado/aberto, não redesenha agora —
+  // reconstruir o <select> no meio da escolha é o que fazia a lista de rotas fechar sozinha.
+  const selAtual = document.getElementById('rotaSelecionada');
+  if(selAtual && document.activeElement === selAtual) return;
+  const vaga = vagasData.find(v=>v.num===vagaSelecionada);
+  const transp=transportadoraDaVaga(vaga);
+  const ativo=chamadoAtivoNaVaga(vaga.num);
+  el.style.display = 'block';
+  if(ativo){
+    const aduana=String(ativo.status||'').toLowerCase()==='aduana';
+    const sacasAtivo=sacasDaRota(ativo.nRota, ativo.transportadora);
+    el.innerHTML = `
+      <div class="titulo-vaga">Vaga ${vaga.num} · ${vaga.sigla}</div>
+      <div class="info-vaga">${escapeHtml(transp)} · ${escapeHtml(vaga.rua)}</div>
+      <div class="rota-ativa-box ${aduana?'aduana':''}">
+        <div class="rota-ativa-top"><b>${escapeHtml(ativo.nRota||'—')}${sacasAtivo.length?` <span class="saca-mark">🧺 ${sacasAtivo.length} saca(s)</span>`:''}</b><span class="cronometro" data-cronometro-vaga="${vaga.num}">${formatarTempo(tempoNaVagaMs(ativo))}</span></div>
+        <div class="meta-processo"><b>${aduana?'ADUANA':'ROTA NA VAGA'}</b><br>${ativo.onda?escapeHtml(ativo.onda)+' · ':''}${ativo.parada?escapeHtml(ativo.parada)+' paradas · ':''}Tempo total ocupando a vaga · limite operacional 30 min${ativo.bairros?`<br><span style="font-weight:600">Bairros: ${escapeHtml(ativo.bairros)}</span>`:''}</div>
+        ${pacotesDaRota(ativo.nRota).length?`<div class="meta-processo">📦 <b>${pacotesDaRota(ativo.nRota).length} pacote(s) extra</b> bipado(s) na expedição pra esta rota</div>`:''}
+        ${sacasAtivo.length?`<div class="saca-lista"><div class="saca-lista-head">🧺 Saca (${sacasAtivo.length})</div>${sacasAtivo.map(s=>`<div class="saca-lista-item">${escapeHtml(s)}</div>`).join('')}</div>`:''}
+        ${aduana?`<div class="aduana-sub-cron ${tempoEmAduanaMs(ativo)>=LIMITE_ADUANA_MS?'excedido':''}" data-cronometro-aduana="${vaga.num}">Tempo em aduana: ${formatarTempo(tempoEmAduanaMs(ativo))} · limite 7 min</div>`:''}
+      </div>
+      <div class="acoes-grid">
+        <button class="btn-acao aduana" onclick="marcarAduana(${vaga.num})">Aduana<br>(conferência LOG)</button>
+        <button class="btn-acao finalizar" onclick="finalizarVaga(${vaga.num})">Finalizar rota — liberar vaga</button>
+      </div>
+      <div id="statusAcao"></div>`;
+    return;
+  }
+  const rotas=rotasDisponiveisParaVaga(vaga);
+  el.innerHTML = `
+    <div class="titulo-vaga">Vaga ${vaga.num} · ${vaga.sigla}</div>
+    <div class="info-vaga">${escapeHtml(transp)} · ${escapeHtml(vaga.rua)} · Vaga livre</div>
+    <div class="rota-select-wrap">
+      <label>Rota que chegou nesta vaga</label>
+      <select id="rotaSelecionada" class="rota-select" onchange="verificarSacaSelecionada(this.value)">
+        <option value="">— selecione a rota —</option>
+        ${rotas.map(r=>{const sacasR=sacasDaRota(r.nRota,r.transportadora);return `<option value="${escapeHtml(r.nRota)}">${escapeHtml(r.nRota)} · ${escapeHtml(r.ciclo||cicloAtivo)}${r.onda?' · '+escapeHtml(r.onda):''}${r.parada?' · '+escapeHtml(r.parada)+' paradas':''}${sacasR.length?' · 🧺 '+sacasR.length+' saca(s)':''}</option>`;}).join('')}
+      </select>
+      <div id="avisoSacaRota"></div>
+      <div class="limite-note">Só aparecem rotas da transportadora desta vaga que ainda não estão ocupando outra posição.</div>
+    </div>
+    <div class="acoes-grid">
+      <button class="btn-acao rota" onclick="iniciarRotaNaVaga(${vaga.num})" ${rotas.length?'':'disabled'}>Confirmar ROTA NA VAGA · iniciar 30 min</button>
+    </div>
+    <div id="statusAcao">${rotas.length?'':'Nenhuma rota disponível desta transportadora no ciclo selecionado.'}</div>`;
 }
-let redimensionaTimeout;
-window.addEventListener('resize', ()=>{
-  clearTimeout(redimensionaTimeout);
-  redimensionaTimeout = setTimeout(ajustarEscalaA4, 150);
-});
+function renderKpisMini(){
+  const vagas = vagasData.filter(v=>v.rua===sessao.rua);
+  const ocupadas=vagas.filter(v=>!!chamadoAtivoNaVaga(v.num)).length;
+  const aduana=vagas.filter(v=>{const c=chamadoAtivoNaVaga(v.num);return c&&String(c.status||'').toLowerCase()==='aduana';}).length;
+  const livres=vagas.length-ocupadas;
+  document.getElementById('kpisMini').innerHTML = `
+    <div class="kpi-mini"><div class="n">${vagas.length}</div><div class="l">Vagas</div></div>
+    <div class="kpi-mini"><div class="n">${ocupadas}</div><div class="l">Em processo</div></div>
+    <div class="kpi-mini"><div class="n">${aduana}</div><div class="l">Aduana</div></div>
+    <div class="kpi-mini"><div class="n">${livres}</div><div class="l">Livres</div></div>`;
+}
 
-// Atualiza só cronômetros e cores de status a cada segundo, sem reconstruir o HTML inteiro
-// (o piso, o monitor de rotas e a lista ao vivo continuam corretos porque os dados
-// em si só mudam via realtime/poll de 3s — aqui é só o relógio andando).
-function atualizarCronometrosCoord(){
-  const ativos = chamadosData.filter(c=>String(c.status||'rota_na_vaga').toLowerCase().trim()!=='finalizada');
-  const CLASSES_STATUS=['status-excedido','status-aduana','status-aduana-excedida','status-atencao'];
-
-  ativos.forEach(c=>{
-    const s=statusDoChamado(c);
-    const tempo=formatarCronometro(tempoNaVagaMs(c));
-
-    const box=document.querySelector(`.pos-box[data-num="${c.vaga}"]`);
-    if(box){
-      const cronEl=box.querySelector('.pos-cron'); if(cronEl) cronEl.textContent=tempo;
-      const dot=box.querySelector('.status-dot'); if(dot) dot.style.background=s.cor;
-      box.classList.remove(...CLASSES_STATUS);
-      if(s.classe) box.classList.add(s.classe);
-    }
-
-    const row=document.querySelector(`tr[data-vaga-row="${c.vaga}"]`);
-    if(row){
-      row.className = s.classe==='status-excedido'?'row-excedido':s.classe==='status-aduana-excedida'?'row-aduana-excedida':s.classe==='status-aduana'?'row-aduana':s.classe==='status-atencao'?'row-atencao':'';
-      const tempoCell=row.querySelector('.tempo-cell'); if(tempoCell){tempoCell.textContent=tempo;tempoCell.style.color=s.cor;}
-      const badge=row.querySelector('.process-badge'); if(badge){badge.style.color=s.cor;badge.innerHTML=`<span class="process-dot"></span>${escapeHtml(s.label)}`;}
-    }
-
-    const live=document.querySelector(`[data-live-vaga="${c.vaga}"]`);
-    if(live){
-      const tempoEl=live.querySelector('.live-tempo'); if(tempoEl){tempoEl.textContent='Tempo na vaga '+tempo;tempoEl.style.color=s.cor;}
-      const statusEl=live.querySelector('.route-status');
-      if(statusEl){statusEl.style.background=s.cor+'18';statusEl.style.color=s.cor;statusEl.style.border='1px solid '+s.cor+'55';statusEl.textContent=s.label;}
-    }
+// ================= RESUMO POR ONDA (só a rua da líder) =================
+function computeResumoLider(){
+  const map = {}; // sigla -> {transportadora, ondas: {ondaLabel: {nRota: Set(parada)}}}
+  const sacasHoje = rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===String(cicloAtivo).toUpperCase() && String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA');
+  // chave transportadora+nRota -> lista dos identificadores das sacas de hoje (pra mostrar quais são, visível, sem depender de hover)
+  const sacasPorChave = new Map();
+  sacasHoje.filter(s=>s.nRota).forEach(s=>{
+    const chave=String(s.transportadora||'').toUpperCase().trim()+'|'+String(s.nRota||'').trim();
+    if(!sacasPorChave.has(chave)) sacasPorChave.set(chave, []);
+    sacasPorChave.get(chave).push(s.parada||s.gaiola||s.nRota);
   });
 
-  const atrasadas=ativos.filter(c=>statusDoChamado(c)?.classe==='status-excedido');
-  const aduanaExcedida=ativos.filter(c=>statusDoChamado(c)?.classe==='status-aduana-excedida');
-  const aduanaCount=ativos.filter(c=>{const cl=statusDoChamado(c)?.classe; return cl==='status-aduana'||cl==='status-aduana-excedida';}).length;
-  const summary=document.getElementById('monitorSummary');
-  if(summary) summary.innerHTML=`<span class="monitor-pill">${ativos.length} em processo</span><span class="monitor-pill" style="color:#DC2626">${atrasadas.length} acima de 30 min</span><span class="monitor-pill" style="color:#7C3AED">${aduanaCount} em Aduana</span>`;
-  const alert=document.getElementById('delayAlert');
-  if(alert){
-    if(atrasadas.length){
-      const top=atrasadas[0];
-      alert.className='delay-alert show';
-      alert.innerHTML=`<strong>⚠ ROTA DEMORANDO: ${escapeHtml(top.nRota||'—')} · VAGA ${top.vaga} · ${escapeHtml(top.rua||'')}</strong><span>${escapeHtml(transportadoraDaVaga(top.vaga))} · ${formatarCronometro(tempoNaVagaMs(top))}</span>`;
-    }else{
-      alert.className='delay-alert'; alert.innerHTML='';
-    }
-  }
-  verificarAlertaAduanaCoord(aduanaExcedida);
+  rotasData.forEach(r=>{
+    if(String(r.ciclo||'').toUpperCase()!==String(cicloAtivo).toUpperCase() || String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA') return;
+    const vinc = vinculoPorTransportadora(r.transportadora);
+    if(!vinc) return;
+    if(ruaDaSigla(vinc.sigla) !== sessao.rua) return;
+    const ondaLabel = (r.onda && r.onda.trim()) ? r.onda.trim() : 'Sem onda';
+    if(!map[vinc.sigla]) map[vinc.sigla] = {transportadora:r.transportadora, ondas:{}};
+    const grupo = map[vinc.sigla];
+    if(!grupo.ondas[ondaLabel]) grupo.ondas[ondaLabel] = {};
+    if(!grupo.ondas[ondaLabel][r.nRota]) grupo.ondas[ondaLabel][r.nRota] = new Set();
+    if(r.parada) grupo.ondas[ondaLabel][r.nRota].add(r.parada);
+  });
+
+  // Saca avulsa (número que não bate com nenhuma rota normal já lançada) também entra na lista,
+  // marcada como saca, pra não ficar escondida do líder. A lista de quais sacas são já aparece
+  // no bloco dedicado (sacasPorChave), então aqui a coluna Parada fica em branco pra não repetir.
+  sacasHoje.forEach(s=>{
+    const vinc = vinculoPorTransportadora(s.transportadora);
+    if(!vinc || ruaDaSigla(vinc.sigla)!==sessao.rua) return;
+    const jaTemRota = map[vinc.sigla] && Object.values(map[vinc.sigla].ondas).some(rotas=>rotas[s.nRota]);
+    if(jaTemRota) return; // já vai aparecer marcada em cima da rota normal
+    const ondaLabel = (s.onda && s.onda.trim()) ? s.onda.trim() : 'Sem onda';
+    if(!map[vinc.sigla]) map[vinc.sigla] = {transportadora:s.transportadora, ondas:{}};
+    const grupo = map[vinc.sigla];
+    if(!grupo.ondas[ondaLabel]) grupo.ondas[ondaLabel] = {};
+    if(!grupo.ondas[ondaLabel][s.nRota]) grupo.ondas[ondaLabel][s.nRota] = new Set();
+  });
+
+  return {map, sacasPorChave};
+}
+function renderResumoLider(){
+  const el = document.getElementById('resumoLider');
+  // guarda a rolagem horizontal atual de cada transportadora antes de redesenhar, pra não
+  // voltar pro início a cada atualização automática (era isso que "travava" a rolagem).
+  const scrollPos = {};
+  el.querySelectorAll('.onda-colunas[data-sigla]').forEach(div=>{ scrollPos[div.dataset.sigla]=div.scrollLeft; });
+  const {map, sacasPorChave} = computeResumoLider();
+  const siglas = Object.keys(map);
+  if(!siglas.length){ el.innerHTML = '<div class="empty">Nenhuma rota importada ainda pra essa rua.</div>'; return; }
+  el.innerHTML = siglas.map(sigla=>{
+    const d = map[sigla];
+    const ondaLabels = Object.keys(d.ondas).sort((a,b)=>ondaOrdem(a)-ondaOrdem(b));
+    let totalRotas = 0;
+    const colunas = ondaLabels.map(ondaLabel=>{
+      const rotasObj = d.ondas[ondaLabel];
+      const rotasList = Object.keys(rotasObj).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+      totalRotas += rotasList.length;
+      const linhas = rotasList.map(nRota=>{
+        const paradas = rotasObj[nRota];
+        const paradaTxt = paradas.size ? [...paradas].join(', ') : '—';
+        const chaveSaca = String(d.transportadora||'').toUpperCase().trim()+'|'+String(nRota||'').trim();
+        const listaSacas = sacasPorChave.get(chaveSaca);
+        const temSaca = listaSacas && listaSacas.length;
+        const sacaBloco = temSaca ? `<div class="saca-lista"><div class="saca-lista-head">🧺 Saca (${listaSacas.length})</div>${listaSacas.map(s=>`<div class="saca-lista-item">${escapeHtml(s)}</div>`).join('')}</div>` : '';
+        return `<tr><td class="rota">${escapeHtml(nRota||'—')}${temSaca?` <span class="saca-mark">🧺 ${listaSacas.length}</span>`:''}</td><td class="parada">${escapeHtml(paradaTxt)}${sacaBloco}</td></tr>`;
+      }).join('');
+      return `<div class="onda-col">
+        <div class="onda-title">${escapeHtml(ondaLabel)} <span class="qtd">— ${rotasList.length} rota(s)</span></div>
+        <table class="resumo-table"><thead><tr><th>Rota</th><th>Parada</th></tr></thead><tbody>${linhas}</tbody></table>
+      </div>`;
+    }).join('');
+    const cor = CORES[sigla];
+    return `<div class="resumo-transp-block">
+      <div class="resumo-transp-head">
+        <span class="sigla-badge-sm" style="background:${cor.bg};color:${cor.fg}">${sigla}</span>
+        <b>${escapeHtml(d.transportadora)}</b>
+        <span class="qtd">${totalRotas} rota(s)</span>
+      </div>
+      <div class="onda-colunas" data-sigla="${escapeHtml(sigla)}">${colunas}</div>
+    </div>`;
+  }).join('');
+  // restaura a rolagem de cada bloco que já existia antes de redesenhar
+  el.querySelectorAll('.onda-colunas[data-sigla]').forEach(div=>{
+    const pos=scrollPos[div.dataset.sigla];
+    if(pos) div.scrollLeft=pos;
+  });
 }
 
-// ================= ALERTA SONORO · ADUANA ACIMA DE 7 MIN =================
-let audioCtxCoord = null;
-function desbloquearAudioCoord(){
-  try{ audioCtxCoord = audioCtxCoord || new (window.AudioContext||window.webkitAudioContext)(); if(audioCtxCoord.state==='suspended') audioCtxCoord.resume(); }catch(e){}
+// ================= RENDER GERAL =================
+function ehModoGuia(){ return !!(sessao && sessao.modo==='guia'); }
+function ehModoExpedicao(){ return !!(sessao && sessao.modo==='expedicao'); }
+function ehExpedicao(){ return false; }   // bipagem de pacotes fica só no painel do SVC
+function renderApp(){
+  const cs=document.getElementById('cicloAtivoSelect');
+  if(cs){ const oa=cs.querySelector('option[value="AUTO"]'); if(oa) oa.textContent='Automático · '+cicloAtivo; cs.value=cicloModo; }
+  if(ehModoGuia()){
+    abaAtiva='guia';
+    document.getElementById('tituloRua').textContent = '📖 Guia de rotas';
+    document.getElementById('subNome').textContent = `Somente consulta · ${cicloAtivo}`;
+  }else if(ehModoExpedicao()){
+    if(abaAtiva==='operacao') abaAtiva='bipar';
+    document.getElementById('tituloRua').textContent = '📦 Expedição';
+    document.getElementById('subNome').textContent = `${sessao.nome||'Bipagem'} · ${cicloAtivo}`;
+  }else{
+    if(abaAtiva==='bipar' && !ehExpedicao()) abaAtiva='operacao';
+    document.getElementById('tituloRua').textContent = sessao.rua;
+    document.getElementById('subNome').textContent = `${sessao.nome} · ${cicloAtivo}`;
+  }
+  renderAbas();
+  if(!ehModoGuia() && !ehModoExpedicao()){
+    renderKpisMini();
+    renderVagasGrid();
+    renderPainelAcao();
+    renderResumoLider();
+  }
+  renderGuia();
 }
-function tocarSireneCoord(){
+function mostrarApp(){
+  document.getElementById('entrada').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+async function init(){
+  popularRuaOpcoes();
+  await carregarSessao();
+  if(sessao && sessao.rua && sessao.nome){
+    // Pré-preenche com a última rua/nome usados, mas deixa a tela de entrada visível —
+    // é só tocar em "Entrar" pra confirmar (ou trocar, se for outro líder no aparelho).
+    escolherRua(sessao.rua);
+    document.getElementById('nomeInput').value = sessao.nome;
+    validarEntrada();
+  }
+  document.addEventListener('click', ()=>{ if(typeof desbloquearAudio==='function') desbloquearAudio(); }, {once:true});
+  setInterval(()=>{
+    if(!sessao) return;
+    document.querySelectorAll('[data-cronometro-vaga]').forEach(el=>{
+      const c=chamadoAtivoNaVaga(Number(el.dataset.cronometroVaga));
+      if(c) el.textContent=formatarTempo(tempoNaVagaMs(c));
+    });
+    document.querySelectorAll('[data-cron-chip]').forEach(el=>{
+      const c=chamadoAtivoNaVaga(Number(el.dataset.cronChip));
+      if(c) el.textContent=formatarTempo(tempoNaVagaMs(c));
+    });
+    document.querySelectorAll('[data-cronometro-aduana]').forEach(el=>{
+      const c=chamadoAtivoNaVaga(Number(el.dataset.cronometroAduana));
+      if(c){
+        const ms=tempoEmAduanaMs(c);
+        el.textContent='Tempo em aduana: '+formatarTempo(ms)+' · limite 7 min';
+        el.classList.toggle('excedido', ms>=LIMITE_ADUANA_MS);
+      }
+    });
+    verificarAlertasAduana();
+  }, 1000);
+  // O poll é só um reforço — quem traz os dados na hora é o realtime (iniciarRealtimeLider).
+  setInterval(async ()=>{
+    if(!sessao) return;
+    await carregarTudoCompartilhado();
+    renderApp();
+  }, 6000);
+  setInterval(()=>{ if(sessao && !ehModoGuia() && !ehModoExpedicao()) registrarLider(); }, 5*60*1000);
+}
+init();
+</script>
+
+<script>
+// ================= ALERTA SONORO · ADUANA ACIMA DE 7 MIN =================
+// O tempo de aduana conta dentro dos mesmos 30 min da vaga (não zera o cronômetro principal).
+// Se a vaga ficar em Aduana por mais de 7 min, avisa com um banner + sirene, repetindo até resolver.
+let audioCtxLider = null;
+function desbloquearAudio(){
+  try{ audioCtxLider = audioCtxLider || new (window.AudioContext||window.webkitAudioContext)(); if(audioCtxLider.state==='suspended') audioCtxLider.resume(); }catch(e){}
+}
+function tocarSireneLider(){
   try{
-    if(!audioCtxCoord) audioCtxCoord = new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtxCoord.state==='suspended') audioCtxCoord.resume();
-    const ctx=audioCtxCoord, now=ctx.currentTime;
+    if(!audioCtxLider) audioCtxLider = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtxLider.state==='suspended') audioCtxLider.resume();
+    const ctx=audioCtxLider, now=ctx.currentTime;
     const osc=ctx.createOscillator(), gain=ctx.createGain();
     osc.type='sine'; osc.connect(gain); gain.connect(ctx.destination);
     gain.gain.setValueAtTime(0.0001, now);
@@ -1769,337 +853,194 @@ function tocarSireneCoord(){
     osc.start(now); osc.stop(now+2.1);
   }catch(e){ console.error('Erro ao tocar sirene:', e); }
 }
-const REPETIR_SIRENE_MS_COORD = 25000;
-let aduanaAlertadasCoord = {};
-function verificarAlertaAduanaCoord(aduanaExcedida){
-  const chavesAtuais=new Set(aduanaExcedida.map(c=>c.vaga));
-  Object.keys(aduanaAlertadasCoord).forEach(v=>{ if(!chavesAtuais.has(Number(v))) delete aduanaAlertadasCoord[v]; });
-  aduanaExcedida.forEach(c=>{
-    const ultimo=aduanaAlertadasCoord[c.vaga]||0;
-    if(Date.now()-ultimo>=REPETIR_SIRENE_MS_COORD){ aduanaAlertadasCoord[c.vaga]=Date.now(); tocarSireneCoord(); }
+const REPETIR_SIRENE_MS = 25000;
+let aduanaAlertadasLider = {};
+function verificarAlertasAduana(){
+  if(!sessao || ehModoGuia() || ehModoExpedicao()) return;
+  const vagas = vagasData.filter(v=>v.rua===sessao.rua);
+  const excedidas = [];
+  vagas.forEach(v=>{
+    const c=chamadoAtivoNaVaga(v.num);
+    if(!c || String(c.status||'').toLowerCase()!=='aduana'){ delete aduanaAlertadasLider[v.num]; return; }
+    const ms=tempoEmAduanaMs(c);
+    if(ms>=LIMITE_ADUANA_MS){
+      excedidas.push({vaga:v.num, nRota:c.nRota, ms});
+      const ultimo=aduanaAlertadasLider[v.num]||0;
+      if(Date.now()-ultimo>=REPETIR_SIRENE_MS){ aduanaAlertadasLider[v.num]=Date.now(); tocarSireneLider(); }
+    }else{
+      delete aduanaAlertadasLider[v.num];
+    }
   });
-  const banner=document.getElementById('alertaAduanaCoord');
+  const banner=document.getElementById('alertaAduana');
   if(!banner) return;
-  if(aduanaExcedida.length){
+  if(excedidas.length){
     banner.style.display='block';
-    banner.innerHTML='🚨 '+aduanaExcedida.map(c=>`Vaga ${c.vaga} · ${escapeHtml(c.rua||'')} · ${escapeHtml(c.nRota||'—')} · Aduana passou de 7 min (${formatarCronometro(tempoEmAduanaMs(c))})`).join('<br>🚨 ');
+    banner.innerHTML='🚨 '+excedidas.map(a=>`Vaga ${a.vaga} · ${escapeHtml(a.nRota||'—')} · Aduana passou de 7 min (${formatarTempo(a.ms)})`).join('<br>🚨 ');
   }else{
     banner.style.display='none'; banner.innerHTML='';
   }
 }
-
-async function init(){
-  initTheme();
-  perfil = 'COORD';
-  document.addEventListener('click', desbloquearAudioCoord, {once:true});
-  await carregarTudoCompartilhado();
-  renderTudo();
-  // O poll a cada alguns segundos é só um reforço — quem realmente traz os dados novos
-  // é o realtime (iniciarRealtimeCoord), que já dispara na hora que algo muda no Supabase.
-  setInterval(async ()=>{ await carregarTudoCompartilhado(); renderTudo(); }, 6000);
-  setInterval(atualizarCronometrosCoord, 1000);
-}
-init();
-</script>
-<script id="compact-upload-helper">
-// Ao escolher o arquivo: descobre o ciclo sozinho (pelo conteúdo "_PM1", "_AM1"... ou pelo nome)
-// e já importa — antes era preciso trocar o ciclo na seta E clicar em Importar, e se o ciclo
-// ficasse em AM1 com um arquivo de PM1 nada aparecia.
-async function detectarCicloDoArquivo(file){
-  const ciclos=['AM1','PM1','SD','CHP'];
-  const cont={AM1:0,PM1:0,SD:0,CHP:0};
-  try{
-    if(/\.csv$/i.test(file.name)){
-      const txt=new TextDecoder('utf-8').decode(await file.arrayBuffer()).toUpperCase();
-      ciclos.forEach(c=>{ const m=txt.match(new RegExp('_'+c+'(?![A-Z0-9])','g')); cont[c]=m?m.length:0; });
-    }
-  }catch(e){}
-  let melhor=null, max=0;
-  ciclos.forEach(c=>{ if(cont[c]>max){max=cont[c];melhor=c;} });
-  if(melhor) return melhor;
-  const nome=file.name.toUpperCase();
-  return ciclos.find(c=>new RegExp('(^|[^A-Z0-9])'+c+'([^A-Z0-9]|$)').test(nome)) || null;
-}
-async function arquivoSelecionadoUnico(){
-  const f=document.getElementById('planilhaFile_UNICO')?.files?.[0];
-  const hint=document.getElementById('uploadHint');
-  if(!f) return;
-  if(hint) hint.textContent=f.name;
-  const ciclo=await detectarCicloDoArquivo(f);
-  const sel=document.getElementById('cicloUpload');
-  if(ciclo && sel) sel.value=ciclo;
-  await processarUploadUnico();
-}
-async function processarUploadUnico(){
-  const ciclo=document.getElementById('cicloUpload').value;
-  const input=document.getElementById('planilhaFile_UNICO');
-  const status=document.getElementById('statusUploadUnico');
-  if(!input || !input.files.length){ if(status) status.textContent='Escolha um arquivo primeiro.'; return; }
-  const file=input.files[0];
-  cicloImportacao = ciclo; // necessário: salvarRotas() lê essa variável global, não a local acima
-  try{
-    if(status) status.textContent='Lendo planejamento '+ciclo+'…';
-    let rows=[];
-    if(/\.csv$/i.test(file.name)){
-      const texto=new TextDecoder('utf-8').decode(await file.arrayBuffer());
-      rows=parseCSVNativo(texto);
-    }else{
-      if(typeof XLSX==='undefined') throw new Error('Para XLSX/XLS é necessário conexão para carregar a biblioteca. Prefira o CSV gerado pela VIA QUERY.');
-      const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
-      const sh=wb.Sheets[wb.SheetNames[0]];
-      rows=XLSX.utils.sheet_to_json(sh,{header:1,raw:false,defval:''});
-    }
-    if(!rows.length) throw new Error('Arquivo vazio.');
-
-    let hi=-1;
-    for(let i=0;i<Math.min(rows.length,20);i++){
-      const norm=(rows[i]||[]).map(normalizarHeader);
-      if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas')){hi=i;break;}
-    }
-    if(hi<0) throw new Error('Não encontrei o cabeçalho VIA QUERY (GAIOLA / ONDA CADASTRADA / PARADAS).');
-
-    const headers=(rows[hi]||[]).map(v=>String(v??'').trim());
-    const hn=headers.map(normalizarHeader);
-    const idxG=hn.indexOf('gaiola');
-    const idxO=hn.indexOf('onda cadastrada');
-    const idxP=hn.indexOf('paradas');
-    const idxS=hn.indexOf('saca');
-    const idxData=hn.indexOf('data exp');
-    const idxB=hn.indexOf('bairros');
-    const idxCl=hn.indexOf('cluster');
-    const idxMo=hn.indexOf('modal');
-    // A VIA QUERY de 22/09/2026 usa cabeçalho simples "MLP" (há mais de uma coluna MLP).
-    // Para a transportadora usamos a PRIMEIRA coluna MLP; versões antigas com "MLP - ..." continuam aceitas.
-    let idxMlp=hn.findIndex(h=>h==='mlp');
-    if(idxMlp<0) idxMlp=hn.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
-    const idxRota=hn.indexOf('rota');
-    if(idxG<0 || idxP<0 || idxMlp<0) throw new Error('Faltam as colunas GAIOLA, PARADAS ou MLP da operação.');
-
-    const get=(r,i)=>i>=0?String(r[i]??'').trim():'';
-    const novas=[];
-    let ignoradas=0, sacasDetalheIgnoradas=0;
-    const linhasDados=rows.slice(hi+1);
-    let ultimaRotaMae=null, ultimaRotaMaeTransp=null, ultimaRotaMaeTeveLista=false, ultimaRotaMaePlan=null;
-    for(const r of linhasDados){
-      const gaiola=get(r,idxG); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
-      const transp=get(r,idxMlp).toUpperCase();
-      const rotaPlan=get(r,idxRota); // número sequencial da planilha — não é o identificador usado no app
-      const bairrosBruto=get(r,idxB);
-      const ehLinhaDetalheSaca=gaiola.toUpperCase()==='SACA' ||
-        (ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp && ehSacaDaRotaMae(rotaPlan, ultimaRotaMaePlan));
-
-      if(ehLinhaDetalheSaca){
-        if(ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp){ sacasDetalheIgnoradas++; continue; }
-        const nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:gaiola;
-        if(!nRota || !transp || transp==='#N/A'){ignoradas++;continue;}
-        novas.push({
-          idPacote:'', nRota, gaiola, ciclo, tipoOperacao:'SACA',
-          transportadora:transp, onda:get(r,idxO), parada:rotaPlan||gaiola,
-          ponto:'', bairros:'', cluster:get(r,idxCl), modal:get(r,idxMo),
-          dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
-        });
-        continue;
-      }
-
-      if(!gaiola || !transp || transp==='#N/A' || gaiola==='#N/A'){ignoradas++;continue;}
-      const infoSacas=extrairSacasDoTexto(bairrosBruto);
-      ultimaRotaMae=gaiola; ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas; ultimaRotaMaePlan=rotaPlan;
-      novas.push({
-        idPacote:'', nRota:gaiola, gaiola, ciclo, tipoOperacao:'ROTA',
-        transportadora:transp, onda:get(r,idxO), parada:get(r,idxP),
-        ponto:infoSacas?'':bairrosBruto, bairros:infoSacas?'':bairrosBruto, cluster:get(r,idxCl), modal:get(r,idxMo),
-        dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
-      });
-      if(infoSacas){
-        infoSacas.lista.forEach((numSaca,i)=>{
-          novas.push({
-            idPacote:'', nRota:gaiola, gaiola:gaiola+'_SACA_'+(i+1), ciclo, tipoOperacao:'SACA',
-            transportadora:transp, onda:get(r,idxO), parada:numSaca,
-            ponto:'', bairros:'', cluster:get(r,idxCl), modal:get(r,idxMo),
-            dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
-          });
-        });
-      }
-    }
-    if(!novas.length) throw new Error('Nenhuma rota válida foi encontrada.');
-
-    rotasData=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()!==ciclo).concat(novas);
-    await salvarRotas();
-    renderTudo();
-    renderCycleSummaryCompact();
-    renderResumoPlanejamentoCoord();
-    const rotasU=new Set(novas.filter(r=>r.tipoOperacao!=='SACA').map(r=>r.nRota)).size;
-    const sacasU=novas.filter(r=>r.tipoOperacao==='SACA').length;
-    // Confere no Supabase se as rotas realmente ficaram gravadas pra hoje (é de lá que o app do líder lê).
-    let gravadas=null;
-    try{
-      const {count,error}=await db.from('planejamento').select('*',{count:'exact',head:true}).eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
-      if(!error) gravadas=count;
-    }catch(e){}
-    const sel=document.getElementById('cicloResumo'); if(sel){ sel.value=ciclo; if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord(); }
-    if(status){
-      if(gravadas===0) status.textContent='⚠ '+ciclo+': o arquivo foi lido ('+rotasU+' rotas), mas o Supabase não devolveu nada gravado para hoje ('+hojeISO()+'). Verifique a permissão (RLS) de INSERT/SELECT na tabela planejamento.';
-      else status.textContent='✓ '+ciclo+' importado: '+rotasU+' rotas · '+sacasU+' sacas · '+ignoradas+' linhas ignoradas'+(gravadas!=null?' · '+gravadas+' linhas no Supabase':'')+'.';
-    }
-  }catch(e){
-    console.error('IMPORTAÇÃO:',e);
-    if(status) status.textContent='Erro: '+(e?.message||'não foi possível importar o planejamento.');
-  }finally{
-    input.value='';
-    const hint=document.getElementById('uploadHint');
-    if(hint) hint.textContent='Clique ou arraste o arquivo CSV/XLSX aqui';
-  }
-}
-async function limparCicloSelecionado(){
-  const ciclo=document.getElementById('cicloUpload').value;
-  await limparCiclo(ciclo);
-  const status=document.getElementById('statusUploadUnico');
-  if(status) status.textContent='Planejamento '+ciclo+' removido.';
-  renderCycleSummaryCompact();
-}
-function renderCycleSummaryCompact(){
-  const el=document.getElementById('cycleSummary'); if(!el) return;
-  const ciclos=['AM1','PM1','SD','CHP'];
-  el.innerHTML=ciclos.map(c=>{
-    const rows=(typeof rotasData!=='undefined') ? rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===c) : [];
-    const rotas=new Set(rows.filter(r=>r.tipoOperacao!=='SACA').map(r=>r.nRota).filter(Boolean)).size;
-    const sacas=new Set(rows.filter(r=>r.tipoOperacao==='SACA').map(r=>r.nRota).filter(Boolean)).size;
-    return '<span class="cycle-pill"><strong>'+c+'</strong> · '+rotas+' rotas · '+sacas+' sacas</span>';
-  }).join('');
-}
-
-let areaResumoSelecionada='Rua 1';
-function areaDaRotaPlanejada(r){
-  const vinc=vinculoPorTransportadora(r.transportadora);
-  // Saca de uma transportadora vinculada a uma rua entra junto com as rotas dessa mesma
-  // transportadora (mesma área). Só cai na aba "Sacas" separada se não tiver vínculo nenhum.
-  if(!vinc) return r.tipoOperacao==='SACA' ? 'Sacas' : 'Sem rua vinculada';
-  return ruaDaSigla(vinc.sigla);
-}
-
-const transportadorasAbertas = new Set();
-
-function toggleTransportadoraResumo(key){
-  if(transportadorasAbertas.has(key)) transportadorasAbertas.delete(key);
-  else transportadorasAbertas.add(key);
-  renderResumoPlanejamentoCoord();
-}
-
-function renderResumoPlanejamentoCoord(){
-  const el=document.getElementById('resumoPlanejamentoCoord');
-  const tabs=document.getElementById('planningAreaTabs');
-  const cicloEl=document.getElementById('cicloResumo');
-  if(!el||!tabs||!cicloEl) return;
-
-  const ciclo=cicloEl.value;
-  const dados=rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo);
-  const areas=['Rua 1','Rua 2','Rua 3','Rua 4 - Expedição VUC','Sacas'];
-
-  if(!areas.includes(areaResumoSelecionada)) areaResumoSelecionada='Rua 1';
-
-  tabs.innerHTML=areas.map(a=>{
-    const n=dados.filter(r=>areaDaRotaPlanejada(r)===a).length;
-    const label=a==='Rua 4 - Expedição VUC'?'Rua 4':a;
-    return '<button class="area-tab '+(areaResumoSelecionada===a?'active':'')+'" onclick="areaResumoSelecionada='+JSON.stringify(a)+';renderResumoPlanejamentoCoord()">'+escapeHtml(label)+' · '+n+'</button>';
-  }).join('');
-
-  const areaDados=dados.filter(r=>areaDaRotaPlanejada(r)===areaResumoSelecionada);
-  if(!areaDados.length){
-    el.innerHTML='<div class="empty">Nenhum item de '+escapeHtml(ciclo)+' em '+escapeHtml(areaResumoSelecionada)+'.</div>';
-    return;
-  }
-
-  // 1º nível: ONDA. A operação sobe toda a Onda 1 antes da Onda 2, e assim por diante.
-  const porOnda={};
-  areaDados.forEach(r=>{
-    const onda=(r.onda && String(r.onda).trim()) ? String(r.onda).trim() : 'Sem onda';
-    (porOnda[onda]??=[]).push(r);
-  });
-
-  function ordemOndaLocal(label){
-    const m=String(label).match(/(\d+)/);
-    return m ? parseInt(m[1],10) : 9999;
-  }
-
-  const ondas=Object.keys(porOnda).sort((a,b)=>
-    ordemOndaLocal(a)-ordemOndaLocal(b) ||
-    a.localeCompare(b,'pt-BR',{numeric:true})
-  );
-
-  el.innerHTML=ondas.map(onda=>{
-    const itensOnda=porOnda[onda];
-
-    // 2º nível: transportadora dentro da mesma onda.
-    const porTransp={};
-    itensOnda.forEach(r=>{
-      const nome=(r.transportadora||'Sem transportadora').trim();
-      (porTransp[nome]??=[]).push(r);
-    });
-
-    const transportadorasHtml=Object.keys(porTransp)
-      .sort((a,b)=>a.localeCompare(b,'pt-BR'))
-      .map(nome=>{
-        const lista=porTransp[nome].slice().sort((a,b)=>
-          String(a.nRota||'').localeCompare(String(b.nRota||''),'pt-BR',{numeric:true})
-        );
-
-        const vinc=vinculoPorTransportadora(nome);
-        const sig=vinc?.sigla||'—';
-        const cor=CORES[sig]||{bg:'#E2E8F0',fg:'#0F172A'};
-        const key=ciclo+'|'+areaResumoSelecionada+'|'+onda+'|'+nome;
-        const aberta=transportadorasAbertas.has(key);
-
-        // Agrupa por rota: uma linha só, juntando a quantidade/lista de sacas dela —
-        // evita repetir a mesma rota várias vezes só porque ela tem várias sacas individuais.
-        const porNRota={};
-        lista.forEach(r=>{
-          const chave=String(r.nRota||'');
-          if(!porNRota[chave]) porNRota[chave]={nRota:r.nRota, paradasRota:new Set(), sacas:[]};
-          const g=porNRota[chave];
-          if(r.tipoOperacao==='SACA'){ if(r.parada) g.sacas.push(r.parada); }
-          else if(r.parada) g.paradasRota.add(r.parada);
-        });
-        const nRotasOrdenadas=Object.keys(porNRota).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
-        const rows=nRotasOrdenadas.map(chave=>{
-          const g=porNRota[chave];
-          const paradaTxt=g.paradasRota.size?[...g.paradasRota].join(', '):'—';
-          const sacaMark=g.sacas.length?` <span class="saca-mark">🧺 ${g.sacas.length}</span>`:'';
-          const sacaLista=g.sacas.length?`<div class="saca-lista"><div class="saca-lista-head">🧺 Saca (${g.sacas.length})</div>${g.sacas.map(s=>`<div class="saca-lista-item">${escapeHtml(s)}</div>`).join('')}</div>`:'';
-          return '<div class="route-columns-row wave-rows">'+
-            '<div class="rota" title="'+escapeHtml(g.nRota||'—')+'">'+escapeHtml(g.nRota||'—')+sacaMark+'</div>'+
-            '<div class="paradas">'+escapeHtml(paradaTxt)+sacaLista+'</div>'+
-          '</div>';
-        }).join('');
-
-        return '<div class="transp-accordion '+(aberta?'open':'')+'">'+
-          '<button class="transp-accordion-head" onclick="toggleTransportadoraResumo('+JSON.stringify(key).replace(/"/g,'&quot;')+')">'+
-            '<span class="transp-arrow">▶</span>'+
-            '<span class="sigla-badge-sm" style="background:'+cor.bg+';color:'+cor.fg+'">'+escapeHtml(sig)+'</span>'+
-            '<span class="transp-accordion-name">'+escapeHtml(nome)+'</span>'+
-            '<span class="transp-accordion-count">'+nRotasOrdenadas.length+' rota(s)</span>'+
-          '</button>'+
-          '<div class="transp-accordion-body">'+
-            '<div class="route-columns-head wave-rows"><span>Rota</span><span>Parada</span></div>'+
-            rows+
-          '</div>'+
-        '</div>';
-      }).join('');
-
-    return '<div class="onda-section">'+
-      '<div class="onda-section-title"><span>'+escapeHtml(onda)+'</span><span class="qtd">'+itensOnda.length+' item(ns)</span></div>'+
-      transportadorasHtml+
-    '</div>';
-  }).join('');
-}
-
-document.addEventListener('DOMContentLoaded',()=>setTimeout(renderCycleSummaryCompact,300));
-setInterval(renderCycleSummaryCompact,5000);
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  setTimeout(async()=>{ await carregarSupabaseCoord(); iniciarRealtimeCoord(); },600);
-});
+async function carregarSupabaseLider(){
+  if(!sessao) return;
+  await carregarTudoCompartilhado();
+  renderApp();
+}
+function iniciarRealtimeLider(){
+  db.channel('svc-lider')
+    .on('postgres_changes',{event:'*',schema:'public',table:'planejamento'},()=>carregarSupabaseLider())
+    .on('postgres_changes',{event:'*',schema:'public',table:'operacoes_vagas'},()=>carregarSupabaseLider())
+    .subscribe();
+  // Canal separado: se a tabela de pacotes ainda não existir, não derruba o tempo real das vagas.
+  try{ db.channel('svc-lider-pacotes').on('postgres_changes',{event:'*',schema:'public',table:'pacotes_extra'},()=>carregarSupabaseLider()).subscribe(); }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(async()=>{await carregarSupabaseLider();iniciarRealtimeLider();},600));
+</script>
+<script>
+// =====================================================================
+// ABAS · GUIA (só consulta) · BIPAR PACOTES (expedição)
+// =====================================================================
+const RUA_EXPEDICAO = 'Rua 4 - Expedição VUC';
+let abaAtiva = 'operacao';
+
+function renderAbas(){
+  const el=document.getElementById('abas');
+  let abas;
+  if(ehModoGuia()) abas=[];                       // no modo guia só existe o guia, sem abas
+  else{
+    abas=[['operacao','🚚 Operação'],['guia','📖 Guia']];
+    if(ehExpedicao()) abas.push(['bipar','📦 Bipar pacotes']);
+  }
+  el.style.display = abas.length ? 'flex' : 'none';
+  el.innerHTML = abas.map(([k,l])=>`<button class="aba ${abaAtiva===k?'ativa':''}" onclick="mudarAba('${k}')">${l}</button>`).join('');
+  document.getElementById('abaOperacao').style.display = abaAtiva==='operacao' ? 'block' : 'none';
+  document.getElementById('abaGuia').style.display     = abaAtiva==='guia' ? 'block' : 'none';
+}
+function mudarAba(a){
+  abaAtiva=a;
+  renderAbas();
+  if(a==='guia') renderGuia();
+}
+
+async function entrarGuia(){
+  sessao = { modo:'guia', nome:'', rua:null };   // não salva sessão e não registra líder: é só consulta
+  abaAtiva='guia';
+  await carregarTudoCompartilhado();
+  mostrarApp();
+  renderApp();
+}
+
+// ---------------- GUIA ----------------
+let guiaArea = null;
+const GUIA_AREAS = ['Rua 1','Rua 2','Rua 3', RUA_EXPEDICAO, 'Sem vínculo', 'Todas'];
+function ehRotaVuc(r){ return /\bVUC\b/i.test(String(r.modal||'')); }
+function areasDaRota(r){
+  const areas=[];
+  const vinc=vinculoPorTransportadora(r.transportadora);
+  areas.push(vinc ? ruaDaSigla(vinc.sigla) : 'Sem vínculo');
+  if(ehRotaVuc(r)) areas.push(RUA_EXPEDICAO);
+  return areas;
+}
+function rotasDoCicloGuia(){
+  const unicas=new Map();
+  rotasData.forEach(r=>{
+    if(String(r.ciclo||'').toUpperCase()!==String(cicloAtivo).toUpperCase()) return;
+    if(String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA') return;
+    const k=String(r.nRota||'').trim(); if(!k) return;
+    if(!unicas.has(k)) unicas.set(k,r);
+  });
+  return [...unicas.values()];
+}
+function statusGuiaRota(nRota){
+  const c=chamadoAtivoDaRota(nRota);
+  if(!c) return {cls:'aguardando', txt:'Aguardando'};
+  if(String(c.status||'').toLowerCase()==='aduana') return {cls:'aduana', txt:'Aduana · vaga '+c.vaga};
+  return {cls:'navaga', txt:'Na vaga '+c.vaga};
+}
+function renderGuia(){
+  const cont=document.getElementById('guiaConteudo'); if(!cont) return;
+  const todas=rotasDoCicloGuia();
+  if(!guiaArea) guiaArea = (sessao && sessao.rua && GUIA_AREAS.includes(sessao.rua)) ? sessao.rua : 'Rua 1';
+  const conta=a=> a==='Todas' ? todas.length : todas.filter(r=>areasDaRota(r).includes(a)).length;
+  document.getElementById('guiaRuas').innerHTML = GUIA_AREAS
+    .filter(a=>a!=='Sem vínculo' || conta(a)>0)
+    .map(a=>`<button class="chip ${guiaArea===a?'ativa':''}" onclick="guiaArea=${escapeHtml(JSON.stringify(a))};renderGuia()">${escapeHtml(a.replace(' - Expedição VUC',' · VUC'))}<span class="c">${conta(a)}</span></button>`).join('');
+
+  const busca=(document.getElementById('guiaBusca')?.value||'').trim().toUpperCase();
+  let lista = guiaArea==='Todas' ? todas : todas.filter(r=>areasDaRota(r).includes(guiaArea));
+  if(busca){
+    // na busca procura em todas as ruas, pra achar "onde está" qualquer rota
+    lista = todas.filter(r=>{
+      const pacs=pacotesDaRota(r.nRota).map(p=>p.pacote).join(' ');
+      return [r.nRota,r.transportadora,r.bairros,r.onda,pacs].join(' ').toUpperCase().includes(busca);
+    });
+  }
+  if(!todas.length){ cont.innerHTML=`<div class="empty">Nenhuma rota do ${escapeHtml(cicloAtivo)} importada hoje. Confira o ciclo lá em cima.</div>`; return; }
+  if(!lista.length){ cont.innerHTML=`<div class="empty">${busca?'Nada encontrado para "'+escapeHtml(busca)+'".':'Nenhuma rota nesta rua no '+escapeHtml(cicloAtivo)+'.'}</div>`; return; }
+
+  // Mesmo formato do "Rotas da sua rua, por onda": bloco por transportadora, colunas por onda (Rota | Parada).
+  const scrollPos={};
+  cont.querySelectorAll('.onda-colunas[data-gk]').forEach(d=>{ scrollPos[d.dataset.gk]=d.scrollLeft; });
+  const grupos=new Map();
+  lista.forEach(r=>{
+    const vinc=vinculoPorTransportadora(r.transportadora);
+    const gk=vinc?vinc.sigla:('?'+String(r.transportadora||'SEM TRANSPORTADORA'));
+    if(!grupos.has(gk)) grupos.set(gk,{vinc,transportadora:r.transportadora||'—',ondas:{}});
+    const g=grupos.get(gk);
+    const o=(r.onda&&r.onda.trim())?r.onda.trim():'Sem onda';
+    (g.ondas[o]=g.ondas[o]||[]).push(r);
+  });
+  cont.innerHTML=[...grupos.entries()].map(([gk,g])=>{
+    const cor=g.vinc&&CORES[g.vinc.sigla]?CORES[g.vinc.sigla]:{bg:'#E2E8F0',fg:'#0E2A47'};
+    const rua=g.vinc?ruaDaSigla(g.vinc.sigla):'Sem vínculo';
+    let total=0;
+    const colunas=Object.keys(g.ondas).sort((a,b)=>ondaOrdem(a)-ondaOrdem(b)).map(onda=>{
+      const rotas=g.ondas[onda].sort((a,b)=>String(a.nRota).localeCompare(String(b.nRota),'pt-BR',{numeric:true}));
+      total+=rotas.length;
+      const linhas=rotas.map(r=>{
+        const st=statusGuiaRota(r.nRota);
+        const sacas=sacasDaRota(r.nRota,r.transportadora);
+        const pacs=pacotesDaRota(r.nRota);
+        const marca = st.cls==='aguardando' ? '' : `<span class="guia-vaga ${st.cls}" title="${escapeHtml(st.txt)}">${st.cls==='aduana'?'AD ':''}V${escapeHtml(String(chamadoAtivoDaRota(r.nRota).vaga))}</span>`;
+        const sacaBloco = sacas.length ? `<div class="saca-lista"><div class="saca-lista-head">🧺 Saca (${sacas.length})</div>${sacas.map(x=>`<div class="saca-lista-item">${escapeHtml(x)}</div>`).join('')}</div>` : '';
+        return `<tr><td class="rota">${escapeHtml(r.nRota)}${sacas.length?` <span class="saca-mark">🧺 ${sacas.length}</span>`:''}${pacs.length?` <span class="pac-mark">📦 ${pacs.length}</span>`:''}${marca}</td><td class="parada">${escapeHtml(r.parada||'—')}${sacaBloco}</td></tr>`;
+      }).join('');
+      return `<div class="onda-col">
+        <div class="onda-title">${escapeHtml(onda)} <span class="qtd">— ${rotas.length} rota(s)</span></div>
+        <table class="resumo-table"><thead><tr><th>Rota</th><th>Parada</th></tr></thead><tbody>${linhas}</tbody></table>
+      </div>`;
+    }).join('');
+    return `<div class="resumo-transp-block">
+      <div class="resumo-transp-head">
+        <span class="sigla-badge-sm" style="background:${cor.bg};color:${cor.fg}">${g.vinc?g.vinc.sigla:'?'}</span>
+        <b>${escapeHtml(g.transportadora)}</b>
+        <span class="qtd">${total} rota(s)${(busca||guiaArea==='Todas'||guiaArea===RUA_EXPEDICAO)?' · '+escapeHtml(rua):''}</span>
+      </div>
+      <div class="onda-colunas" data-gk="${escapeHtml(gk)}">${colunas}</div>
+    </div>`;
+  }).join('') + `<div class="guia-legenda"><span class="guia-vaga navaga">V12</span> na vaga · <span class="guia-vaga aduana">AD V12</span> em aduana · 🧺 sacas · 📦 pacotes extra</div>`;
+  cont.querySelectorAll('.onda-colunas[data-gk]').forEach(d=>{ const pos=scrollPos[d.dataset.gk]; if(pos) d.scrollLeft=pos; });
+}
+
+// ---------------- PACOTES (Supabase: tabela pacotes_extra) ----------------
+let pacotesData = [];
+let pacotesTabelaOk = true, pacotesErro = '';
+async function carregarPacotes(){
+  try{
+    const {data,error}=await db.from('pacotes_extra').select('*').eq('data_operacao',hojeISO()).order('criado_em',{ascending:false});
+    if(error) throw error;
+    pacotesData=data||[]; pacotesTabelaOk=true; pacotesErro='';
+  }catch(e){
+    pacotesData=[]; pacotesTabelaOk=false; pacotesErro=(e&&e.message)||String(e);
+  }
+}
+function pacotesDaRota(nRota){
+  const k=String(nRota||'').trim().toUpperCase();
+  return pacotesData.filter(p=>String(p.rota||'').trim().toUpperCase()===k && String(p.ciclo||'').toUpperCase()===String(cicloAtivo).toUpperCase());
+}
+
 </script>
 </body>
 </html>
