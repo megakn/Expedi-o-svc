@@ -387,7 +387,7 @@
   .route-columns-row.wave-rows .paradas{text-align:left}
 
 
-  .planning-compact{grid-template-columns:minmax(260px,1.25fr) auto minmax(300px,1fr)!important}
+  .planning-compact{grid-template-columns:minmax(260px,1.25fr) auto!important}
   .planning-compact .cycle-summary,.planning-compact .cycle-state{grid-column:1 / 3}
   .exp-inline{grid-column:3;grid-row:1 / span 3;align-self:stretch;border-left:1.5px dashed var(--border);padding-left:12px;min-width:0}
   .exp-inline .exp-head h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--navy-700)}
@@ -459,8 +459,8 @@
   <div class="planning-compact">
     <div class="upload-drop" onclick="document.getElementById('planilhaFile_UNICO').click()">
       <div class="upload-icon">⇧</div>
-      <div class="upload-copy"><b>Planilha de planejamento</b><span id="uploadHint">Clique ou arraste o arquivo CSV/XLSX aqui</span></div>
-      <input type="file" id="planilhaFile_UNICO" accept=".xlsx,.xls,.csv" hidden onchange="arquivoSelecionadoUnico()">
+      <div class="upload-copy"><b>Planejamento + Base e Planification</b><span id="uploadHint">Clique ou arraste a VIA QUERY e a Base e Planification (pode mandar os dois juntos)</span></div>
+      <input type="file" id="planilhaFile_UNICO" accept=".xlsx,.xls,.csv" multiple hidden onchange="uploadMultiplo(this.files)">
     </div>
     <div class="cycle-picker">
       <label for="cicloUpload">Ciclo</label>
@@ -472,45 +472,6 @@
     </div>
     <div class="cycle-summary" id="cycleSummary"></div>
     <div class="cycle-state compact-state" id="statusUploadUnico">Selecione o ciclo na seta e envie o planejamento correspondente.</div>
-      <!-- ===== EXPEDIÇÃO · BIPAR PACOTES NAS ROTAS (tabela pacotes_extra, a mesma do app do líder) ===== -->
-      <div class="exp-card exp-inline" id="cardExpedicao">
-        <div class="exp-head"><h3>📦 Bipar pacotes</h3>
-          <select id="expRotaSelect" class="exp-select" onchange="expDefinirRota(this.value)"></select>
-          <select id="expCiclo" onchange="expCicloMudou()"><option value="AUTO">Auto</option><option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option></select>
-        </div>
-        <div id="expAvisoTabela"></div>
-        <div class="exp-rota" id="expRotaBox"></div>
-        <div class="exp-linha">
-          <input id="expInput" placeholder="Bipe o pacote ou a gaiola" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();expEnviar();}">
-          <button onclick="expEnviar()">OK</button>
-        </div>
-        <div class="exp-dica">Bipe a <b>gaiola</b> (ex: B5_PM1) pra trocar a rota; os demais códigos entram como pacote.</div>
-        <div class="exp-fb" id="expFeedback"></div>
-        <div class="exp-cols">
-          <div><div class="exp-sub" id="expListaTitulo">Pacotes da rota</div>
-          <div id="expLista" class="exp-lista"><div class="empty">Nenhum pacote bipado.</div></div></div>
-          <div><div class="exp-sub">Rotas com pacotes hoje</div>
-          <div id="expResumo" class="exp-resumo"><div class="empty">Nada bipado ainda.</div></div></div>
-        </div>
-      </div>
-  </div>
-
-  <!-- ===== BASE DE PACOTES (planification) · alimenta o "Bipar pacote" do app do Líder ===== -->
-  <div class="basepac-card">
-    <div class="basepac-drop" onclick="document.getElementById('basePacFile').click()">
-      <div class="upload-icon">⇧</div>
-      <div class="upload-copy"><b>Base de pacotes (planification)</b><span id="basePacHint">CSV/XLSX com ID do pacote + rota/gaiola</span></div>
-      <input type="file" id="basePacFile" accept=".xlsx,.xls,.csv" hidden onchange="basePacArquivo()">
-    </div>
-    <div class="cycle-picker">
-      <label for="basePacCiclo">Ciclo</label>
-      <select id="basePacCiclo"><option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option></select>
-      <button class="upload-clear" onclick="basePacLimpar()">Limpar base do ciclo</button>
-    </div>
-    <div class="basepac-info">
-      <div id="basePacResumo" class="basepac-resumo"></div>
-      <div id="basePacStatus" class="cycle-state compact-state">Importe o planejamento (rotas) primeiro e depois a base de pacotes do mesmo ciclo — o app cruza o ID com a rota, onda, transportadora e rua.</div>
-    </div>
   </div>
 
   <!-- ===== BACKLOG · bipar pacote → cruza com a base → aparece na aba Backlog do app do Líder ===== -->
@@ -533,6 +494,25 @@
       <div id="blLista" class="exp-lista"><div class="empty">Nenhum pacote bipado.</div></div>
     </div>
   </div>
+
+  <!-- ===== BASE DE PACOTES (planification) · alimenta o "Bipar pacote" do app do Líder ===== -->
+  <div class="basepac-card">
+    <div class="basepac-drop" onclick="document.getElementById('basePacFile').click()">
+      <div class="upload-icon">⇧</div>
+      <div class="upload-copy"><b>Base de pacotes (planification)</b><span id="basePacHint">CSV/XLSX com ID do pacote + rota/gaiola</span></div>
+      <input type="file" id="basePacFile" accept=".xlsx,.xls,.csv" multiple hidden onchange="uploadMultiplo(this.files)">
+    </div>
+    <div class="cycle-picker">
+      <label for="basePacCiclo">Ciclo</label>
+      <select id="basePacCiclo"><option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option></select>
+      <button class="upload-clear" onclick="basePacLimpar()">Limpar base do ciclo</button>
+    </div>
+    <div class="basepac-info">
+      <div id="basePacResumo" class="basepac-resumo"></div>
+      <div id="basePacStatus" class="cycle-state compact-state">Importe o planejamento (rotas) primeiro e depois a base de pacotes do mesmo ciclo — o app cruza o ID com a rota, onda, transportadora e rua.</div>
+    </div>
+  </div>
+
 
   <div style="display:none"><div id="statusPlanilha"></div><div id="mapeamentoColunas"></div></div>
 
@@ -2085,7 +2065,7 @@ async function processarUploadUnico(){
   }finally{
     input.value='';
     const hint=document.getElementById('uploadHint');
-    if(hint) hint.textContent='Clique ou arraste o arquivo CSV/XLSX aqui';
+    if(hint) hint.textContent='Clique ou arraste a VIA QUERY e a Base e Planification (pode mandar os dois juntos)';
   }
 }
 async function limparCicloSelecionado(){
@@ -2239,107 +2219,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(async()=>{ await carregarSupabaseCoord(); iniciarRealtimeCoord(); },600);
 });
 </script>
-<script id="expedicao-bipar">
-// ================= EXPEDIÇÃO · BIPAR PACOTES (mesma tabela pacotes_extra do app do líder) =================
-let expPacotes=[], expTabelaOk=true, expErro='', expOcupado=false;
-let expCicloModo=(()=>{try{return localStorage.getItem('exp-ciclo-modo')||'AUTO'}catch(e){return 'AUTO'}})();
-let expCiclo=expCicloModo==='AUTO'?'AM1':expCicloModo;
-function expAplicarAuto(){ if(expCicloModo!=='AUTO') return; const d=detectarCicloPlanejamento(typeof rotasData!=='undefined'?rotasData:[]); if(d) expCiclo=d; }
-let expRota=(()=>{try{return localStorage.getItem('exp-rota')||''}catch(e){return ''}})();
-function expRotas(){
-  const m=new Map();
-  (typeof rotasData!=='undefined'?rotasData:[]).forEach(r=>{
-    if(String(r.ciclo||'').toUpperCase()!==expCiclo) return;
-    if(String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA') return;
-    const k=String(r.nRota||'').trim(); if(k && !m.has(k)) m.set(k,r);
-  });
-  return [...m.values()].sort((a,b)=>String(a.nRota).localeCompare(String(b.nRota),'pt-BR',{numeric:true}));
-}
-function expPacotesDaRota(n){ const k=String(n||'').toUpperCase(); return expPacotes.filter(p=>String(p.rota||'').toUpperCase()===k && String(p.ciclo||'').toUpperCase()===expCiclo); }
-async function expCarregar(){
-  try{
-    const {data,error}=await db.from('pacotes_extra').select('*').eq('data_operacao',hojeISO()).order('criado_em',{ascending:false});
-    if(error) throw error; expPacotes=data||[]; expTabelaOk=true; expErro='';
-  }catch(e){ expTabelaOk=false; expErro=(e&&e.message)||String(e); }
-  expRender();
-}
-function expCicloMudou(){ expCicloModo=document.getElementById('expCiclo').value; try{localStorage.setItem('exp-ciclo-modo',expCicloModo)}catch(e){} if(expCicloModo!=='AUTO') expCiclo=expCicloModo; expRender(); }
-function expDefinirRota(n){ expRota=n||''; try{localStorage.setItem('exp-rota',expRota)}catch(e){} expRender(); document.getElementById('expInput')?.focus(); }
-function expFb(tipo,msg){ const el=document.getElementById('expFeedback'); el.className='exp-fb '+tipo; el.innerHTML=msg; clearTimeout(expFb._t); expFb._t=setTimeout(()=>el.className='exp-fb',6000); }
+<script id="som-bipe">
 function expSom(ok){
   try{ if(!audioCtxCoord) audioCtxCoord=new (window.AudioContext||window.webkitAudioContext)();
     const c=audioCtxCoord,t=c.currentTime,o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='square';
     o.frequency.value=ok?1500:220; g.gain.setValueAtTime(0.12,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(ok?0.12:0.45)); o.start(t); o.stop(t+(ok?0.13:0.46)); }catch(e){}
 }
-function expEnviar(){ const i=document.getElementById('expInput'); const v=i.value; i.value=''; expBipe(v); i.focus(); }
-async function expBipe(bruto){
-  const cod=String(bruto||'').trim().toUpperCase().replace(/\s+/g,'');
-  if(!cod || expOcupado) return;
-  let rota=expRotas().find(r=>String(r.nRota).trim().toUpperCase()===cod);
-  if(!rota){
-    const outra=(typeof rotasData!=='undefined'?rotasData:[]).find(r=>String(r.tipoOperacao||'ROTA').toUpperCase()!=='SACA' && String(r.nRota||'').trim().toUpperCase()===cod);
-    if(outra && outra.ciclo){ expCiclo=String(outra.ciclo).toUpperCase(); if(expCicloModo!=='AUTO'){ expCicloModo=expCiclo; try{localStorage.setItem('exp-ciclo-modo',expCicloModo)}catch(e){} } rota=expRotas().find(r=>String(r.nRota).trim().toUpperCase()===cod); }
-  }
-  if(rota){ expDefinirRota(rota.nRota); expFb('info',`Rota <b>${escapeHtml(rota.nRota)}</b> selecionada · ${escapeHtml(rota.transportadora||'')}`); expSom(true); return; }
-  if(!expRota){ expFb('erro','Escolha (ou bipe) a rota antes dos pacotes.'); expSom(false); return; }
-  if(!expTabelaOk){ expFb('erro','Tabela <b>pacotes_extra</b> não existe no Supabase — rode o pacotes_extra.sql.'); expSom(false); return; }
-  const ja=expPacotes.find(p=>String(p.pacote).toUpperCase()===cod);
-  if(ja){ expFb('erro',`<b>${escapeHtml(cod)}</b> já foi bipado na rota <b>${escapeHtml(ja.rota)}</b>.`); expSom(false); return; }
-  const r=expRotas().find(x=>x.nRota===expRota)||{};
-  expOcupado=true;
-  try{
-    const {data,error}=await db.from('pacotes_extra').insert({data_operacao:hojeISO(),ciclo:expCiclo,rota:expRota,transportadora:r.transportadora||null,pacote:cod,rua:'Coordenação / Expedição',lider:'Painel SVC'}).select();
-    if(error){
-      if(error.code==='23505') expFb('erro',`<b>${escapeHtml(cod)}</b> já estava bipado hoje.`);
-      else if(error.code==='42P01'||/pacotes_extra/i.test(error.message||'')){ expTabelaOk=false; expFb('erro','Tabela <b>pacotes_extra</b> não existe no Supabase — rode o pacotes_extra.sql.'); }
-      else expFb('erro','Não gravou: '+escapeHtml(error.message||'erro'));
-      expSom(false); return;
-    }
-    if(data&&data[0]&&!expPacotes.some(x=>x.id===data[0].id)) expPacotes=[data[0],...expPacotes];
-    expFb('ok',`✓ <b>${escapeHtml(cod)}</b> → rota <b>${escapeHtml(expRota)}</b> · ${expPacotesDaRota(expRota).length} pacote(s)`);
-    expSom(true); expRender();
-  }finally{ expOcupado=false; }
-}
-async function expRemover(id){
-  const {error}=await db.from('pacotes_extra').delete().eq('id',id);
-  if(error){ expFb('erro','Não removeu: '+escapeHtml(error.message)); return; }
-  expPacotes=expPacotes.filter(p=>p.id!==id); expFb('info','Pacote removido.'); expRender();
-}
-function expRender(){
-  const cs=document.getElementById('expCiclo'); if(!cs) return;
-  expAplicarAuto();
-  const oa=cs.querySelector('option[value="AUTO"]'); if(oa) oa.textContent='Auto · '+expCiclo;
-  cs.value=expCicloModo;
-  document.getElementById('expAvisoTabela').innerHTML=expTabelaOk?'':`<div class="exp-aviso">⚠ Falta criar a tabela <b>pacotes_extra</b> no Supabase (rode o pacotes_extra.sql). <br><small>${escapeHtml(expErro)}</small></div>`;
-  const rotas=expRotas();
-  if(expRota && rotas.length && !rotas.some(r=>r.nRota===expRota)) expRota='';
-  const sel=document.getElementById('expRotaSelect');
-  if(document.activeElement!==sel){
-    const h='<option value="">— escolha a rota —</option>'+rotas.map(r=>`<option value="${escapeHtml(r.nRota)}">${escapeHtml(r.nRota)} · ${escapeHtml(r.transportadora||'')}${r.onda?' · '+escapeHtml(r.onda):''}</option>`).join('');
-    if(sel.dataset.h!==h){ sel.innerHTML=h; sel.dataset.h=h; }
-    sel.value=expRota;
-  }
-  const r=rotas.find(x=>x.nRota===expRota), pacs=expRota?expPacotesDaRota(expRota):[];
-  const box=document.getElementById('expRotaBox');
-  if(r){
-    const c=(typeof chamadosData!=='undefined'?chamadosData:[]).find(x=>String(x.nRota)===String(r.nRota));
-    box.className='exp-rota'; box.innerHTML=`<small>Rota ativa</small><b>${escapeHtml(r.nRota)}</b><small>${escapeHtml(r.transportadora||'')}${r.onda?' · '+escapeHtml(r.onda):''}${c?' · na vaga '+escapeHtml(String(c.vaga)):''} · <b style="display:inline;font-size:11px">${pacs.length} pacote(s)</b></small>`;
-  }else{
-    box.className='exp-rota vazio'; box.innerHTML=`<small>Rota ativa</small><b>—</b><small>${rotas.length?'Escolha na lista ou bipe a gaiola.':'Nenhuma rota do '+expCiclo+' importada hoje.'}</small>`;
-  }
-  document.getElementById('expListaTitulo').textContent=expRota?`Pacotes da rota ${expRota} (${pacs.length})`:'Pacotes da rota';
-  document.getElementById('expLista').innerHTML=pacs.length?pacs.map(p=>`<div class="exp-item"><div>${escapeHtml(p.pacote)}<small>${p.criado_em?new Date(p.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}${p.lider?' · '+escapeHtml(p.lider):''}</small></div><button onclick="expRemover(${Number(p.id)})">Remover</button></div>`).join(''):'<div class="empty">Nenhum pacote bipado nesta rota.</div>';
-  const cont={}; expPacotes.filter(p=>String(p.ciclo||'').toUpperCase()===expCiclo).forEach(p=>cont[p.rota]=(cont[p.rota]||0)+1);
-  const ks=Object.keys(cont).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
-  document.getElementById('expResumo').innerHTML=ks.length?ks.map(k=>`<button onclick="expDefinirRota(${escapeHtml(JSON.stringify(k))})">${escapeHtml(k)} · <b>${cont[k]}</b></button>`).join(''):'<div class="empty">Nada bipado ainda.</div>';
-}
-document.addEventListener('DOMContentLoaded',()=>{
-  setTimeout(()=>{
-    expCarregar();
-    try{ db.channel('svc-coord-pacotes').on('postgres_changes',{event:'*',schema:'public',table:'pacotes_extra'},()=>expCarregar()).subscribe(); }catch(e){}
-  },900);
-  setInterval(expCarregar,6000);   // reforço + acompanha as rotas que o painel recarrega
-});
 </script>
 <script id="base-pacotes">
 // ================= BASE DE PACOTES (planification) =================
@@ -2443,6 +2328,7 @@ async function basePacArquivo(){
   const ciclo=selC.value;
   try{
     basePacSt('Lendo base de pacotes '+ciclo+'…');
+    try{ await carregarRotas(); }catch(e){} // garante as rotas de todos os ciclos do dia antes de cruzar
     const rows=await basePacLerArquivo(file);
     const hi=basePacAcharCabecalho(rows);
     if(hi<0) throw new Error('Não achei as colunas de ID do pacote e rota/gaiola no arquivo. Cabeçalhos aceitos: "ID do pacote"/"Shipment"/"Pacote" e "Gaiola"/"Rota"/"Nº Rota".');
@@ -2620,6 +2506,57 @@ document.addEventListener('DOMContentLoaded',()=>{
     try{ db.channel('svc-coord-backlog').on('postgres_changes',{event:'*',schema:'public',table:'backlog_pacotes'},()=>blCarregar()).subscribe(); }catch(e){}
   },1000);
   setInterval(blCarregar,8000);
+});
+</script>
+<script id="upload-duplo">
+// ================= UPLOAD ÚNICO: VIA QUERY + BASE E PLANIFICATION =================
+// Aceita um ou vários arquivos (clique ou arrastar). Descobre sozinho qual é qual:
+//  • VIA QUERY (planejamento das rotas) → importação de sempre
+//  • Base e Planification (.xlsx com RTG_UNIT_EXTERNAL_ID / Otimizado) → base de pacotes
+// Sempre processa o planejamento primeiro e a base depois, pra os pacotes acharem a rota.
+async function tipoDoArquivo(file){
+  const n=file.name.toUpperCase();
+  if(/PLANIFICATION/.test(n)) return 'base';
+  if(/PLANEJAMENTO|VIA.?QUERY/.test(n)) return 'plan';
+  try{
+    if(/\.csv$/i.test(file.name)){
+      const t=new TextDecoder('utf-8').decode((await file.arrayBuffer()).slice(0,20000)).toUpperCase();
+      return (t.includes('GAIOLA') && t.includes('ONDA CADASTRADA')) ? 'plan' : 'base';
+    }
+    const buf=await file.arrayBuffer();
+    const nomes=XLSX.read(buf,{type:'array',bookSheets:true}).SheetNames;
+    for(const nome of nomes){
+      const wb=XLSX.read(buf,{type:'array',sheets:[nome],sheetRows:25});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[nome],{header:1,raw:true,defval:''});
+      if(basePacAcharCabecalho(rows)>=0) return 'base';
+    }
+  }catch(e){}
+  return 'plan';
+}
+function colocarNoInput(id,file){ const dt=new DataTransfer(); dt.items.add(file); document.getElementById(id).files=dt.files; }
+let uploadOcupado=false;
+async function uploadMultiplo(lista){
+  const files=[...(lista||[])]; if(!files.length||uploadOcupado) return;
+  uploadOcupado=true;
+  const st=document.getElementById('statusUploadUnico');
+  try{
+    const tipos=await Promise.all(files.map(tipoDoArquivo));
+    const planos=files.filter((f,i)=>tipos[i]==='plan'), bases=files.filter((f,i)=>tipos[i]==='base');
+    if(st) st.textContent=`Recebido: ${planos.length} planejamento(s) e ${bases.length} base(s) de pacotes.`;
+    for(const f of planos){ colocarNoInput('planilhaFile_UNICO',f); await arquivoSelecionadoUnico(); }
+    for(const f of bases){ colocarNoInput('basePacFile',f); await basePacArquivo(); }
+    if(bases.length) document.querySelector('.basepac-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+  }finally{
+    uploadOcupado=false;
+    document.getElementById('planilhaFile_UNICO').value=''; document.getElementById('basePacFile').value='';
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.upload-drop,.basepac-drop').forEach(z=>{
+    z.addEventListener('dragover',e=>{e.preventDefault(); z.style.background='rgba(14,124,134,.12)';});
+    z.addEventListener('dragleave',()=>{z.style.background='';});
+    z.addEventListener('drop',e=>{e.preventDefault(); z.style.background=''; uploadMultiplo(e.dataTransfer.files);});
+  });
 });
 </script>
 </body>
