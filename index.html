@@ -478,7 +478,7 @@
   <div class="bl-card">
     <div class="bl-esq">
       <div class="exp-head"><h3>📥 Backlog · bipar pacote</h3>
-        <select id="blCiclo" onchange="blCicloMudou()"><option value="AUTO">Auto</option><option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option></select>
+        <select id="blCiclo" onchange="blCicloMudou()"><option value="TODOS">AM + PM (todos)</option><option value="AM1">Só AM1</option><option value="PM1">Só PM1</option><option value="SD">Só SD</option><option value="CHP">Só CHP</option></select>
       </div>
       <div class="exp-linha">
         <input id="blInput" placeholder="Bipe o ID do pacote" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();blEnviar();}">
@@ -2238,6 +2238,7 @@ function ehSubrotaSaca(s){ return /^[A-Z0-9]+_\d+_\d+$/i.test(String(s||'').trim
 function ruaDoPacote(p){ return ruaBacklogDaTransp(p.transportadora,p.rua); }
 function ruaBacklogDaTransp(transp, ruaSalva){
   const v=vinculoPorTransportadora(transp);
+  if(v && v.sigla==='PL') return 'PRALOG'; // PRALOG não tem vaga no layout: o pessoal sabe onde fica
   return v ? ruaDaSigla(v.sigla) : (ruaSalva||'Sem rua vinculada');
 }
 let basePacContagem={};
@@ -2376,6 +2377,10 @@ async function basePacArquivo(){
       +(semRota?` · ${semRota} sem rota`:'')+(dup?` · ${dup} duplicados ignorados`:'')
       +(cientifico?` · <b style="color:#B91C1C">${cientifico} IDs em notação científica ignorados</b>`:'')+'.');
     await basePacCarregarResumo();
+    try{
+      const achou=await blReprocessar();
+      if(achou){ const st=document.getElementById('basePacStatus'); if(st) st.innerHTML+=` <b style="color:#15803D">· ${achou} pacote(s) que estavam aguardando no backlog acharam a rota agora.</b>`; }
+    }catch(e){ console.error('reprocessar backlog',e); }
   }catch(e){
     console.error('BASE PACOTES:',e);
     const msg=e?.message||String(e);
@@ -2431,9 +2436,31 @@ document.addEventListener('DOMContentLoaded',()=>{ setTimeout(basePacCarregarRes
 // Bipa o ID → procura em planejamento_pacotes → grava em backlog_pacotes já com rota, rua,
 // transportadora, onda e parada. O app do Líder lê backlog_pacotes na aba "Backlog" (tempo real).
 let blItens=[], blOcupado=false;
-let blCicloModo=(()=>{try{return localStorage.getItem('bl-ciclo-modo')||'AUTO'}catch(e){return 'AUTO'}})();
-function blCicloAtual(){ return blCicloModo==='AUTO' ? (detectarCicloPlanejamento(rotasData)||'AM1') : blCicloModo; }
-function blCicloMudou(){ blCicloModo=document.getElementById('blCiclo').value; try{localStorage.setItem('bl-ciclo-modo',blCicloModo)}catch(e){} blRender(); }
+// Filtro de ciclo só da visualização: TODOS (AM + PM juntos) ou um ciclo só. O bipe acha o ciclo sozinho.
+let blCicloModo=(()=>{try{return localStorage.getItem('bl-ciclo-filtro')||'TODOS'}catch(e){return 'TODOS'}})();
+function blCicloAtual(){ return blCicloModo; }
+function blCicloMudou(){ blCicloModo=document.getElementById('blCiclo').value; try{localStorage.setItem('bl-ciclo-filtro',blCicloModo)}catch(e){} blRender(); }
+function blNoFiltro(x){ return blCicloModo==='TODOS' || x.encontrado===false || String(x.ciclo||'').toUpperCase()===blCicloModo; }
+// Refaz a busca dos pacotes "aguardando planejamento" (bipados antes da base do ciclo deles ser subida).
+async function blReprocessar(){
+  const {data:pend,error}=await db.from('backlog_pacotes').select('*').eq('data_operacao',hojeISO()).eq('encontrado',false);
+  if(error||!pend||!pend.length) return 0;
+  let achou=0;
+  for(let i=0;i<pend.length;i+=200){
+    const lote=pend.slice(i,i+200);
+    const r=await db.from('planejamento_pacotes').select('*').eq('data_operacao',hojeISO()).in('pacote',lote.map(x=>x.pacote));
+    if(r.error) continue;
+    for(const b of lote){
+      const p=(r.data||[]).find(x=>x.pacote===b.pacote); if(!p) continue;
+      const up={ciclo:p.ciclo, encontrado:true, rota:p.rota||null, transportadora:p.transportadora||null, onda:p.onda||null,
+        parada:p.parada||null, rua:blRuaDe(p), saca:ehSubrotaSaca(p.rota_base)?p.rota_base:null};
+      const u=await db.from('backlog_pacotes').update(up).eq('id',b.id);
+      if(!u.error) achou++;
+    }
+  }
+  if(achou) await blCarregar();
+  return achou;
+}
 function blEnviar(){ const i=document.getElementById('blInput'); const v=i.value; i.value=''; blBipe(v); i.focus(); }
 function blRuaDe(p){ return ruaDoPacote(p); }
 function blMostrar(html){ document.getElementById('blResultado').innerHTML=html; }
@@ -2443,14 +2470,14 @@ async function blBipe(bruto){
   blOcupado=true;
   try{
     const ja=blItens.find(x=>String(x.pacote).toUpperCase()===cod);
-    if(ja){ blMostrar(`<div class="pac-res erro"><div class="linha"><b>${escapeHtml(cod)}</b> já está no backlog → ${escapeHtml(ja.rota||'sem rota')} · ${escapeHtml(blRuaDe(ja))}</div></div>`); expSom(false); return; }
+    if(ja){ blMostrar(`<div class="pac-res erro"><div class="linha"><b>${escapeHtml(cod)}</b> já está no backlog → ${ja.encontrado===false?'aguardando planejamento':escapeHtml((ja.rota||'')+' · '+blRuaDe(ja))}</div></div>`); expSom(false); return; }
     const ciclo=blCicloAtual();
     const {data,error}=await db.from('planejamento_pacotes').select('*').eq('pacote',cod).eq('data_operacao',hojeISO()).order('criado_em',{ascending:false}).limit(10);
     if(error){ blMostrar(`<div class="pac-res erro">Erro na base de pacotes: ${escapeHtml(error.message)}<br><small>Rode o planejamento_pacotes.sql e importe a base.</small></div>`); expSom(false); return; }
     const p=(data||[]).find(x=>String(x.ciclo).toUpperCase()===ciclo) || (data||[])[0] || null;
     const rua=p?blRuaDe(p):null;
     const item={
-      data_operacao:hojeISO(), ciclo:p?.ciclo||ciclo, pacote:cod, encontrado:!!p,
+      data_operacao:hojeISO(), ciclo:p?.ciclo||null, pacote:cod, encontrado:!!p,
       rota:p?.rota||null, transportadora:p?.transportadora||null, onda:p?.onda||null,
       parada:p?.parada||null, rua, bipado_por:'Painel SVC',
       saca:(p&&ehSubrotaSaca(p.rota_base))?p.rota_base:null
@@ -2470,7 +2497,7 @@ async function blBipe(bruto){
         <div class="linha">${escapeHtml(p.transportadora||'—')}${p.onda?' · '+escapeHtml(/^onda/i.test(p.onda)?p.onda:'Onda '+p.onda):''}${p.parada?' · Parada '+escapeHtml(p.parada):''}</div></div>`);
       expSom(true);
     }else{
-      blMostrar(`<div class="pac-res erro"><div class="big">${escapeHtml(cod)}</div><div class="linha">Não está na base de pacotes de hoje — registrado no backlog como <b>SEM ROTA</b>.</div></div>`);
+      blMostrar(`<div class="pac-res erro"><div class="big">${escapeHtml(cod)}</div><div class="linha"><b>AGUARDANDO PLANEJAMENTO</b> — ainda não está nas bases subidas hoje. Ficou guardado no backlog: quando você subir a base do ciclo dele, a rota aparece sozinha.</div></div>`);
       expSom(false);
     }
     blRender();
@@ -2490,15 +2517,13 @@ async function blCarregar(){
 }
 function blRender(){
   const cs=document.getElementById('blCiclo'); if(!cs) return;
-  const ciclo=blCicloAtual();
-  const oa=cs.querySelector('option[value="AUTO"]'); if(oa) oa.textContent='Auto · '+ciclo;
-  cs.value=blCicloModo;
-  const doCiclo=blItens.filter(x=>String(x.ciclo||'').toUpperCase()===ciclo);
-  document.getElementById('blTotal').textContent=doCiclo.length+' · '+ciclo;
-  const cont={}; doCiclo.forEach(x=>{ const r=x.encontrado===false?'Sem rota':blRuaDe(x); cont[r]=(cont[r]||0)+1; });
+  if(document.activeElement!==cs) cs.value=blCicloModo;
+  const doCiclo=blItens.filter(blNoFiltro);
+  document.getElementById('blTotal').textContent=doCiclo.length+' · '+(blCicloModo==='TODOS'?'AM + PM':blCicloModo);
+  const cont={}; doCiclo.forEach(x=>{ const r=x.encontrado===false?'⏳ Aguardando planejamento':blRuaDe(x); cont[r]=(cont[r]||0)+1; });
   const ks=Object.keys(cont).sort();
   document.getElementById('blPorRua').innerHTML=ks.length?ks.map(k=>`<button type="button">${escapeHtml(k)} · <b>${cont[k]}</b></button>`).join(''):'<div class="empty">Nada no backlog.</div>';
-  document.getElementById('blLista').innerHTML=doCiclo.length?doCiclo.slice(0,60).map(x=>`<div class="exp-item"><div>${escapeHtml(x.pacote)}<small>${x.encontrado===false?'<b style="color:#B91C1C">SEM ROTA</b>':escapeHtml((x.rota||'')+' · '+blRuaDe(x))}${x.criado_em?' · '+new Date(x.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}</small></div><button onclick="blRemover(${Number(x.id)})">Remover</button></div>`).join(''):'<div class="empty">Nenhum pacote bipado.</div>';
+  document.getElementById('blLista').innerHTML=doCiclo.length?doCiclo.slice(0,60).map(x=>`<div class="exp-item"><div>${escapeHtml(x.pacote)}<small>${x.encontrado===false?'<b style="color:#B45309">⏳ AGUARDANDO PLANEJAMENTO</b>':escapeHtml((x.ciclo?x.ciclo+' · ':'')+(x.rota||'')+' · '+blRuaDe(x))}${x.criado_em?' · '+new Date(x.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}</small></div><button onclick="blRemover(${Number(x.id)})">Remover</button></div>`).join(''):'<div class="empty">Nenhum pacote bipado.</div>';
 }
 document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{
