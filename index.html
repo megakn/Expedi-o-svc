@@ -273,21 +273,6 @@
   @media(max-width:900px){.cycle-grid{grid-template-columns:repeat(2,1fr);}}
 
 
-  
-  /* ===== Fontes de dados: Planejamento + BASE/PLANIFICATION ===== */
-  .data-sources-compact{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:10px}
-  .data-sources-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .data-source-drop{min-height:54px;border:1px dashed #38a3ff;border-radius:8px;display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;background:rgba(56,163,255,.035)}
-  .data-source-drop:hover{background:rgba(56,163,255,.08);border-color:#0e7c86}
-  .data-source-drop .upload-copy span{max-width:100%}
-  .data-source-status{font-size:9px;color:var(--muted);margin-top:3px}
-  .data-source-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .data-source-actions label{font-size:9.5px;font-weight:800;text-transform:uppercase;color:var(--muted)}
-  .data-source-actions select{height:34px}
-  .data-source-actions button{height:34px;padding:0 11px;font-size:10.5px}
-  .data-source-summary{font-size:9.5px;color:var(--muted);margin-top:7px}
-  @media(max-width:760px){.data-sources-grid{grid-template-columns:1fr}}
-
   /* ===== Upload discreto de planejamento ===== */
   .planning-compact{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:10px;display:grid;grid-template-columns:minmax(260px,1.25fr) auto;gap:8px 12px;align-items:center}
   .upload-drop{min-height:48px;border:1px dashed #38a3ff;border-radius:8px;display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;background:rgba(56,163,255,.035);transition:.15s}
@@ -402,24 +387,56 @@
   .route-columns-row.wave-rows .paradas{text-align:left}
 
 
-  /* ===== Bipagem de pacotes ===== */
-  .pkg-scan-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px}
-  .pkg-scan-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}
-  .pkg-scan-head h2{margin:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--navy-700)}
-  .pkg-scan-head span{font-size:8.5px;font-weight:900;border:1px solid #BBF7D0;background:#F0FDF4;color:#166534;border-radius:999px;padding:4px 7px}
-  .pkg-scan-row{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:7px}
-  .pkg-scan-row input{font-family:'Roboto Mono',monospace;font-weight:800;font-size:14px;padding:11px 12px}
-  .pkg-scan-row button{padding:0 16px}
-  .pkg-scan-result{margin-top:8px;font-size:10px;color:var(--muted)}
-  .pkg-ok,.pkg-warn{border-radius:8px;padding:8px 10px;border:1px solid}
-  .pkg-ok{background:#F0FDF4;border-color:#BBF7D0;color:#166534}
-  .pkg-warn{background:#FFF7ED;border-color:#FED7AA;color:#9A3412}
-  .pkg-last{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:7px}
-  .pkg-last div{background:var(--surface-alt);border:1px solid var(--border);border-radius:7px;padding:6px}
-  .pkg-last small{display:block;font-size:7.5px;text-transform:uppercase;color:var(--muted);font-weight:800}
-  .pkg-last b{display:block;font-size:9.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
-  @media(max-width:760px){.pkg-last{grid-template-columns:1fr 1fr}.pkg-scan-row{grid-template-columns:1fr auto}}
-
+  .planning-compact{grid-template-columns:minmax(260px,1.25fr) auto minmax(300px,1fr)!important}
+  .planning-compact .cycle-summary,.planning-compact .cycle-state{grid-column:1 / 3}
+  .exp-inline{grid-column:3;grid-row:1 / span 3;align-self:stretch;border-left:1.5px dashed var(--border);padding-left:12px;min-width:0}
+  .exp-inline .exp-head h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--navy-700)}
+  .exp-inline .exp-lista{max-height:84px}
+  .planning-compact{grid-template-rows:auto auto 1fr;align-items:start}
+  .exp-inline .exp-head{margin-bottom:6px}.exp-inline .exp-head h3{white-space:nowrap}
+  .exp-inline .exp-select{flex:1;min-width:0;width:auto;margin:0;padding:6px 8px;font-size:11.5px}
+  .exp-inline .exp-rota{padding:6px 9px;margin-bottom:6px;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+  .exp-inline .exp-rota b{font-size:14px;display:inline}
+  .exp-inline .exp-linha input{padding:8px 10px;font-size:13px}
+  .exp-inline .exp-fb{margin-top:6px;padding:6px 9px;font-size:12px}
+  .exp-inline .exp-sub{margin:7px 0 3px}
+  .exp-inline .exp-item{padding:3px 0}
+  .exp-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:1100px){.planning-compact{grid-template-columns:1fr!important}.planning-compact .cycle-summary,.planning-compact .cycle-state,.exp-inline{grid-column:auto;grid-row:auto}.exp-inline{border-left:none;border-top:1.5px dashed var(--border);padding:10px 0 0}}
+  .exp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.exp-head h3{margin:0!important}
+  .exp-head select,.exp-select{border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-weight:800;color:var(--navy-900);background:var(--surface-alt)}
+  .exp-select{width:100%;margin-bottom:8px;font-family:'Roboto Mono',monospace;font-size:12px}
+  .exp-rota{padding:9px 10px;border-radius:9px;background:#F0FBFC;border:1px solid #A5E3E8;margin-bottom:8px;color:#0E2A47}
+  .exp-rota.vazio{background:#FFF7ED;border-color:#FED7AA}
+  .exp-rota b{font:800 17px 'Roboto Mono',monospace;display:block}.exp-rota small{font-size:11px;color:#65748A}
+  .exp-linha{display:flex;gap:6px}.exp-linha input{flex:1;min-width:0;padding:10px;border:2px solid #0E2A47;border-radius:9px;font:800 14px 'Roboto Mono',monospace;background:#fff;color:#0E2A47}
+  .exp-linha button{border:none;border-radius:9px;background:#0E2A47;color:#fff;font-weight:800;padding:0 14px;cursor:pointer}
+  .exp-dica{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+  .exp-fb{display:none;margin-top:8px;padding:9px 10px;border-radius:8px;font-weight:800;font-size:12.5px}
+  .exp-fb.ok{display:block;background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
+  .exp-fb.erro{display:block;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+  .exp-fb.info{display:block;background:#E0F2FE;color:#075985;border:1px solid #7DD3FC}
+  .exp-sub{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;color:var(--navy-700);margin:11px 0 5px}
+  .exp-lista{max-height:190px;overflow:auto}
+  .exp-item{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 0;border-bottom:1px dashed var(--border);font:700 12px 'Roboto Mono',monospace}
+  .exp-item small{font-family:'Inter',sans-serif;color:var(--muted);font-weight:600;font-size:10px;display:block}
+  .exp-item button{border:1px solid #FCA5A5;background:#FEF2F2;color:#991B1B;border-radius:6px;font-weight:800;font-size:10px;padding:4px 7px;cursor:pointer}
+  .exp-resumo{display:flex;flex-wrap:wrap;gap:5px}.exp-resumo button{border:1px solid var(--border);background:var(--surface-alt);color:var(--navy-900);border-radius:7px;padding:5px 8px;font:800 11px 'Roboto Mono',monospace;cursor:pointer}.exp-resumo button b{color:#0E7C86}
+  .basepac-card{display:grid;grid-template-columns:minmax(260px,1.25fr) auto minmax(300px,1fr);gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:10px 0 14px}
+  .basepac-drop{display:flex;align-items:center;gap:10px;cursor:pointer;border:1.5px dashed var(--border);border-radius:10px;padding:8px 10px;background:var(--surface-alt)}
+  .basepac-resumo{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
+  .basepac-resumo span{font:800 11px 'Roboto Mono',monospace;padding:4px 8px;border-radius:7px;background:var(--surface-alt);border:1px solid var(--border);color:var(--navy-900)}
+  .basepac-resumo span.alerta{background:#FEF3C7;border-color:#FCD34D;color:#92400E}
+  .pac-res{padding:10px 12px;border-radius:10px;border:1.5px solid #A5E3E8;background:#F0FBFC;color:#0E2A47}
+  .pac-res.erro{border-color:#FCA5A5;background:#FEF2F2;color:#991B1B}
+  .pac-res .big{font:800 20px 'Roboto Mono',monospace}
+  .pac-res .linha{font-size:12.5px;margin-top:3px}
+  .bl-card{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin:0 0 14px}
+  .bl-card .exp-head h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--navy-700)}
+  .bl-dir{border-left:1.5px dashed var(--border);padding-left:12px;min-width:0}
+  #blResultado .pac-res{margin-top:8px}
+  @media(max-width:1100px){.basepac-card,.bl-card{grid-template-columns:1fr}.bl-dir{border-left:none;padding-left:0}}
+  .exp-aviso{padding:8px 10px;border-radius:8px;background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:11px;font-weight:700;margin-bottom:8px;line-height:1.4}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -439,51 +456,82 @@
 
   <div class="lideres-panel" id="lideresPanel"></div>
 
-  <div class="data-sources-compact">
-    <div class="data-sources-grid">
-      <label class="data-source-drop" for="planilhaFile_UNICO">
-        <div class="upload-icon">⇧</div>
-        <div class="upload-copy">
-          <b>Planejamento</b>
-          <span id="uploadHint">CSV/XLSX com rota, transportadora, gaiola, onda, paradas e bairros</span>
-          <span class="data-source-status" id="statusUploadUnico">Nenhum planejamento selecionado.</span>
-        </div>
-        <input type="file" id="planilhaFile_UNICO" accept=".xlsx,.xls,.csv" hidden onchange="arquivoSelecionadoUnico()">
-      </label>
-
-      <label class="data-source-drop" for="basePlanFile">
-        <div class="upload-icon">⇧</div>
-        <div class="upload-copy">
-          <b>BASE + PLANIFICATION</b>
-          <span id="basePlanHint">Excel com as abas BASE e PLANIFICATION · usado para localizar pacote → rota</span>
-          <span class="data-source-status" id="basePlanStatus">Nenhuma BASE/PLANIFICATION selecionada.</span>
-        </div>
-        <input type="file" id="basePlanFile" accept=".xlsx,.xls" hidden onchange="arquivoBasePlanSelecionado()">
-      </label>
+  <div class="planning-compact">
+    <div class="upload-drop" onclick="document.getElementById('planilhaFile_UNICO').click()">
+      <div class="upload-icon">⇧</div>
+      <div class="upload-copy"><b>Planilha de planejamento</b><span id="uploadHint">Clique ou arraste o arquivo CSV/XLSX aqui</span></div>
+      <input type="file" id="planilhaFile_UNICO" accept=".xlsx,.xls,.csv" hidden onchange="arquivoSelecionadoUnico()">
     </div>
-
-    <div class="data-source-actions">
+    <div class="cycle-picker">
       <label for="cicloUpload">Ciclo</label>
       <select id="cicloUpload">
         <option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option>
       </select>
-      <button class="upload-go" onclick="processarFontesOperacao()">Importar fontes</button>
+      <button class="upload-go" onclick="processarUploadUnico()">Importar</button>
       <button class="upload-clear" onclick="limparCicloSelecionado()">Limpar ciclo</button>
     </div>
     <div class="cycle-summary" id="cycleSummary"></div>
-    <div class="data-source-summary" id="fontesResumo">O planejamento alimenta as rotas; BASE/PLANIFICATION alimenta a identificação dos IDs de pacote.</div>
+    <div class="cycle-state compact-state" id="statusUploadUnico">Selecione o ciclo na seta e envie o planejamento correspondente.</div>
+      <!-- ===== EXPEDIÇÃO · BIPAR PACOTES NAS ROTAS (tabela pacotes_extra, a mesma do app do líder) ===== -->
+      <div class="exp-card exp-inline" id="cardExpedicao">
+        <div class="exp-head"><h3>📦 Bipar pacotes</h3>
+          <select id="expRotaSelect" class="exp-select" onchange="expDefinirRota(this.value)"></select>
+          <select id="expCiclo" onchange="expCicloMudou()"><option value="AUTO">Auto</option><option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option></select>
+        </div>
+        <div id="expAvisoTabela"></div>
+        <div class="exp-rota" id="expRotaBox"></div>
+        <div class="exp-linha">
+          <input id="expInput" placeholder="Bipe o pacote ou a gaiola" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();expEnviar();}">
+          <button onclick="expEnviar()">OK</button>
+        </div>
+        <div class="exp-dica">Bipe a <b>gaiola</b> (ex: B5_PM1) pra trocar a rota; os demais códigos entram como pacote.</div>
+        <div class="exp-fb" id="expFeedback"></div>
+        <div class="exp-cols">
+          <div><div class="exp-sub" id="expListaTitulo">Pacotes da rota</div>
+          <div id="expLista" class="exp-lista"><div class="empty">Nenhum pacote bipado.</div></div></div>
+          <div><div class="exp-sub">Rotas com pacotes hoje</div>
+          <div id="expResumo" class="exp-resumo"><div class="empty">Nada bipado ainda.</div></div></div>
+        </div>
+      </div>
   </div>
 
-  <div class="pkg-scan-card">
-    <div class="pkg-scan-head">
-      <h2>📦 Bipagem de pacotes</h2>
-      <span id="pkgScanCount">0 bipados hoje</span>
+  <!-- ===== BASE DE PACOTES (planification) · alimenta o "Bipar pacote" do app do Líder ===== -->
+  <div class="basepac-card">
+    <div class="basepac-drop" onclick="document.getElementById('basePacFile').click()">
+      <div class="upload-icon">⇧</div>
+      <div class="upload-copy"><b>Base de pacotes (planification)</b><span id="basePacHint">CSV/XLSX com ID do pacote + rota/gaiola</span></div>
+      <input type="file" id="basePacFile" accept=".xlsx,.xls,.csv" hidden onchange="basePacArquivo()">
     </div>
-    <div class="pkg-scan-row">
-      <input id="pkgScanInput" inputmode="numeric" autocomplete="off" placeholder="Bipe ou digite o ID do pacote..." onkeydown="if(event.key==='Enter'){event.preventDefault();biparPacoteCoord()}">
-      <button type="button" onclick="biparPacoteCoord()">Bipar</button>
+    <div class="cycle-picker">
+      <label for="basePacCiclo">Ciclo</label>
+      <select id="basePacCiclo"><option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option></select>
+      <button class="upload-clear" onclick="basePacLimpar()">Limpar base do ciclo</button>
     </div>
-    <div id="pkgScanResult" class="pkg-scan-result">Carregue o Planejamento e a BASE/PLANIFICATION. Depois, faça a bipagem.</div>
+    <div class="basepac-info">
+      <div id="basePacResumo" class="basepac-resumo"></div>
+      <div id="basePacStatus" class="cycle-state compact-state">Importe o planejamento (rotas) primeiro e depois a base de pacotes do mesmo ciclo — o app cruza o ID com a rota, onda, transportadora e rua.</div>
+    </div>
+  </div>
+
+  <!-- ===== BACKLOG · bipar pacote → cruza com a base → aparece na aba Backlog do app do Líder ===== -->
+  <div class="bl-card">
+    <div class="bl-esq">
+      <div class="exp-head"><h3>📥 Backlog · bipar pacote</h3>
+        <select id="blCiclo" onchange="blCicloMudou()"><option value="AUTO">Auto</option><option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option></select>
+      </div>
+      <div class="exp-linha">
+        <input id="blInput" placeholder="Bipe o ID do pacote" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();blEnviar();}">
+        <button onclick="blEnviar()">OK</button>
+      </div>
+      <div class="exp-dica">O pacote é cruzado com a base de pacotes (rota, rua, transportadora, onda) e cai na aba <b>Backlog</b> do líder da rua certa.</div>
+      <div id="blResultado"></div>
+    </div>
+    <div class="bl-dir">
+      <div class="exp-sub">Backlog por rua (<span id="blTotal">0</span>)</div>
+      <div id="blPorRua" class="exp-resumo"><div class="empty">Nada no backlog.</div></div>
+      <div class="exp-sub">Últimos bipados</div>
+      <div id="blLista" class="exp-lista"><div class="empty">Nenhum pacote bipado.</div></div>
+    </div>
   </div>
 
   <div style="display:none"><div id="statusPlanilha"></div><div id="mapeamentoColunas"></div></div>
@@ -530,13 +578,14 @@
       <div class="rail-card transportadoras-rail">
         <div class="transportadoras-rail-head">
           <div><h3>Planejamento por transportadora</h3><div class="rail-sub">Rotas, ondas, paradas e sacas</div></div>
-          <select id="cicloResumo" onchange="renderResumoPlanejamentoCoord()">
+          <select id="cicloResumo" onchange="cicloResumoManual=true;renderResumoPlanejamentoCoord()">
             <option value="AM1">AM1</option><option value="PM1">PM1</option><option value="SD">SD</option><option value="CHP">CHP</option>
           </select>
         </div>
         <div class="planning-area-tabs rail-area-tabs" id="planningAreaTabs"></div>
         <div id="resumoPlanejamentoCoord" class="transportadoras-stack"><div class="empty">Importe um planejamento para visualizar as transportadoras.</div></div>
       </div>
+
     </aside>
   </div>
 
@@ -549,19 +598,39 @@
 <script>
 
 // ================= SUPABASE =================
-const SUPABASE_URL='https://facxgnlcwvextltxpbqn.supabase.co';
-const SUPABASE_KEY='sb_publishable_MXmR8r01m41vagPdQT1lAA_iB5Y4SYR';
+const SUPABASE_URL = 'https://cnpcsovjomonctbggbac.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_1lqP4jYYMR96Aq8DX-DSHA_JKcGESRt';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function hojeISO(){ const d=new Date(); const off=d.getTimezoneOffset(); const local=new Date(d.getTime()-off*60000); return local.toISOString().slice(0,10); }
 function rowPlanejamentoToLocal(r){
   return {
-    nRota:r.rota||'', gaiola:r.gaiola||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
+    nRota:r.rota||'', ciclo:r.ciclo||'', tipoOperacao:r.is_saca?'SACA':'ROTA',
     transportadora:(r.transportadora||'').toUpperCase(), onda:r.onda||'',
     parada:r.paradas||'', ponto:r.bairros||'', bairros:r.bairros||'',
     cluster:r.cluster||'', modal:r.modal||'', dataExp:r.data_operacao||'',
-    origem:'SUPABASE'
+    origem:'SUPABASE', criadoEm:r.created_at||r.criado_em||r.inserted_at||null
   };
+}
+// Descobre o ciclo pelo planejamento importado hoje: se só um ciclo tem rotas, é ele;
+// se tiver mais de um, fica o importado por último (ou, sem essa informação, o que tem mais rotas).
+function detectarCicloPlanejamento(rows){
+  const info={};
+  (rows||[]).forEach(r=>{
+    if(String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA') return;
+    const c=String(r.ciclo||'').toUpperCase(); if(!c) return;
+    const t=r.criadoEm?new Date(r.criadoEm).getTime():0;
+    info[c]=info[c]||{n:0,t:0}; info[c].n++; if(t>info[c].t) info[c].t=t;
+  });
+  const cs=Object.keys(info); if(!cs.length) return null;
+  cs.sort((a,b)=>(info[b].t-info[a].t)||(info[b].n-info[a].n)); return cs[0];
+}
+// "Planejamento por transportadora" segue o ciclo do planejamento até alguém trocar a seta na mão.
+let cicloResumoManual=false;
+function aplicarCicloAutoCoord(){
+  const d=detectarCicloPlanejamento(rotasData); if(!d) return;
+  const sel=document.getElementById('cicloResumo');
+  if(sel && !cicloResumoManual && sel.value!==d) sel.value=d;
 }
 function rowOperacaoToLocal(r){
   return {
@@ -579,6 +648,7 @@ async function carregarSupabaseCoord(){
     ]);
     if(p.error) throw p.error; if(o.error) throw o.error;
     rotasData=(p.data||[]).map(rowPlanejamentoToLocal);
+    aplicarCicloAutoCoord();
     chamadosData=(o.data||[]).map(rowOperacaoToLocal);
     try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));localStorage.setItem(CHAMADOS_KEY,JSON.stringify(chamadosData));}catch(e){}
     await carregarLideres();
@@ -592,192 +662,6 @@ function iniciarRealtimeCoord(){
     .on('postgres_changes',{event:'*',schema:'public',table:'lideres_rua'},()=>carregarSupabaseCoord())
     .subscribe();
 }
-
-
-// ================= BASE + PLANIFICATION · PACOTE -> ROTA =================
-let BASE_PLAN_FILE = null;
-let BASE_PLAN_MAP = {};
-function bpNorm(v){
-  let x=String(v??'').trim();
-  if(/^\d+\.0$/.test(x)) x=x.slice(0,-2);
-  return x.toUpperCase();
-}
-function arquivoBasePlanSelecionado(){
-  const inp=document.getElementById('basePlanFile');
-  BASE_PLAN_FILE=inp?.files?.[0]||null;
-  const st=document.getElementById('basePlanStatus');
-  const hint=document.getElementById('basePlanHint');
-  if(BASE_PLAN_FILE){
-    if(st) st.textContent='Selecionado: '+BASE_PLAN_FILE.name;
-    if(hint) hint.textContent=BASE_PLAN_FILE.name;
-  }else if(st) st.textContent='Nenhuma BASE/PLANIFICATION selecionada.';
-}
-function acharColuna(headers, opcoes){
-  const norm=s=>String(s||'').trim().toUpperCase().replace(/\s+/g,'_');
-  const hs=headers.map(norm);
-  for(const o of opcoes){
-    const i=hs.indexOf(norm(o)); if(i>=0) return i;
-  }
-  return -1;
-}
-async function lerBasePlanification(file){
-  if(!file) return {map:{}, total:0, sheets:[]};
-  const buf=await file.arrayBuffer();
-  const wb=XLSX.read(buf,{type:'array',cellDates:false});
-  const map={};
-  const usadas=[];
-  for(const nome of ['BASE','PLANIFICATION']){
-    const ws=wb.Sheets[nome];
-    if(!ws) continue;
-    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
-    if(rows.length<2) continue;
-    const headers=rows[0].map(x=>String(x||'').trim());
-    const idIdx=acharColuna(headers,['RTG_UNIT_EXTERNAL_ID','UNIT_ID','ID_UNIDAD','PACKAGE_ID','PACOTE_ID']);
-    const rotaIdx=acharColuna(headers,['RTG_ROUTE_NAME','ROUTE_NAME','ROTA','ROUTE','ROUTE_PLAN']);
-    if(idIdx<0 || rotaIdx<0) continue;
-    usadas.push(nome);
-    for(let i=1;i<rows.length;i++){
-      const id=bpNorm(rows[i][idIdx]);
-      const rota=bpNorm(rows[i][rotaIdx]);
-      if(id && rota) map[id]=rota;
-    }
-  }
-  return {map,total:Object.keys(map).length,sheets:usadas};
-}
-async function salvarBasePlanSupabase(map,ciclo){
-  const entries=Object.entries(map);
-  if(!entries.length) return {salvos:0};
-  const data=hojeISO();
-  const lote=500;
-  let salvos=0;
-  for(let i=0;i<entries.length;i+=lote){
-    const rows=entries.slice(i,i+lote).map(([pacote_id,rota])=>({
-      pacote_id, rota, ciclo:String(ciclo||'').toUpperCase(), data_operacao:data
-    }));
-    const {error}=await db.from('pacotes_planejamento').upsert(rows,{onConflict:'data_operacao,pacote_id'});
-    if(error) throw error;
-    salvos+=rows.length;
-    const st=document.getElementById('basePlanStatus');
-    if(st) st.textContent=`Enviando IDs ao banco: ${salvos}/${entries.length}`;
-  }
-  return {salvos};
-}
-async function processarFontesOperacao(){
-  const ciclo=document.getElementById('cicloUpload')?.value||'AM1';
-  const planFile=document.getElementById('planilhaFile_UNICO')?.files?.[0]||null;
-  const baseFile=document.getElementById('basePlanFile')?.files?.[0]||BASE_PLAN_FILE;
-  const resumo=document.getElementById('fontesResumo');
-
-  if(!planFile && !baseFile){
-    if(resumo) resumo.textContent='Selecione o Planejamento e/ou a BASE + PLANIFICATION.';
-    return;
-  }
-  let msgs=[];
-  try{
-    if(planFile){
-      if(resumo) resumo.textContent='Importando planejamento...';
-      await processarUploadUnico();
-      msgs.push('Planejamento importado');
-    }
-    if(baseFile){
-      if(resumo) resumo.textContent='Lendo BASE + PLANIFICATION...';
-      const r=await lerBasePlanification(baseFile);
-      BASE_PLAN_MAP=r.map;
-      if(!r.total) throw new Error('Não encontrei uma relação pacote → rota nas abas BASE/PLANIFICATION.');
-      await salvarBasePlanSupabase(r.map,ciclo);
-      const st=document.getElementById('basePlanStatus');
-      if(st) st.textContent=`${r.total.toLocaleString('pt-BR')} IDs carregados · ${r.sheets.join(' + ')}`;
-      msgs.push(`${r.total.toLocaleString('pt-BR')} IDs pacote→rota`);
-    }
-    if(resumo) resumo.textContent='✅ '+msgs.join(' · ')+' · dados disponíveis para a operação.';
-  }catch(e){
-    console.error('Importação das fontes:',e);
-    if(resumo) resumo.textContent='⚠️ '+((e&&e.message)||String(e));
-  }
-}
-
-
-
-// ================= BIPAGEM DE PACOTES =================
-function pkgEsc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function ruaPorTransportadoraCoord(nome){
-  const n=String(nome||'').trim().toUpperCase();
-  const mapa={
-    'DECARGO':'Rua 1','COOPMETRO':'Rua 1','ONTIME':'Rua 1','ECO EXPRESS':'Rua 1','ALC':'Rua 1',
-    'DELUNA':'Rua 2','M.J SIMÕES':'Rua 2','MJ SIMÕES':'Rua 2','PARCEIRO':'Rua 2',
-    'KANGU':'Rua 3','MELI EXTRA':'Rua 3',
-    'VUC':'Rua 4 - Expedição VUC'
-  };
-  if(n==='HAWK') return 'Rua 2 / Rua 3';
-  return mapa[n]||'Rua não definida';
-}
-function acharPlanejamentoRotaCoord(rota){
-  const r=String(rota||'').trim().toUpperCase();
-  return (rotasData||[]).find(x=>String(x.nRota||'').trim().toUpperCase()===r)||null;
-}
-async function buscarRotaPacoteCoord(id){
-  if(BASE_PLAN_MAP && BASE_PLAN_MAP[id]) return BASE_PLAN_MAP[id];
-  const {data,error}=await db.from('pacotes_planejamento')
-    .select('rota').eq('data_operacao',hojeISO()).eq('pacote_id',id).maybeSingle();
-  if(error) throw error;
-  return data?.rota||'';
-}
-async function atualizarContadorBipagemCoord(){
-  try{
-    const {count,error}=await db.from('backlog_pacotes').select('*',{count:'exact',head:true}).eq('data_operacao',hojeISO());
-    if(!error){
-      const el=document.getElementById('pkgScanCount');
-      if(el) el.textContent=`${count||0} bipado${count===1?'':'s'} hoje`;
-    }
-  }catch(e){}
-}
-async function biparPacoteCoord(){
-  const inp=document.getElementById('pkgScanInput');
-  const out=document.getElementById('pkgScanResult');
-  const id=bpNorm(inp?.value||'');
-  if(!id) return;
-  if(out) out.innerHTML='<div class="pkg-ok">Consultando ID...</div>';
-  try{
-    // evita duplicidade inclusive entre computadores
-    const {data:dup,error:dupErr}=await db.from('backlog_pacotes')
-      .select('pacote_id,rua,rota').eq('data_operacao',hojeISO()).eq('pacote_id',id).maybeSingle();
-    if(dupErr) throw dupErr;
-    if(dup){
-      out.innerHTML=`<div class="pkg-warn"><b>⚠️ ID já bipado:</b> ${pkgEsc(id)} · ${pkgEsc(dup.rota||'—')} · ${pkgEsc(dup.rua||'—')}</div>`;
-      inp.value=''; inp.focus(); return;
-    }
-
-    const rota=await buscarRotaPacoteCoord(id);
-    const plan=rota?acharPlanejamentoRotaCoord(rota):null;
-    const transportadora=plan?.transportadora||'Não identificada';
-    const rua=!rota?'Não identificado':(plan?ruaPorTransportadoraCoord(transportadora):'Rua não definida');
-    const ciclo=plan?.ciclo||document.getElementById('cicloUpload')?.value||null;
-    const payload={
-      pacote_id:id, rota:rota||null, transportadora, rua,
-      gaiola:plan?.gaiola||null, onda:plan?.onda||null,
-      parada:plan?.parada||null, ciclo,
-      data_operacao:hojeISO()
-    };
-    const {error}=await db.from('backlog_pacotes').insert(payload);
-    if(error) throw error;
-
-    out.innerHTML=`<div class="pkg-ok"><b>✅ Pacote bipado e enviado ao Backlog</b>
-      <div class="pkg-last">
-        <div><small>ID</small><b>${pkgEsc(id)}</b></div>
-        <div><small>Rota</small><b>${pkgEsc(rota||'Não encontrada')}</b></div>
-        <div><small>Transportadora</small><b>${pkgEsc(transportadora)}</b></div>
-        <div><small>Rua</small><b>${pkgEsc(rua)}</b></div>
-        <div><small>Onda</small><b>${pkgEsc(plan?.onda||'—')}</b></div>
-      </div></div>`;
-    inp.value=''; inp.focus();
-    atualizarContadorBipagemCoord();
-  }catch(e){
-    out.innerHTML=`<div class="pkg-warn"><b>⚠️ Não foi possível registrar.</b> ${pkgEsc((e&&e.message)||String(e))}</div>`;
-    inp.focus();
-  }
-}
-document.addEventListener('DOMContentLoaded',()=>setTimeout(atualizarContadorBipagemCoord,900));
-
 
 // ================= DADOS BASE =================
 const CORES = {
@@ -896,6 +780,7 @@ async function carregarRotas(){
     const {data,error}=await db.from('planejamento').select('*').eq('data_operacao',hojeISO());
     if(error) throw error;
     rotasData=(data||[]).map(rowPlanejamentoToLocal);
+    aplicarCicloAutoCoord();
     try{localStorage.setItem(ROTAS_KEY,JSON.stringify(rotasData));}catch(e){}
   }catch(e){
     console.error('Erro ao carregar planejamento do Supabase:',e);
@@ -913,7 +798,7 @@ async function salvarRotas(cicloOverride){
     rotasData.filter(r=>String(r.ciclo||'').toUpperCase()===ciclo).forEach(r=>{
       const item={
         data_operacao:hojeISO(), ciclo,
-        transportadora:r.transportadora||null, rota:r.nRota, gaiola:r.gaiola||null,
+        transportadora:r.transportadora||null, rota:r.nRota,
         onda:r.onda||null, paradas:r.parada||null, bairros:r.bairros||r.ponto||null,
         cluster:r.cluster||null, modal:r.modal||null,
         rua:(typeof areaDaRotaPlanejada==='function'?areaDaRotaPlanejada(r):null),
@@ -1021,7 +906,11 @@ function detectarColuna(headersNorm, aliases){
 }
 function detectarColunaComPrioridade(headersNorm, campo){
   if(campo.tipo==='mlpAtual'){
-    const i=headersNorm.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
+    // VIA QUERY atual: a transportadora vem na primeira coluna chamada exatamente MLP.
+    // Mantém compatibilidade com versões antigas que usavam "MLP - data/hora".
+    let i=headersNorm.findIndex(h=>h==='mlp');
+    if(i!==-1) return i;
+    i=headersNorm.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
     if(i!==-1) return i;
   }
   if(campo.tipo==='rotaPlanejamento'){
@@ -1037,7 +926,7 @@ function detectarColunaComPrioridade(headersNorm, campo){
 function encontrarLinhaCabecalho(rows){
   for(let i=0;i<Math.min(rows.length,15);i++){
     const norm=(rows[i]||[]).map(normalizarHeader);
-    if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas') && norm.some(h=>/^mlp\s*-\s*\d/.test(h))){
+    if(norm.includes('gaiola') && norm.includes('onda cadastrada') && norm.includes('paradas') && norm.some(h=>h==='mlp' || /^mlp\s*-\s*\d/.test(h))){
       formatoViaQuery=true;
       return i;
     }
@@ -1119,7 +1008,7 @@ async function processarPlanilha(ciclo,inputId){
     if(!planilhaRows.length){ statusEl.textContent = 'Não encontramos linhas de dados abaixo do cabeçalho.'; return; }
     renderMapeamentoColunas();
     statusEl.textContent = formatoViaQuery
-      ? `Formato VIA QUERY reconhecido · ${planilhaRows.length} linha(s) lidas. ROTA será usada no cruzamento com a BASE; GAIOLA será mantida separada e a coluna MLP com data/hora será a transportadora. Confira e confirme.`
+      ? `Formato VIA QUERY reconhecido · ${planilhaRows.length} linha(s) lidas. GAIOLA será usada como rota e a coluna MLP com data/hora como transportadora. Confira e confirme.`
       : `Lido "${nomeAba}" · ${planilhaRows.length} linha(s) de dados encontradas. Confira o mapeamento abaixo e confirme a importação.`;
   }catch(e){
     console.error('Erro ao ler planejamento:', e);
@@ -1154,7 +1043,16 @@ function renderMapeamentoColunas(){
 
 // Nas planilhas exportadas assim, a linha da rota-mãe já traz nos Bairros um texto tipo
 // "ROTA MÃE - 10 SACAS - 85, 87, 90, 92, 94, 98, 100, 101, 102, 103" — é essa lista que manda.
-const REGEX_ROTA_MAE = /ROTA\s*M[ÃA]E\s*-\s*(\d+)\s*SACAS?\s*-\s*(.+)/i;
+// A VIA QUERY de 22/09/2026 passou a vir SEM a quantidade: "ROTA MÃE -  SACAS - 108, 109, ..."
+// por isso o número agora é opcional (se não vier, a quantidade é o tamanho da lista).
+const REGEX_ROTA_MAE = /ROTA\s*M[ÃA]E\s*-\s*(\d*)\s*SACAS?\s*-\s*(.+)/i;
+// Saca que veio escrita diferente: GAIOLA com o código (ex: PM1_103_14) em vez de "SACA".
+// Se o código do planejamento for <rota-mãe>_<número> (ex: PM1_103_14 da mãe PM1_103), é saca dela.
+function ehSacaDaRotaMae(rotaPlan, rotaMaePlan){
+  if(!rotaPlan || !rotaMaePlan) return false;
+  const a=String(rotaPlan).trim().toUpperCase(), m=String(rotaMaePlan).trim().toUpperCase();
+  return a.startsWith(m+'_') && /^\d+$/.test(a.slice(m.length+1));
+}
 function extrairSacasDoTexto(texto){
   const m = String(texto||'').match(REGEX_ROTA_MAE);
   if(!m) return null;
@@ -1175,13 +1073,14 @@ async function confirmarImportacaoPlanilha(){
   // Enquanto varre as linhas em ordem: se uma linha de GAIOLA="SACA" aparecer sem uma lista de
   // sacas já ter sido extraída da linha-mãe anterior (fallback pra planilha fora do padrão),
   // ela herda a rota da última linha-mãe vista.
-  let ultimaRotaMae = null, ultimaRotaMaeTransp = null, ultimaRotaMaeTeveLista = false;
+  let ultimaRotaMae = null, ultimaRotaMaeTransp = null, ultimaRotaMaeTeveLista = false, ultimaRotaMaePlan = null;
   planilhaRows.forEach((row,rowIndex)=>{
     const gaiola = pegar(row, idx.nRota); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
     const rotaPlanejamento = pegar(row, idx.rotaPlanejamento); // número sequencial da planilha (ex: AM1_1) — não é o identificador usado no app
     const transportadora = pegar(row, idx.transportadora).toUpperCase();
     const bairrosBruto = pegar(row, idx.bairros);
-    const ehLinhaDetalheSaca = String(gaiola).toUpperCase()==='SACA';
+    const ehLinhaDetalheSaca = String(gaiola).toUpperCase()==='SACA' ||
+      (ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transportadora && ehSacaDaRotaMae(rotaPlanejamento, ultimaRotaMaePlan));
 
     if(ehLinhaDetalheSaca){
       // Linha de detalhe (bairro/paradas de UMA saca) — se a rota-mãe já trouxe a lista completa
@@ -1202,7 +1101,7 @@ async function confirmarImportacaoPlanilha(){
     // Linha de rota normal (a rota-mãe de um lote de sacas também cai aqui).
     if(!gaiola || !transportadora || transportadora==='#N/A' || gaiola==='#N/A'){ ignoradas++; return; }
     const infoSacas = extrairSacasDoTexto(bairrosBruto);
-    ultimaRotaMae = gaiola; ultimaRotaMaeTransp = transportadora; ultimaRotaMaeTeveLista = !!infoSacas;
+    ultimaRotaMae = gaiola; ultimaRotaMaeTransp = transportadora; ultimaRotaMaeTeveLista = !!infoSacas; ultimaRotaMaePlan = rotaPlanejamento;
     novas.push({
       idPacote:'',
       nRota: gaiola,
@@ -1603,6 +1502,8 @@ function buscar(){
     else{ renderDetalhePendente(transportadora, `rota ${porRota[0].nRota}`); }
     return;
   }
+  // ID de pacote (número longo ou QR da etiqueta) → procura na base de pacotes (planification)
+  if(typeof basePacBuscarNoPainel==='function' && (/^\{/.test(raw) || /^[A-Z0-9]{8,}$/i.test(raw.replace(/\s+/g,'')))){ basePacBuscarNoPainel(raw); return; }
   const porPacote = rotasData.find(r=>r.idPacote===raw);
   if(porPacote){
     const transportadora = porPacote.transportadora;
@@ -1859,7 +1760,7 @@ function renderTudo(){
   renderMonitorRotas();
   renderCiclosPlanejamento();
   renderSacas();
-  renderResumoPlanejamentoCoord();
+  if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord();
 }
 
 async function carregarTudoCompartilhado(){
@@ -2038,11 +1939,33 @@ async function init(){
 init();
 </script>
 <script id="compact-upload-helper">
-function arquivoSelecionadoUnico(){
+// Ao escolher o arquivo: descobre o ciclo sozinho (pelo conteúdo "_PM1", "_AM1"... ou pelo nome)
+// e já importa — antes era preciso trocar o ciclo na seta E clicar em Importar, e se o ciclo
+// ficasse em AM1 com um arquivo de PM1 nada aparecia.
+async function detectarCicloDoArquivo(file){
+  const ciclos=['AM1','PM1','SD','CHP'];
+  const cont={AM1:0,PM1:0,SD:0,CHP:0};
+  try{
+    if(/\.csv$/i.test(file.name)){
+      const txt=new TextDecoder('utf-8').decode(await file.arrayBuffer()).toUpperCase();
+      ciclos.forEach(c=>{ const m=txt.match(new RegExp('_'+c+'(?![A-Z0-9])','g')); cont[c]=m?m.length:0; });
+    }
+  }catch(e){}
+  let melhor=null, max=0;
+  ciclos.forEach(c=>{ if(cont[c]>max){max=cont[c];melhor=c;} });
+  if(melhor) return melhor;
+  const nome=file.name.toUpperCase();
+  return ciclos.find(c=>new RegExp('(^|[^A-Z0-9])'+c+'([^A-Z0-9]|$)').test(nome)) || null;
+}
+async function arquivoSelecionadoUnico(){
   const f=document.getElementById('planilhaFile_UNICO')?.files?.[0];
   const hint=document.getElementById('uploadHint');
-  if(f && hint) hint.textContent=f.name;
-  const st=document.getElementById('statusUploadUnico'); if(st) st.textContent=f?'Selecionado: '+f.name:'Nenhum planejamento selecionado.';
+  if(!f) return;
+  if(hint) hint.textContent=f.name;
+  const ciclo=await detectarCicloDoArquivo(f);
+  const sel=document.getElementById('cicloUpload');
+  if(ciclo && sel) sel.value=ciclo;
+  await processarUploadUnico();
 }
 async function processarUploadUnico(){
   const ciclo=document.getElementById('cicloUpload').value;
@@ -2082,7 +2005,10 @@ async function processarUploadUnico(){
     const idxB=hn.indexOf('bairros');
     const idxCl=hn.indexOf('cluster');
     const idxMo=hn.indexOf('modal');
-    const idxMlp=hn.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
+    // A VIA QUERY de 22/09/2026 usa cabeçalho simples "MLP" (há mais de uma coluna MLP).
+    // Para a transportadora usamos a PRIMEIRA coluna MLP; versões antigas com "MLP - ..." continuam aceitas.
+    let idxMlp=hn.findIndex(h=>h==='mlp');
+    if(idxMlp<0) idxMlp=hn.findIndex(h=>/^mlp\s*-\s*\d/.test(h));
     const idxRota=hn.indexOf('rota');
     if(idxG<0 || idxP<0 || idxMlp<0) throw new Error('Faltam as colunas GAIOLA, PARADAS ou MLP da operação.');
 
@@ -2090,17 +2016,18 @@ async function processarUploadUnico(){
     const novas=[];
     let ignoradas=0, sacasDetalheIgnoradas=0;
     const linhasDados=rows.slice(hi+1);
-    let ultimaRotaMae=null, ultimaRotaMaeTransp=null, ultimaRotaMaeTeveLista=false;
+    let ultimaRotaMae=null, ultimaRotaMaeTransp=null, ultimaRotaMaeTeveLista=false, ultimaRotaMaePlan=null;
     for(const r of linhasDados){
-      const gaiola=get(r,idxG); // gaiola operacional; a coluna ROTA é o código usado no cruzamento com a BASE
+      const gaiola=get(r,idxG); // código real da rota (ex: P1_AM1) OU "SACA" nas linhas de detalhe
       const transp=get(r,idxMlp).toUpperCase();
       const rotaPlan=get(r,idxRota); // número sequencial da planilha — não é o identificador usado no app
       const bairrosBruto=get(r,idxB);
-      const ehLinhaDetalheSaca=gaiola.toUpperCase()==='SACA';
+      const ehLinhaDetalheSaca=gaiola.toUpperCase()==='SACA' ||
+        (ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp && ehSacaDaRotaMae(rotaPlan, ultimaRotaMaePlan));
 
       if(ehLinhaDetalheSaca){
         if(ultimaRotaMaeTeveLista && ultimaRotaMaeTransp===transp){ sacasDetalheIgnoradas++; continue; }
-        const nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:(rotaPlan||gaiola);
+        const nRota=(ultimaRotaMaeTransp===transp && ultimaRotaMae)?ultimaRotaMae:gaiola;
         if(!nRota || !transp || transp==='#N/A'){ignoradas++;continue;}
         novas.push({
           idPacote:'', nRota, gaiola, ciclo, tipoOperacao:'SACA',
@@ -2113,11 +2040,9 @@ async function processarUploadUnico(){
 
       if(!gaiola || !transp || transp==='#N/A' || gaiola==='#N/A'){ignoradas++;continue;}
       const infoSacas=extrairSacasDoTexto(bairrosBruto);
-      ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas;
-      const codigoRota=rotaPlan||gaiola;
-      ultimaRotaMae=codigoRota;
+      ultimaRotaMae=gaiola; ultimaRotaMaeTransp=transp; ultimaRotaMaeTeveLista=!!infoSacas; ultimaRotaMaePlan=rotaPlan;
       novas.push({
-        idPacote:'', nRota:codigoRota, gaiola, ciclo, tipoOperacao:'ROTA',
+        idPacote:'', nRota:gaiola, gaiola, ciclo, tipoOperacao:'ROTA',
         transportadora:transp, onda:get(r,idxO), parada:get(r,idxP),
         ponto:infoSacas?'':bairrosBruto, bairros:infoSacas?'':bairrosBruto, cluster:get(r,idxCl), modal:get(r,idxMo),
         dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
@@ -2125,7 +2050,7 @@ async function processarUploadUnico(){
       if(infoSacas){
         infoSacas.lista.forEach((numSaca,i)=>{
           novas.push({
-            idPacote:'', nRota:codigoRota, gaiola:gaiola+'_SACA_'+(i+1), ciclo, tipoOperacao:'SACA',
+            idPacote:'', nRota:gaiola, gaiola:gaiola+'_SACA_'+(i+1), ciclo, tipoOperacao:'SACA',
             transportadora:transp, onda:get(r,idxO), parada:numSaca,
             ponto:'', bairros:'', cluster:get(r,idxCl), modal:get(r,idxMo),
             dataExp:get(r,idxData), rotaPlanejamento:rotaPlan, origem:'VIA_QUERY'
@@ -2141,8 +2066,19 @@ async function processarUploadUnico(){
     renderCycleSummaryCompact();
     renderResumoPlanejamentoCoord();
     const rotasU=new Set(novas.filter(r=>r.tipoOperacao!=='SACA').map(r=>r.nRota)).size;
-    const sacasU=new Set(novas.filter(r=>r.tipoOperacao==='SACA').map(r=>r.nRota)).size;
-    if(status) status.textContent='✓ '+ciclo+' importado: '+rotasU+' rotas · '+sacasU+' sacas · '+ignoradas+' linhas ignoradas.';
+    const sacasU=novas.filter(r=>r.tipoOperacao==='SACA').length;
+    // Confere no Supabase se as rotas realmente ficaram gravadas pra hoje (é de lá que o app do líder lê).
+    let gravadas=null;
+    try{
+      const {count,error}=await db.from('planejamento').select('*',{count:'exact',head:true}).eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
+      if(!error) gravadas=count;
+    }catch(e){}
+    cicloResumoManual=false;
+    const sel=document.getElementById('cicloResumo'); if(sel){ sel.value=ciclo; if(typeof renderResumoPlanejamentoCoord==='function') renderResumoPlanejamentoCoord(); }
+    if(status){
+      if(gravadas===0) status.textContent='⚠ '+ciclo+': o arquivo foi lido ('+rotasU+' rotas), mas o Supabase não devolveu nada gravado para hoje ('+hojeISO()+'). Verifique a permissão (RLS) de INSERT/SELECT na tabela planejamento.';
+      else status.textContent='✓ '+ciclo+' importado: '+rotasU+' rotas · '+sacasU+' sacas · '+ignoradas+' linhas ignoradas'+(gravadas!=null?' · '+gravadas+' linhas no Supabase':'')+'.';
+    }
   }catch(e){
     console.error('IMPORTAÇÃO:',e);
     if(status) status.textContent='Erro: '+(e?.message||'não foi possível importar o planejamento.');
@@ -2301,6 +2237,389 @@ setInterval(renderCycleSummaryCompact,5000);
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(async()=>{ await carregarSupabaseCoord(); iniciarRealtimeCoord(); },600);
+});
+</script>
+<script id="expedicao-bipar">
+// ================= EXPEDIÇÃO · BIPAR PACOTES (mesma tabela pacotes_extra do app do líder) =================
+let expPacotes=[], expTabelaOk=true, expErro='', expOcupado=false;
+let expCicloModo=(()=>{try{return localStorage.getItem('exp-ciclo-modo')||'AUTO'}catch(e){return 'AUTO'}})();
+let expCiclo=expCicloModo==='AUTO'?'AM1':expCicloModo;
+function expAplicarAuto(){ if(expCicloModo!=='AUTO') return; const d=detectarCicloPlanejamento(typeof rotasData!=='undefined'?rotasData:[]); if(d) expCiclo=d; }
+let expRota=(()=>{try{return localStorage.getItem('exp-rota')||''}catch(e){return ''}})();
+function expRotas(){
+  const m=new Map();
+  (typeof rotasData!=='undefined'?rotasData:[]).forEach(r=>{
+    if(String(r.ciclo||'').toUpperCase()!==expCiclo) return;
+    if(String(r.tipoOperacao||'ROTA').toUpperCase()==='SACA') return;
+    const k=String(r.nRota||'').trim(); if(k && !m.has(k)) m.set(k,r);
+  });
+  return [...m.values()].sort((a,b)=>String(a.nRota).localeCompare(String(b.nRota),'pt-BR',{numeric:true}));
+}
+function expPacotesDaRota(n){ const k=String(n||'').toUpperCase(); return expPacotes.filter(p=>String(p.rota||'').toUpperCase()===k && String(p.ciclo||'').toUpperCase()===expCiclo); }
+async function expCarregar(){
+  try{
+    const {data,error}=await db.from('pacotes_extra').select('*').eq('data_operacao',hojeISO()).order('criado_em',{ascending:false});
+    if(error) throw error; expPacotes=data||[]; expTabelaOk=true; expErro='';
+  }catch(e){ expTabelaOk=false; expErro=(e&&e.message)||String(e); }
+  expRender();
+}
+function expCicloMudou(){ expCicloModo=document.getElementById('expCiclo').value; try{localStorage.setItem('exp-ciclo-modo',expCicloModo)}catch(e){} if(expCicloModo!=='AUTO') expCiclo=expCicloModo; expRender(); }
+function expDefinirRota(n){ expRota=n||''; try{localStorage.setItem('exp-rota',expRota)}catch(e){} expRender(); document.getElementById('expInput')?.focus(); }
+function expFb(tipo,msg){ const el=document.getElementById('expFeedback'); el.className='exp-fb '+tipo; el.innerHTML=msg; clearTimeout(expFb._t); expFb._t=setTimeout(()=>el.className='exp-fb',6000); }
+function expSom(ok){
+  try{ if(!audioCtxCoord) audioCtxCoord=new (window.AudioContext||window.webkitAudioContext)();
+    const c=audioCtxCoord,t=c.currentTime,o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='square';
+    o.frequency.value=ok?1500:220; g.gain.setValueAtTime(0.12,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(ok?0.12:0.45)); o.start(t); o.stop(t+(ok?0.13:0.46)); }catch(e){}
+}
+function expEnviar(){ const i=document.getElementById('expInput'); const v=i.value; i.value=''; expBipe(v); i.focus(); }
+async function expBipe(bruto){
+  const cod=String(bruto||'').trim().toUpperCase().replace(/\s+/g,'');
+  if(!cod || expOcupado) return;
+  let rota=expRotas().find(r=>String(r.nRota).trim().toUpperCase()===cod);
+  if(!rota){
+    const outra=(typeof rotasData!=='undefined'?rotasData:[]).find(r=>String(r.tipoOperacao||'ROTA').toUpperCase()!=='SACA' && String(r.nRota||'').trim().toUpperCase()===cod);
+    if(outra && outra.ciclo){ expCiclo=String(outra.ciclo).toUpperCase(); if(expCicloModo!=='AUTO'){ expCicloModo=expCiclo; try{localStorage.setItem('exp-ciclo-modo',expCicloModo)}catch(e){} } rota=expRotas().find(r=>String(r.nRota).trim().toUpperCase()===cod); }
+  }
+  if(rota){ expDefinirRota(rota.nRota); expFb('info',`Rota <b>${escapeHtml(rota.nRota)}</b> selecionada · ${escapeHtml(rota.transportadora||'')}`); expSom(true); return; }
+  if(!expRota){ expFb('erro','Escolha (ou bipe) a rota antes dos pacotes.'); expSom(false); return; }
+  if(!expTabelaOk){ expFb('erro','Tabela <b>pacotes_extra</b> não existe no Supabase — rode o pacotes_extra.sql.'); expSom(false); return; }
+  const ja=expPacotes.find(p=>String(p.pacote).toUpperCase()===cod);
+  if(ja){ expFb('erro',`<b>${escapeHtml(cod)}</b> já foi bipado na rota <b>${escapeHtml(ja.rota)}</b>.`); expSom(false); return; }
+  const r=expRotas().find(x=>x.nRota===expRota)||{};
+  expOcupado=true;
+  try{
+    const {data,error}=await db.from('pacotes_extra').insert({data_operacao:hojeISO(),ciclo:expCiclo,rota:expRota,transportadora:r.transportadora||null,pacote:cod,rua:'Coordenação / Expedição',lider:'Painel SVC'}).select();
+    if(error){
+      if(error.code==='23505') expFb('erro',`<b>${escapeHtml(cod)}</b> já estava bipado hoje.`);
+      else if(error.code==='42P01'||/pacotes_extra/i.test(error.message||'')){ expTabelaOk=false; expFb('erro','Tabela <b>pacotes_extra</b> não existe no Supabase — rode o pacotes_extra.sql.'); }
+      else expFb('erro','Não gravou: '+escapeHtml(error.message||'erro'));
+      expSom(false); return;
+    }
+    if(data&&data[0]&&!expPacotes.some(x=>x.id===data[0].id)) expPacotes=[data[0],...expPacotes];
+    expFb('ok',`✓ <b>${escapeHtml(cod)}</b> → rota <b>${escapeHtml(expRota)}</b> · ${expPacotesDaRota(expRota).length} pacote(s)`);
+    expSom(true); expRender();
+  }finally{ expOcupado=false; }
+}
+async function expRemover(id){
+  const {error}=await db.from('pacotes_extra').delete().eq('id',id);
+  if(error){ expFb('erro','Não removeu: '+escapeHtml(error.message)); return; }
+  expPacotes=expPacotes.filter(p=>p.id!==id); expFb('info','Pacote removido.'); expRender();
+}
+function expRender(){
+  const cs=document.getElementById('expCiclo'); if(!cs) return;
+  expAplicarAuto();
+  const oa=cs.querySelector('option[value="AUTO"]'); if(oa) oa.textContent='Auto · '+expCiclo;
+  cs.value=expCicloModo;
+  document.getElementById('expAvisoTabela').innerHTML=expTabelaOk?'':`<div class="exp-aviso">⚠ Falta criar a tabela <b>pacotes_extra</b> no Supabase (rode o pacotes_extra.sql). <br><small>${escapeHtml(expErro)}</small></div>`;
+  const rotas=expRotas();
+  if(expRota && rotas.length && !rotas.some(r=>r.nRota===expRota)) expRota='';
+  const sel=document.getElementById('expRotaSelect');
+  if(document.activeElement!==sel){
+    const h='<option value="">— escolha a rota —</option>'+rotas.map(r=>`<option value="${escapeHtml(r.nRota)}">${escapeHtml(r.nRota)} · ${escapeHtml(r.transportadora||'')}${r.onda?' · '+escapeHtml(r.onda):''}</option>`).join('');
+    if(sel.dataset.h!==h){ sel.innerHTML=h; sel.dataset.h=h; }
+    sel.value=expRota;
+  }
+  const r=rotas.find(x=>x.nRota===expRota), pacs=expRota?expPacotesDaRota(expRota):[];
+  const box=document.getElementById('expRotaBox');
+  if(r){
+    const c=(typeof chamadosData!=='undefined'?chamadosData:[]).find(x=>String(x.nRota)===String(r.nRota));
+    box.className='exp-rota'; box.innerHTML=`<small>Rota ativa</small><b>${escapeHtml(r.nRota)}</b><small>${escapeHtml(r.transportadora||'')}${r.onda?' · '+escapeHtml(r.onda):''}${c?' · na vaga '+escapeHtml(String(c.vaga)):''} · <b style="display:inline;font-size:11px">${pacs.length} pacote(s)</b></small>`;
+  }else{
+    box.className='exp-rota vazio'; box.innerHTML=`<small>Rota ativa</small><b>—</b><small>${rotas.length?'Escolha na lista ou bipe a gaiola.':'Nenhuma rota do '+expCiclo+' importada hoje.'}</small>`;
+  }
+  document.getElementById('expListaTitulo').textContent=expRota?`Pacotes da rota ${expRota} (${pacs.length})`:'Pacotes da rota';
+  document.getElementById('expLista').innerHTML=pacs.length?pacs.map(p=>`<div class="exp-item"><div>${escapeHtml(p.pacote)}<small>${p.criado_em?new Date(p.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}${p.lider?' · '+escapeHtml(p.lider):''}</small></div><button onclick="expRemover(${Number(p.id)})">Remover</button></div>`).join(''):'<div class="empty">Nenhum pacote bipado nesta rota.</div>';
+  const cont={}; expPacotes.filter(p=>String(p.ciclo||'').toUpperCase()===expCiclo).forEach(p=>cont[p.rota]=(cont[p.rota]||0)+1);
+  const ks=Object.keys(cont).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+  document.getElementById('expResumo').innerHTML=ks.length?ks.map(k=>`<button onclick="expDefinirRota(${escapeHtml(JSON.stringify(k))})">${escapeHtml(k)} · <b>${cont[k]}</b></button>`).join(''):'<div class="empty">Nada bipado ainda.</div>';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{
+    expCarregar();
+    try{ db.channel('svc-coord-pacotes').on('postgres_changes',{event:'*',schema:'public',table:'pacotes_extra'},()=>expCarregar()).subscribe(); }catch(e){}
+  },900);
+  setInterval(expCarregar,6000);   // reforço + acompanha as rotas que o painel recarrega
+});
+</script>
+<script id="base-pacotes">
+// ================= BASE DE PACOTES (planification) =================
+// Tabela Supabase: planejamento_pacotes (rode o planejamento_pacotes.sql uma vez).
+// Cada linha = 1 pacote do dia, já cruzado com o planejamento: rota (gaiola), onda, parada, transportadora e rua.
+// O app do Líder de Rua consulta esta tabela quando o pacote é bipado.
+const BASEPAC_TABELA='planejamento_pacotes';
+// Saca = sub-rota com 3 partes no RTG_ROUTE_NAME (ex: AM1_119_6 = saca 6 da rota mãe AM1_119).
+// O pacote de saca fica com a transportadora/rua da rota mãe; só guardamos qual saca é.
+function ehSubrotaSaca(s){ return /^[A-Z0-9]+_\d+_\d+$/i.test(String(s||'').trim()); }
+function ruaDoPacote(p){ return ruaBacklogDaTransp(p.transportadora,p.rua); }
+function ruaBacklogDaTransp(transp, ruaSalva){
+  const v=vinculoPorTransportadora(transp);
+  return v ? ruaDaSigla(v.sigla) : (ruaSalva||'Sem rua vinculada');
+}
+let basePacContagem={};
+
+function normalizarCodigoPacote(bruto){
+  let s=String(bruto==null?'':bruto).trim();
+  if(s.startsWith('{')){
+    try{ const o=JSON.parse(s); s=String(o.id||o.shipment_id||o.pacote||o.package_id||s); }
+    catch(e){ const m=s.match(/"(?:id|shipment_id)"\s*:\s*"?([A-Za-z0-9]+)/); if(m) s=m[1]; }
+  }
+  s=s.toUpperCase().replace(/\s+/g,'');
+  if(/^\d+\.0+$/.test(s)) s=s.replace(/\.0+$/,''); // "45012345678.0" que o Excel às vezes gera
+  return s;
+}
+
+// Colunas aceitas (nomes normalizados, sem acento e minúsculos). Primeiro tenta o nome exato, depois "contém".
+const BASEPAC_CAMPOS={
+  // Base e Planification SRJ1 (aba BASE / BASE PM1): ID = RTG_UNIT_EXTERNAL_ID, gaiola = Otimizado
+  pacote:['rtg_unit_external_id','unit_external_id','id do pacote','id pacote','id_pacote','pacote','shipment','shipment_id','shipment id','id shipment','package','package_id','tracking','id envio','envio','codigo do pacote','cod pacote','unit_id','id'],
+  rota:['otimizado','id otimizado','gaiola','nº rota','n rota','no rota','numero rota','numero da rota','rota','cage','rota/gaiola'],
+  subrota:['rtg_route_name'],   // ex: AM1_119_6 = saca 6 da rota mãe AM1_119
+  parada:['parada','paradas','stop','sequencia','seq','ordem'],
+  onda:['onda cadastrada','onda','wave'],
+  transportadora:['transportadora','mlp','carrier','company','empresa'],
+  bairro:['bairro','bairros','ponto','cidade']
+};
+function basePacColuna(hn,aliases){
+  for(const a of aliases){ const i=hn.indexOf(a); if(i>=0) return i; }
+  for(const a of aliases){ if(a.length<4) continue; const i=hn.findIndex(h=>h.includes(a)); if(i>=0) return i; }
+  return -1;
+}
+function basePacAcharCabecalho(rows){
+  for(let i=0;i<Math.min(rows.length,25);i++){
+    const hn=(rows[i]||[]).map(normalizarHeader);
+    if(basePacColuna(hn,BASEPAC_CAMPOS.pacote)>=0 && basePacColuna(hn,BASEPAC_CAMPOS.rota)>=0) return i;
+  }
+  return -1;
+}
+// Cruza a rota que veio na base com as gaiolas do planejamento importado (mesmo ciclo).
+// Aceita "B5_PM1" (exato), "B5" (vira B5_<ciclo>) ou qualquer rota que comece com "B5_".
+function basePacResolverRota(rotaBruta,ciclo){
+  const up=String(rotaBruta||'').toUpperCase().trim().replace(/\s+/g,'');
+  if(!up) return null;
+  const doCiclo=rotasData.filter(r=>String(r.tipoOperacao||'ROTA').toUpperCase()!=='SACA' && String(r.ciclo||'').toUpperCase()===ciclo);
+  const base=doCiclo.length?doCiclo:rotasData.filter(r=>String(r.tipoOperacao||'ROTA').toUpperCase()!=='SACA');
+  const n=r=>String(r.nRota||'').toUpperCase().trim();
+  return base.find(r=>n(r)===up)
+      || base.find(r=>n(r)===up+'_'+ciclo)
+      || (()=>{ const c=base.filter(r=>n(r).startsWith(up+'_')); return c.length===1?c[0]:null; })()
+      || null;
+}
+async function basePacLerArquivo(file){
+  if(/\.csv$/i.test(file.name)){
+    let texto=new TextDecoder('utf-8').decode(await file.arrayBuffer());
+    // CSV brasileiro com ";" — converte pra vírgula respeitando aspas simples do parser
+    const primeira=texto.split('\n')[0]||'';
+    if((primeira.match(/;/g)||[]).length>(primeira.match(/,/g)||[]).length){
+      return texto.replace(/^﻿/,'').split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(';').map(c=>c.replace(/^"|"$/g,'').trim()));
+    }
+    return parseCSVNativo(texto);
+  }
+  if(typeof XLSX==='undefined') throw new Error('Biblioteca XLSX indisponível. Salve a base como CSV e importe de novo.');
+  const buf=await file.arrayBuffer();
+  // A planilha tem várias abas grandes (PLANIFICATION, BASE, OTIMIZADO…). Primeiro lê só o
+  // cabeçalho de cada aba e depois carrega por inteiro apenas a que tem ID do pacote + gaiola.
+  const nomes=XLSX.read(buf,{type:'array',bookSheets:true}).SheetNames;
+  let escolhida=null;
+  for(const nome of nomes){
+    const wb1=XLSX.read(buf,{type:'array',sheets:[nome],sheetRows:25});
+    const rows=XLSX.utils.sheet_to_json(wb1.Sheets[nome],{header:1,raw:true,defval:''});
+    if(basePacAcharCabecalho(rows)>=0){ escolhida=nome; break; }
+  }
+  if(!escolhida) escolhida=nomes[0];
+  basePacSt('Lendo a aba <b>'+escapeHtml(escolhida)+'</b>…');
+  const wb=XLSX.read(buf,{type:'array',sheets:[escolhida]});
+  // raw:true pra o ID vir como número inteiro (sem virar "4,8E+10" pela formatação da célula)
+  return XLSX.utils.sheet_to_json(wb.Sheets[escolhida],{header:1,raw:true,defval:''})
+    .map(r=>r.map(c=>typeof c==='number'&&Number.isFinite(c)&&Math.abs(c)>=1e6&&Number.isInteger(Math.round(c))&&Math.abs(c-Math.round(c))<1e-6?String(Math.round(c)):(c==null?'':c)));
+}
+function basePacSt(msg){ const el=document.getElementById('basePacStatus'); if(el) el.innerHTML=msg; }
+
+async function basePacArquivo(){
+  const input=document.getElementById('basePacFile');
+  const file=input?.files?.[0]; if(!file) return;
+  const hint=document.getElementById('basePacHint'); if(hint) hint.textContent=file.name;
+  const selC=document.getElementById('basePacCiclo');
+  try{ const c=await detectarCicloDoArquivo(file); if(c&&selC) selC.value=c; }catch(e){}
+  const ciclo=selC.value;
+  try{
+    basePacSt('Lendo base de pacotes '+ciclo+'…');
+    const rows=await basePacLerArquivo(file);
+    const hi=basePacAcharCabecalho(rows);
+    if(hi<0) throw new Error('Não achei as colunas de ID do pacote e rota/gaiola no arquivo. Cabeçalhos aceitos: "ID do pacote"/"Shipment"/"Pacote" e "Gaiola"/"Rota"/"Nº Rota".');
+    const hn=(rows[hi]||[]).map(normalizarHeader);
+    const idx={}; Object.keys(BASEPAC_CAMPOS).forEach(k=>idx[k]=basePacColuna(hn,BASEPAC_CAMPOS[k]));
+    const get=(r,i)=>i>=0?String(r[i]??'').trim():'';
+    if(!rotasData.some(r=>String(r.ciclo||'').toUpperCase()===ciclo)){
+      basePacSt('⚠ Não tem planejamento '+ciclo+' importado hoje — vou gravar a base assim mesmo, mas a rua/onda só aparecem depois que o planejamento for importado. Lendo…');
+    }
+    const vistos=new Set(), itens=[];
+    let semRota=0, naoCruzou=0, cientifico=0, dup=0;
+    for(const r of rows.slice(hi+1)){
+      const pac=normalizarCodigoPacote(get(r,idx.pacote));
+      if(!pac) continue;
+      if(/E\+\d+$/.test(pac)){ cientifico++; continue; }
+      if(vistos.has(pac)){ dup++; continue; }
+      vistos.add(pac);
+      const rotaBruta=get(r,idx.rota);
+      if(!rotaBruta){ semRota++; }
+      const plan=basePacResolverRota(rotaBruta,ciclo);
+      if(rotaBruta && !plan) naoCruzou++;
+      const transp=(plan?.transportadora||get(r,idx.transportadora)||'').toUpperCase()||null;
+      const subrota=get(r,idx.subrota);
+      const rua=transp?ruaBacklogDaTransp(transp,null):null;
+      itens.push({
+        data_operacao:hojeISO(), ciclo, pacote:pac,
+        rota:plan?plan.nRota:(rotaBruta||null), rota_base:subrota||rotaBruta||null,
+        parada:get(r,idx.parada)||null, onda:get(r,idx.onda)||plan?.onda||null,
+        transportadora:transp, rua, bairro:get(r,idx.bairro)||null,
+        vinculada:!!plan
+      });
+    }
+    if(!itens.length) throw new Error(cientifico?'Os IDs vieram em notação científica (ex: 4,5E+10). Abra no Excel, formate a coluna do ID como Número sem casas ou Texto e salve de novo.':'Nenhum pacote válido encontrado.');
+    basePacSt(`Gravando ${itens.length} pacotes no Supabase…`);
+    const {error:delErr}=await db.from(BASEPAC_TABELA).delete().eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
+    if(delErr) throw delErr;
+    for(let i=0;i<itens.length;i+=500){
+      const {error}=await db.from(BASEPAC_TABELA).insert(itens.slice(i,i+500));
+      if(error) throw error;
+      basePacSt(`Gravando… ${Math.min(i+500,itens.length)} / ${itens.length}`);
+    }
+    const rotasU=new Set(itens.filter(x=>x.vinculada).map(x=>x.rota)).size;
+    basePacSt(`✓ Base ${ciclo}: <b>${itens.length}</b> pacotes · ${rotasU} rotas cruzadas com o planejamento`
+      +(naoCruzou?` · <b style="color:#B45309">${naoCruzou} com rota que não existe no planejamento</b>`:'')
+      +(semRota?` · ${semRota} sem rota`:'')+(dup?` · ${dup} duplicados ignorados`:'')
+      +(cientifico?` · <b style="color:#B91C1C">${cientifico} IDs em notação científica ignorados</b>`:'')+'.');
+    await basePacCarregarResumo();
+  }catch(e){
+    console.error('BASE PACOTES:',e);
+    const msg=e?.message||String(e);
+    if(e?.code==='42P01'||e?.code==='PGRST205'||/planejamento_pacotes/i.test(msg)) basePacSt('⚠ A tabela <b>planejamento_pacotes</b> não existe (ou não está exposta na Data API). Rode o <b>planejamento_pacotes.sql</b> no Supabase.');
+    else basePacSt('Erro: '+escapeHtml(msg));
+  }finally{
+    input.value=''; if(hint) hint.textContent='CSV/XLSX com ID do pacote + rota/gaiola';
+  }
+}
+async function basePacLimpar(){
+  const ciclo=document.getElementById('basePacCiclo').value;
+  const {error}=await db.from(BASEPAC_TABELA).delete().eq('data_operacao',hojeISO()).eq('ciclo',ciclo);
+  basePacSt(error?'Erro ao limpar: '+escapeHtml(error.message):'Base de pacotes '+ciclo+' removida.');
+  await basePacCarregarResumo();
+}
+async function basePacCarregarResumo(){
+  const el=document.getElementById('basePacResumo'); if(!el) return;
+  const partes=[];
+  for(const c of ['AM1','PM1','SD','CHP']){
+    try{
+      const {count,error}=await db.from(BASEPAC_TABELA).select('*',{count:'exact',head:true}).eq('data_operacao',hojeISO()).eq('ciclo',c);
+      if(error) throw error;
+      const r2=await db.from(BASEPAC_TABELA).select('*',{count:'exact',head:true}).eq('data_operacao',hojeISO()).eq('ciclo',c).eq('vinculada',false);
+      basePacContagem[c]={total:count||0,sem:r2.count||0};
+      partes.push(`<span class="${(r2.count||0)>0?'alerta':''}">${c} · ${count||0} pac.${r2.count?` · ${r2.count} s/ rota`:''}</span>`);
+    }catch(e){ el.innerHTML='<span class="alerta">Tabela planejamento_pacotes indisponível</span>'; return; }
+  }
+  el.innerHTML=partes.join('');
+}
+// Consulta rápida do painel: ID de pacote → rota, rua, onda, vaga
+async function basePacBuscarNoPainel(bruto){
+  const cod=normalizarCodigoPacote(bruto);
+  const det=document.getElementById('detalhe');
+  det.innerHTML='<div class="empty">Procurando pacote '+escapeHtml(cod)+'…</div>';
+  const {data,error}=await db.from(BASEPAC_TABELA).select('*').eq('pacote',cod).eq('data_operacao',hojeISO()).order('criado_em',{ascending:false}).limit(5);
+  if(error){ det.innerHTML='<div class="pac-res erro">Erro ao consultar a base: '+escapeHtml(error.message)+'</div>'; return; }
+  if(!data||!data.length){ det.innerHTML=`<div class="pac-res erro"><div class="big">${escapeHtml(cod)}</div><div class="linha">Pacote não está na base de pacotes de hoje.</div></div>`; destacar([]); return; }
+  det.innerHTML=data.map(p=>{
+    const vinc=vinculoPorTransportadora(p.transportadora);
+    const rua=ruaDoPacote(p)+(ehSubrotaSaca(p.rota_base)?' · saca '+p.rota_base:'');
+    const c=chamadosData.find(x=>String(x.nRota).toUpperCase()===String(p.rota||'').toUpperCase());
+    if(vinc) destacar(c?[Number(c.vaga)]:vagasData.filter(v=>v.sigla===vinc.sigla).map(v=>v.num));
+    return `<div class="pac-res"><div class="linha">Pacote <b>${escapeHtml(p.pacote)}</b> · ${escapeHtml(p.ciclo)}</div>
+      <div class="big">${escapeHtml(p.rota||'—')}</div>
+      <div class="linha"><b>${escapeHtml(rua)}</b>${c?` · na vaga <b>${escapeHtml(String(c.vaga))}</b>`:' · rota ainda não está em vaga'}</div>
+      <div class="linha">${escapeHtml(p.transportadora||'—')}${p.onda?' · '+escapeHtml(/^onda/i.test(p.onda)?p.onda:'Onda '+p.onda):''}${p.parada?' · Parada '+escapeHtml(p.parada):''}${p.vinculada?'':' · <b>rota não encontrada no planejamento</b>'}</div></div>`;
+  }).join('');
+}
+document.addEventListener('DOMContentLoaded',()=>{ setTimeout(basePacCarregarResumo,1200); });
+</script>
+<script id="backlog-bipar">
+// ================= BACKLOG · BIPAR PACOTE =================
+// Bipa o ID → procura em planejamento_pacotes → grava em backlog_pacotes já com rota, rua,
+// transportadora, onda e parada. O app do Líder lê backlog_pacotes na aba "Backlog" (tempo real).
+let blItens=[], blOcupado=false;
+let blCicloModo=(()=>{try{return localStorage.getItem('bl-ciclo-modo')||'AUTO'}catch(e){return 'AUTO'}})();
+function blCicloAtual(){ return blCicloModo==='AUTO' ? (detectarCicloPlanejamento(rotasData)||'AM1') : blCicloModo; }
+function blCicloMudou(){ blCicloModo=document.getElementById('blCiclo').value; try{localStorage.setItem('bl-ciclo-modo',blCicloModo)}catch(e){} blRender(); }
+function blEnviar(){ const i=document.getElementById('blInput'); const v=i.value; i.value=''; blBipe(v); i.focus(); }
+function blRuaDe(p){ return ruaDoPacote(p); }
+function blMostrar(html){ document.getElementById('blResultado').innerHTML=html; }
+async function blBipe(bruto){
+  const cod=normalizarCodigoPacote(bruto);
+  if(!cod||blOcupado) return;
+  blOcupado=true;
+  try{
+    const ja=blItens.find(x=>String(x.pacote).toUpperCase()===cod);
+    if(ja){ blMostrar(`<div class="pac-res erro"><div class="linha"><b>${escapeHtml(cod)}</b> já está no backlog → ${escapeHtml(ja.rota||'sem rota')} · ${escapeHtml(blRuaDe(ja))}</div></div>`); expSom(false); return; }
+    const ciclo=blCicloAtual();
+    const {data,error}=await db.from('planejamento_pacotes').select('*').eq('pacote',cod).eq('data_operacao',hojeISO()).order('criado_em',{ascending:false}).limit(10);
+    if(error){ blMostrar(`<div class="pac-res erro">Erro na base de pacotes: ${escapeHtml(error.message)}<br><small>Rode o planejamento_pacotes.sql e importe a base.</small></div>`); expSom(false); return; }
+    const p=(data||[]).find(x=>String(x.ciclo).toUpperCase()===ciclo) || (data||[])[0] || null;
+    const rua=p?blRuaDe(p):null;
+    const item={
+      data_operacao:hojeISO(), ciclo:p?.ciclo||ciclo, pacote:cod, encontrado:!!p,
+      rota:p?.rota||null, transportadora:p?.transportadora||null, onda:p?.onda||null,
+      parada:p?.parada||null, rua, bipado_por:'Painel SVC',
+      saca:(p&&ehSubrotaSaca(p.rota_base))?p.rota_base:null
+    };
+    const ins=await db.from('backlog_pacotes').insert(item).select();
+    if(ins.error){
+      if(ins.error.code==='23505') blMostrar(`<div class="pac-res erro"><b>${escapeHtml(cod)}</b> já estava no backlog de hoje.</div>`);
+      else blMostrar(`<div class="pac-res erro">Não gravou no backlog: ${escapeHtml(ins.error.message)}<br><small>Confira se a tabela backlog_pacotes existe e está exposta na Data API.</small></div>`);
+      expSom(false); return;
+    }
+    if(ins.data&&ins.data[0]) blItens=[ins.data[0],...blItens.filter(x=>x.id!==ins.data[0].id)];
+    if(p){
+      const c=chamadosData.find(x=>String(x.nRota).toUpperCase()===String(p.rota||'').toUpperCase());
+      blMostrar(`<div class="pac-res"><div class="linha">Pacote <b>${escapeHtml(cod)}</b> · ${escapeHtml(p.ciclo)} · entrou no backlog</div>
+        <div class="big">${escapeHtml(p.rota||'—')}</div>
+        <div class="linha"><b>${escapeHtml(rua)}</b>${ehSubrotaSaca(p.rota_base)?` · saca <b>${escapeHtml(p.rota_base)}</b> (rota mãe ${escapeHtml(p.rota||'')})`:''}${c?` · na vaga <b>${escapeHtml(String(c.vaga))}</b>`:''}</div>
+        <div class="linha">${escapeHtml(p.transportadora||'—')}${p.onda?' · '+escapeHtml(/^onda/i.test(p.onda)?p.onda:'Onda '+p.onda):''}${p.parada?' · Parada '+escapeHtml(p.parada):''}</div></div>`);
+      expSom(true);
+    }else{
+      blMostrar(`<div class="pac-res erro"><div class="big">${escapeHtml(cod)}</div><div class="linha">Não está na base de pacotes de hoje — registrado no backlog como <b>SEM ROTA</b>.</div></div>`);
+      expSom(false);
+    }
+    blRender();
+  }finally{ blOcupado=false; }
+}
+async function blRemover(id){
+  const {error}=await db.from('backlog_pacotes').delete().eq('id',id);
+  if(error){ blMostrar(`<div class="pac-res erro">Não removeu: ${escapeHtml(error.message)}</div>`); return; }
+  blItens=blItens.filter(x=>x.id!==id); blRender();
+}
+async function blCarregar(){
+  try{
+    const {data,error}=await db.from('backlog_pacotes').select('*').eq('data_operacao',hojeISO()).order('criado_em',{ascending:false});
+    if(error) throw error; blItens=data||[];
+  }catch(e){ /* tabela ainda não criada: o aviso aparece ao bipar */ }
+  blRender();
+}
+function blRender(){
+  const cs=document.getElementById('blCiclo'); if(!cs) return;
+  const ciclo=blCicloAtual();
+  const oa=cs.querySelector('option[value="AUTO"]'); if(oa) oa.textContent='Auto · '+ciclo;
+  cs.value=blCicloModo;
+  const doCiclo=blItens.filter(x=>String(x.ciclo||'').toUpperCase()===ciclo);
+  document.getElementById('blTotal').textContent=doCiclo.length+' · '+ciclo;
+  const cont={}; doCiclo.forEach(x=>{ const r=x.encontrado===false?'Sem rota':blRuaDe(x); cont[r]=(cont[r]||0)+1; });
+  const ks=Object.keys(cont).sort();
+  document.getElementById('blPorRua').innerHTML=ks.length?ks.map(k=>`<button type="button">${escapeHtml(k)} · <b>${cont[k]}</b></button>`).join(''):'<div class="empty">Nada no backlog.</div>';
+  document.getElementById('blLista').innerHTML=doCiclo.length?doCiclo.slice(0,60).map(x=>`<div class="exp-item"><div>${escapeHtml(x.pacote)}<small>${x.encontrado===false?'<b style="color:#B91C1C">SEM ROTA</b>':escapeHtml((x.rota||'')+' · '+blRuaDe(x))}${x.criado_em?' · '+new Date(x.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}</small></div><button onclick="blRemover(${Number(x.id)})">Remover</button></div>`).join(''):'<div class="empty">Nenhum pacote bipado.</div>';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{
+    blCarregar();
+    try{ db.channel('svc-coord-backlog').on('postgres_changes',{event:'*',schema:'public',table:'backlog_pacotes'},()=>blCarregar()).subscribe(); }catch(e){}
+  },1000);
+  setInterval(blCarregar,8000);
 });
 </script>
 </body>
